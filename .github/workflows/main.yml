@@ -12,15 +12,15 @@ jobs:
       matrix:
         config: [debug, release]
         machine:
-        - host: linux-x86_64
+        - host: linux
           os: ubuntu-latest
           action: gmake2
           toolset: gcc
-        - host: linux-x86_64
+        - host: linux
           os: ubuntu-latest
           action: gmake2
           toolset: clang
-        - host: windows-x86_64
+        - host: windows
           os: windows-latest
           action: vs2019
           toolset: msc
@@ -47,7 +47,7 @@ jobs:
       run: premake5 build --config=${{ matrix.config }}
     - name: Test linux
       if: matrix.machine.os == 'ubuntu-latest'
-      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}/Test
+      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}-x86_64/Test
     - name: Test windows
       if: matrix.machine.os == 'windows-latest'
-      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}/Test.exe
+      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}-x86_64/Test.exe
