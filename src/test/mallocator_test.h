@@ -4,5 +4,5 @@
 
 namespace ktl
 {
-    KTL_ADD_TEST(binary_heap_test);
+    KTL_ADD_TEST(test_mallocator);
 }

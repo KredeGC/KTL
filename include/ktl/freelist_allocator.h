@@ -1,5 +1,7 @@
 #pragma once
 
+#include "alignment_utility.h"
+
 #include <memory>
 #include <type_traits>
 
@@ -22,26 +24,38 @@ namespace ktl
 			using other = freelist_allocator<U>;
 		};
 
-		freelist_allocator() noexcept = default;
+		freelist_allocator() noexcept
+		{
+			char* ptr = m_Block;
+
+			ptr += align_to_architecture(size_t(ptr));
+
+			m_Free = reinterpret_cast<free_footer*>(ptr);
+			m_Free->AvailableSpace = Size;
+			m_Free->Next = nullptr;
+		}
 
 		template<typename U>
-		freelist_allocator(const freelist_allocator<U>& other) noexcept {}
-
-		virtual ~freelist_allocator()
+		freelist_allocator(const freelist_allocator<U>& other) noexcept
 		{
-			if (m_Block)
-				::operator delete(m_Block);
+			char* ptr = m_Block;
+
+			ptr += align_to_architecture(size_t(ptr));
+
+			m_Free = reinterpret_cast<free_footer*>(ptr);
+			m_Free->AvailableSpace = Size;
+			m_Free->Next = nullptr;
 		}
+
+		virtual ~freelist_allocator() = default;
 
 		T* allocate(size_type n)
 		{
-			const size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
+			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
+			totalSize += align_to_architecture(totalSize);
 
 			if (totalSize > Size)
 				return nullptr;
-
-			if (m_Block == nullptr)
-				allocate_block();
 
 			if (m_Free == nullptr)
 				return nullptr;
@@ -98,6 +112,7 @@ namespace ktl
 		void deallocate(T* p, size_type n)
 		{
 			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
+			totalSize += align_to_architecture(totalSize);
 
 			free_footer* header = reinterpret_cast<free_footer*>(p);
 
@@ -138,7 +153,8 @@ namespace ktl
 
 		bool owns(T* p)
 		{
-			return p >= m_Block && p < m_Block + Size;
+			char* ptr = reinterpret_cast<char*>(p);
+			return ptr >= m_Block && ptr < m_Block + Size + ALIGNMENT - 1;
 		}
 
 		void coalesce(free_footer* header)
@@ -168,17 +184,8 @@ namespace ktl
 			free_footer* Next;
 		};
 
-		T* m_Block = nullptr;
-		free_footer* m_Free = nullptr;
-
-		void allocate_block()
-		{
-			m_Block = reinterpret_cast<T*>(::operator new(Size));
-
-			m_Free = reinterpret_cast<free_footer*>(m_Block);
-			m_Free->AvailableSpace = Size;
-			m_Free->Next = nullptr;
-		}
+		char m_Block[Size + ALIGNMENT - 1];
+		free_footer* m_Free;
 	};
 
 	template<typename T, typename U>

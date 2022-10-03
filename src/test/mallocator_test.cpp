@@ -5,7 +5,7 @@
 
 namespace ktl
 {
-    void mallocator_test()
+    void test_mallocator()
     {
         constexpr double value1 = 42.5;
         constexpr double value2 = 81.3;
