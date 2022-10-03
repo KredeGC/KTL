@@ -15,35 +15,37 @@ namespace ktl
         size_t m_Capacity = 2;
         Comp m_Comp;
 
+        typedef std::allocator_traits<Alloc> Traits;
+
     public:
         binary_heap(const Alloc& allocator = Alloc()) :
             Alloc(allocator),
             m_Comp(Comp()),
-            m_Data(Alloc::allocate(m_Capacity))
+            m_Data(Traits::allocate(*this, m_Capacity))
         {
             for (size_t i = 0; i < m_Capacity; i++)
-                std::allocator_traits<Alloc>::construct(*this, m_Data + i);
+                Traits::construct(*this, m_Data + i);
         }
 
         binary_heap(size_t capacity, const Alloc& allocator = Alloc()) :
             Alloc(allocator),
             m_Comp(Comp()),
             m_Capacity(capacity),
-            m_Data(Alloc::allocate(capacity))
+            m_Data(Traits::allocate(*this, capacity))
         {
             for (size_t i = 0; i < m_Capacity; i++)
-                std::allocator_traits<Alloc>::construct(*this, m_Data + i);
+                Traits::construct(*this, m_Data + i);
         }
 
         binary_heap(const binary_heap& other) noexcept :
-            Alloc(std::allocator_traits<Alloc>::select_on_container_copy_construction(static_cast<Alloc>(other))),
+            Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
             m_Comp(other.m_Comp),
             m_Capacity(other.m_Size),
             m_Size(other.m_Size),
-            m_Data(Alloc::allocate(other.m_Size))
+            m_Data(Traits::allocate(*this, other.m_Size))
         {
             for (size_t i = 0; i < m_Size; i++)
-                std::allocator_traits<Alloc>::construct(*this, m_Data + i, other.m_Data[i]);
+                Traits::construct(*this, m_Data + i, other.m_Data[i]);
         }
 
         binary_heap(binary_heap&& other) noexcept :
@@ -64,9 +66,9 @@ namespace ktl
             if (m_Data)
             {
                 for (size_t i = 0; i < m_Capacity; i++)
-                    std::allocator_traits<Alloc>::destroy(*this, m_Data + i);
+                    Traits::destroy(*this, m_Data + i);
 
-                Alloc::deallocate(m_Data, m_Capacity);
+                Traits::deallocate(*this, m_Data, m_Capacity);
             }
         }
 
@@ -75,20 +77,20 @@ namespace ktl
             if (m_Data)
             {
                 for (size_t i = 0; i < m_Capacity; i++)
-                    std::allocator_traits<Alloc>::destroy(*this, m_Data + i);
+                    Traits::destroy(*this, m_Data + i);
 
-                Alloc::deallocate(m_Data, m_Capacity);
+                Traits::deallocate(*this, m_Data, m_Capacity);
             }
 
             m_Comp = other.m_Comp;
             m_Capacity = other.m_Size;
             m_Size = other.m_Size;
-            m_Data = Alloc::allocate(other.m_Size);
+            m_Data = Traits::allocate(*this, other.m_Size);
 
             // Construct elements
             {
                 for (size_t i = 0; i < m_Size; i++)
-                    std::allocator_traits<Alloc>::construct(*this, m_Data + i);
+                    Traits::construct(*this, m_Data + i);
 
                 for (size_t i = 0; i < m_Size; i++)
                     m_Data[i] = other.m_Data[i];
@@ -103,9 +105,9 @@ namespace ktl
             if (m_Data)
             {
                 for (size_t i = 0; i < m_Capacity; i++)
-                    std::allocator_traits<Alloc>::destroy(*this, m_Data + i);
+                    Traits::destroy(*this, m_Data + i);
 
-                Alloc::deallocate(m_Data, m_Capacity);
+                Traits::deallocate(*this, m_Data, m_Capacity);
             }
 
             m_Comp = other.m_Comp;
@@ -166,12 +168,12 @@ namespace ktl
             if (m_Data && m_Size >= m_Capacity)
             {
                 size_t newCapacity = m_Capacity * 2 + 1;
-                T* newData = Alloc::allocate(newCapacity);
+                T* newData = Traits::allocate(*this, newCapacity);
 
                 // Construct elements
                 {
                     for (size_t i = 0; i < newCapacity; i++)
-                        std::allocator_traits<Alloc>::construct(*this, newData + i);
+                        Traits::construct(*this, newData + i);
 
                     for (size_t i = 0; i < m_Size; i++)
                         newData[i] = std::move(m_Data[i]);
@@ -180,9 +182,9 @@ namespace ktl
                 // Deconstruct elements
                 {
                     for (size_t i = 0; i < m_Capacity; i++)
-                        std::allocator_traits<Alloc>::destroy(*this, m_Data + i);
+                        Traits::destroy(*this, m_Data + i);
 
-                    Alloc::deallocate(m_Data, m_Capacity);
+                    Traits::deallocate(*this, m_Data, m_Capacity);
                 }
 
                 m_Capacity = newCapacity;
@@ -212,7 +214,7 @@ namespace ktl
 
             const T value = m_Data[index];
 
-            while (parent <= m_Size)
+            while (parent < m_Size)
             {
                 size_t l = left(parent);
                 size_t r = right(parent);
@@ -226,11 +228,17 @@ namespace ktl
                     child = r;
 
                 if (child != parent)
-                    m_Data[parent] = m_Data[child];
-                else
-                    break;
+                {
+                    const T temp = std::move(m_Data[child]);
+                    m_Data[child] = std::move(m_Data[parent]);
+                    m_Data[parent] = std::move(temp);
 
-                parent = child;
+                    parent = child;
+                }
+                else
+                {
+                    break;
+                }
             }
 
             m_Data[child] = value;

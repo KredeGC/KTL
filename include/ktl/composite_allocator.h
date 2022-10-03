@@ -10,6 +10,7 @@ namespace ktl
 	{
 	public:
 		using value_type = typename P::value_type;
+		using size_type = typename P::size_type;
 		using is_always_equal = std::true_type;
 
 		template<typename U, typename V>
@@ -18,10 +19,10 @@ namespace ktl
 			using other = composite_allocator<U, V>;
 		};
 
-		composite_allocator() noexcept = default;
+		composite_allocator() noexcept : P(), F() {}
 
 		template<typename U, typename V>
-		composite_allocator(const composite_allocator<U, V>& other) noexcept {}
+		composite_allocator(const composite_allocator<U, V>& other) noexcept : P(), F() {}
 
 		value_type* allocate(size_t n)
 		{
@@ -37,6 +38,11 @@ namespace ktl
 				P::deallocate(p, n);
 			else
 				F::deallocate(p, n);
+		}
+
+		size_type max_size() const noexcept
+		{
+			return (std::max)(P::max_size(), F::max_size());
 		}
 
 		bool owns(value_type* p)

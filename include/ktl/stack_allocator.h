@@ -10,6 +10,7 @@ namespace ktl
 	{
 	public:
 		using value_type = T;
+		using size_type = size_t;
 		using is_always_equal = std::true_type;
 
 		template<typename U>
@@ -18,12 +19,12 @@ namespace ktl
 			using other = stack_allocator<U>;
 		};
 
-		stack_allocator() noexcept : m_Begin(m_Chunk), m_Free(m_Chunk) {}
+		stack_allocator() noexcept = default;
 
 		template<typename U>
 		stack_allocator(const stack_allocator<U>&) noexcept {}
 
-		T* allocate(size_t n)
+		T* allocate(size_type n)
 		{
 			if ((size_t(m_Free - m_Begin) + n) > (Size / sizeof(T)))
 				return nullptr;
@@ -36,7 +37,7 @@ namespace ktl
 			return current;
 		}
 
-		void deallocate(T* p, size_t n)
+		void deallocate(T* p, size_type n)
 		{
 			if (m_Free - n == p)
 				m_Free -= n;
@@ -48,16 +49,21 @@ namespace ktl
 				m_Free = m_Begin;
 		}
 
+		size_type max_size() const noexcept
+		{
+			return Size / sizeof(T);
+		}
+
 		bool owns(T* p)
 		{
 			return p >= m_Begin && p < m_Begin + (Size / sizeof(T));
 		}
 
 	private:
-		value_type m_Chunk[Size / sizeof(T)];
+		char m_Chunk[Size];
 
-		value_type* m_Begin;
-		value_type* m_Free;
+		value_type* m_Begin = reinterpret_cast<value_type*>(m_Chunk);
+		value_type* m_Free = reinterpret_cast<value_type*>(m_Chunk);
 
 		size_t m_ObjectCount = 0;
 	};

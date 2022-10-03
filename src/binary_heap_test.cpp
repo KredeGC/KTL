@@ -2,7 +2,6 @@
 #include "assert_utility.h"
 #include "ktl/binary_heap.h"
 
-#include "ktl/debug_allocator.h"
 #include "ktl/freelist_allocator.h"
 #include "ktl/stack_allocator.h"
 

@@ -13,6 +13,7 @@ namespace ktl
 
 	public:
 		using value_type = T;
+		using size_type = size_t;
 		using is_always_equal = std::true_type;
 
 		template<typename U>
@@ -32,7 +33,7 @@ namespace ktl
 				::operator delete(m_Block);
 		}
 
-		T* allocate(size_t n)
+		T* allocate(size_type n)
 		{
 			const size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
 
@@ -62,7 +63,7 @@ namespace ktl
 				}
 			}
 
-			if (current->AvailableSpace < totalSize + sizeof(free_footer) && !current->Next)
+			if (current->AvailableSpace < totalSize && !current->Next)
 				return nullptr;
 
 			char* offset = reinterpret_cast<char*>(current);
@@ -94,7 +95,7 @@ namespace ktl
 			return reinterpret_cast<T*>(current);
 		}
 
-		void deallocate(T* p, size_t n)
+		void deallocate(T* p, size_type n)
 		{
 			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
 
@@ -102,7 +103,7 @@ namespace ktl
 
 			header->AvailableSpace = totalSize;
 
-			if (m_Free > header)
+			if (m_Free > header || m_Free == nullptr)
 			{
 				free_footer* begin = m_Free;
 				header->Next = begin;
@@ -128,6 +129,11 @@ namespace ktl
 				coalesce(current);
 				coalesce(current);
 			}
+		}
+
+		size_type max_size() const noexcept
+		{
+			return Size / sizeof(T);
 		}
 
 		bool owns(T* p)
@@ -162,14 +168,14 @@ namespace ktl
 			free_footer* Next;
 		};
 
-		free_footer* m_Block = nullptr;
+		T* m_Block = nullptr;
 		free_footer* m_Free = nullptr;
 
 		void allocate_block()
 		{
-			m_Block = reinterpret_cast<free_footer*>(::operator new(Size));
+			m_Block = reinterpret_cast<T*>(::operator new(Size));
 
-			m_Free = m_Block;
+			m_Free = reinterpret_cast<free_footer*>(m_Block);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
 		}
