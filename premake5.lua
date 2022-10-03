@@ -29,8 +29,8 @@ workspace "KTL"
     toolset(_OPTIONS["toolset"])
     
     configurations {
-        "Debug",
-        "Release"
+        "debug",
+        "release"
     }
     
     filter "toolset:clang"
