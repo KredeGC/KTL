@@ -42,12 +42,12 @@ namespace ktl
 			m_Free = m_Begin;
 		}
 
-		T* allocate(size_type n)
+		value_type* allocate(size_type n)
 		{
-			if ((size_t(m_Free - m_Begin) + n) > (Size / sizeof(T)))
+			if ((size_t(m_Free - m_Begin) + n) > (Size / sizeof(value_type)))
 				return nullptr;
 
-			T* current = m_Free;
+			value_type* current = m_Free;
 
 			m_Free += n;
 			m_ObjectCount += n;
@@ -55,7 +55,7 @@ namespace ktl
 			return current;
 		}
 
-		void deallocate(T* p, size_type n)
+		void deallocate(value_type* p, size_type n)
 		{
 			if (m_Free - n == p)
 				m_Free -= n;
@@ -69,10 +69,10 @@ namespace ktl
 
 		size_type max_size() const noexcept
 		{
-			return Size / sizeof(T);
+			return Size / sizeof(value_type);
 		}
 
-		bool owns(T* p)
+		bool owns(value_type* p)
 		{
 			char* ptr = reinterpret_cast<char*>(p);
 			return ptr >= m_Block && ptr < m_Block + Size + ALIGNMENT - 1;

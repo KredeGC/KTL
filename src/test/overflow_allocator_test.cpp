@@ -1,11 +1,9 @@
-#include "leak_allocator_test.h"
-#include "allocation_utility.h"
+#include "overflow_allocator_test.h"
+#include "utility/allocation_utility.h"
 
 #include "ktl/binary_heap.h"
-#include "ktl/composite_allocator.h"
-#include "ktl/leak_allocator.h"
 #include "ktl/freelist_allocator.h"
-#include "ktl/stack_allocator.h"
+#include "ktl/overflow_allocator.h"
 
 #include <sstream>
 
@@ -14,7 +12,7 @@ namespace ktl
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);
 
-    void test_freelist_leak()
+    void test_freelist_overflow()
     {
         stringBuffer = std::stringbuf();
 
@@ -25,7 +23,7 @@ namespace ktl
             constexpr double value4 = 182.1;
             constexpr double value5 = 99.9;
 
-            leak_allocator<freelist_allocator<double>, stringOut> alloc;
+            overflow_allocator<freelist_allocator<double>, stringOut> alloc;
 
             double* ptr1 = assert_allocate<double>(alloc, value1);
             double* ptr2 = assert_allocate<double>(alloc, value2);
@@ -54,7 +52,7 @@ namespace ktl
         KTL_ASSERT(stringBuffer.str().empty());
     }
 
-    void test_binary_heap_leak()
+    void test_binary_heap_overflow()
     {
         stringBuffer = std::stringbuf();
 
@@ -70,7 +68,7 @@ namespace ktl
                 58.0
             };
 
-            binary_min_heap<double, leak_allocator<freelist_allocator<double>, stringOut>> heap(3);
+            binary_min_heap<double, overflow_allocator<freelist_allocator<double>, stringOut>> heap(3);
             heap.insert(values[0]);
             heap.insert(values[5]);
             heap.insert(values[7]);

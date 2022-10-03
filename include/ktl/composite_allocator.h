@@ -8,6 +8,10 @@ namespace ktl
 	template<typename P, typename F>
 	class composite_allocator : public P, private F
 	{
+	private:
+		using primary_traits = std::allocator_traits<P>;
+		using fallback_traits = std::allocator_traits<F>;
+
 	public:
 		using value_type = typename P::value_type;
 		using size_type = typename P::size_type;
@@ -26,23 +30,23 @@ namespace ktl
 
 		value_type* allocate(size_t n)
 		{
-			value_type* ptr = P::allocate(n);
+			value_type* ptr = primary_traits::allocate(*this, n);
 			if (!ptr)
-				return F::allocate(n);
+				return fallback_traits::allocate(*this, n);
 			return ptr;
 		}
 
 		void deallocate(value_type* p, size_t n)
 		{
 			if (P::owns(p))
-				P::deallocate(p, n);
+				primary_traits::deallocate(*this, p, n);
 			else
-				F::deallocate(p, n);
+				fallback_traits::deallocate(*this, p, n);
 		}
 
 		size_type max_size() const noexcept
 		{
-			return (std::max)(P::max_size(), F::max_size());
+			return (std::max)(primary_traits::max_size(*this), fallback_traits::max_size(*this));
 		}
 
 		bool owns(value_type* p)

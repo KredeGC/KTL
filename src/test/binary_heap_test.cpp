@@ -1,5 +1,5 @@
 #include "binary_heap_test.h"
-#include "assert_utility.h"
+#include "utility/assert_utility.h"
 #include "ktl/binary_heap.h"
 
 #include "ktl/freelist_allocator.h"

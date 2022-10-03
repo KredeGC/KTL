@@ -8,26 +8,27 @@
 namespace ktl
 {
 	template<typename Alloc, std::ostream& Stream = std::cerr>
-	class leak_allocator : private Alloc
+	class overflow_allocator : private Alloc
 	{
+	private:
+		using traits = std::allocator_traits<Alloc>;
+
 	public:
 		using value_type = typename Alloc::value_type;
 		using is_always_equal = std::true_type;
 
-		using traits = std::allocator_traits<Alloc>;
-
 		template<typename U, std::ostream& V>
 		struct rebind
 		{
-			using other = leak_allocator<U, V>;
+			using other = overflow_allocator<U, V>;
 		};
 
-		leak_allocator() noexcept : Alloc() {}
+		overflow_allocator() noexcept : Alloc() {}
 
 		template<typename U, std::ostream& V>
-		leak_allocator(const leak_allocator<U, V>&) noexcept {}
+		overflow_allocator(const overflow_allocator<U, V>&) noexcept {}
 
-		~leak_allocator()
+		~overflow_allocator()
 		{
 			if (m_Allocs != 0 || m_Constructs != 0)
 				Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n" << m_Allocs << " Allocations\n" << m_Constructs << " Constructions\n";
@@ -37,14 +38,27 @@ namespace ktl
 		{
 			m_Allocs += n;
 
-			return traits::allocate(*this, n);
+			size_t overflowSize = n * 3;
+			value_type* ptr = traits::allocate(*this, overflowSize);
+
+			memset(ptr, 0, n);
+			memset(ptr + 2 * n, 0, n);
+
+			return ptr + n;
 		}
 
 		void deallocate(value_type* p, size_t n)
 		{
 			m_Allocs -= n;
 
-			traits::deallocate(*this, p, n);
+			// HACK: In reality this should be compared to 0 directly, but that would require more allocation etc...
+			// Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
+			if (memcmp(p - n, p + n, n) != 0)
+				Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << p << " has been modified\n";
+
+			size_t overflowSize = n * 3;
+
+			traits::deallocate(*this, p - n, overflowSize);
 		}
 
 		template<class... Args>
@@ -68,13 +82,13 @@ namespace ktl
 	};
 
 	template<typename T, typename U>
-	bool operator==(const leak_allocator<T>&, const leak_allocator<U>&) noexcept
+	bool operator==(const overflow_allocator<T>&, const overflow_allocator<U>&) noexcept
 	{
 		return true;
 	}
 
 	template<typename T, typename U>
-	bool operator!=(const leak_allocator<T>&, const leak_allocator<U>&) noexcept
+	bool operator!=(const overflow_allocator<T>&, const overflow_allocator<U>&) noexcept
 	{
 		return false;
 	}
