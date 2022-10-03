@@ -10,7 +10,7 @@ jobs:
   Build:
     strategy:
       matrix:
-        config: [debug, release]
+        config: [Debug, Release]
         machine:
         - host: linux-x86_64
           os: ubuntu-latest
@@ -45,9 +45,9 @@ jobs:
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }}
     - name: Build
       run: premake5 build --config=${{ matrix.config }}
-    - name: Test
+    - name: Test linux
       if: matrix.machine.os == 'ubuntu-latest'
-      run: bin/${{ matrix.config }}-${{ matrix.machine.hot }}/Test
-    - name: Test
+      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}/Test
+    - name: Test windows
       if: matrix.machine.os == 'windows-latest'
-      run: bin/${{ matrix.config }}-${{ matrix.machine.hot }}/Test.exe
+      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}/Test.exe
