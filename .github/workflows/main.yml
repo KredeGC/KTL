@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  Build:
+    strategy:
+      matrix:
+        config: [debug, release]
+        machine:
+        - host: linux-x86_64
+          os: ubuntu-latest
+          action: gmake2
+          toolset: gcc
+        - host: linux-x86_64
+          os: ubuntu-latest
+          action: gmake2
+          toolset: clang
+        - host: windows-x86_64
+          os: windows-latest
+          action: vs2019
+          toolset: msc
+    runs-on: ${{ matrix.machine.os }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup premake
+      uses: abel0b/setup-premake@v2
+      with:
+        version: "5.0.0-beta1"
+    - name: Install GCC
+      if: matrix.machine.os == 'ubuntu-latest' && matrix.machine.toolset == 'gcc'
+      run: sudo apt install -y gcc g++
+    - name: Install Clang & LLVM
+      if: matrix.machine.os == 'ubuntu-latest' && matrix.machine.toolset == 'clang'
+      run: sudo apt install -y clang llvm lld
+    - name: Install msbuild to PATH
+      if: matrix.machine.os == 'windows-latest' && matrix.machine.toolset == 'msc'
+      uses: microsoft/setup-msbuild@v1.1
+    - name: Run premake
+      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }}
+    - name: Build
+      run: premake5 build --config=${{ matrix.config }}
+    - name: Test
+      if: matrix.machine.os == 'ubuntu-latest'
+      run: bin/${{ matrix.config }}-${{ matrix.machine.hot }}/Test
+    - name: Test
+      if: matrix.machine.os == 'windows-latest'
+      run: bin/${{ matrix.config }}-${{ matrix.machine.hot }}/Test.exe

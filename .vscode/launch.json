@@ -21,16 +21,16 @@
                 }
             ],
             "linux": {
-                "program": "${workspaceFolder}/bin/Debug-linux-x86_64/Main",
+                "program": "${workspaceFolder}/bin/Debug-linux-x86_64/Test",
                 "MIMode": "gdb",
                 "miDebuggerPath": "/usr/bin/gdb"
             },
             "osx": {
-                "program": "${workspaceFolder}/bin/Debug-osx-x86_64/Main",
+                "program": "${workspaceFolder}/bin/Debug-osx-x86_64/Test",
                 "MIMode": "lldb"
             },
             "windows": {
-                "program": "${workspaceFolder}/bin/Debug-windows-x86_64/Main.exe",
+                "program": "${workspaceFolder}/bin/Debug-windows-x86_64/Test.exe",
                 "MIMode": "gdb",
                 "miDebuggerPath": "C:\\MinGw\\bin\\gdb.exe"
             }
