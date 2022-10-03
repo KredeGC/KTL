@@ -9,9 +9,16 @@ namespace ktl
     {
         T* ptr = std::allocator_traits<Alloc>::allocate(alloc, 1);
 
-        *ptr = value;
+        if (ptr)
+        {
+            std::allocator_traits<Alloc>::construct(alloc, ptr, value);
 
-        KTL_ASSERT(*ptr == value);
+            KTL_ASSERT(*ptr == value);
+        }
+        else
+        {
+            KTL_ASSERT_FALSE();
+        }
 
         return ptr;
     }
@@ -19,6 +26,15 @@ namespace ktl
     template<typename T, typename Alloc>
     void assert_deallocate(Alloc& alloc, T* ptr)
     {
-        std::allocator_traits<Alloc>::deallocate(alloc, ptr, 1);
+        if (ptr)
+        {
+            std::allocator_traits<Alloc>::destroy(alloc, ptr);
+
+            std::allocator_traits<Alloc>::deallocate(alloc, ptr, 1);
+        }
+        else
+        {
+            KTL_ASSERT_FALSE();
+        }
     }
 }

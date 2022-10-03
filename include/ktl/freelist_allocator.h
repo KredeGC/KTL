@@ -42,6 +42,9 @@ namespace ktl
 			if (m_Block == nullptr)
 				allocate_block();
 
+			if (m_Free == nullptr)
+				return nullptr;
+
 			free_footer* parent = nullptr;
 			free_footer* current = m_Free;
 			while (current->Next)
@@ -59,11 +62,14 @@ namespace ktl
 				}
 			}
 
+			if (current->AvailableSpace < totalSize + sizeof(free_footer) && !current->Next)
+				return nullptr;
+
 			char* offset = reinterpret_cast<char*>(current);
 
 			free_footer footer = *current;
 
-			if (footer.AvailableSpace > totalSize + sizeof(free_footer))
+			if (footer.AvailableSpace >= totalSize + sizeof(free_footer))
 			{
 				free_footer* newFooter = reinterpret_cast<free_footer*>(offset + totalSize);
 
