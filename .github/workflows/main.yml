@@ -10,7 +10,7 @@ jobs:
   Build:
     strategy:
       matrix:
-        config: [Debug, Release]
+        config: [debug, release]
         machine:
         - host: linux-x86_64
           os: ubuntu-latest
