@@ -5,8 +5,6 @@
 #include <memory>
 #include <type_traits>
 
-#include <iostream>
-
 namespace ktl
 {
 	template<typename T, size_t Size = 4096>
@@ -35,15 +33,12 @@ namespace ktl
 			m_Free = reinterpret_cast<free_footer*>(ptr);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
-
-			std::cout << "Construct" << std::endl;
-			std::cout << (int*)m_Free << std::endl;
-			std::cout << (int*)m_Block << std::endl;
-			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
 		}
 
 		freelist_allocator(const freelist_allocator& other) noexcept
 		{
+			// We can't copy m_Block, since it's stack allocated
+			// We must instead recreate it
 			char* ptr = m_Block;
 
 			ptr += align_to_architecture(size_t(ptr));
@@ -51,16 +46,13 @@ namespace ktl
 			m_Free = reinterpret_cast<free_footer*>(ptr);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
-
-			std::cout << "Copy" << std::endl;
-			std::cout << (int*)m_Free << std::endl;
-			std::cout << (int*)m_Block << std::endl;
-			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
 		}
 
 		template<typename U, size_t V>
 		freelist_allocator(const freelist_allocator<U, V>& other) noexcept
 		{
+			// We can't copy m_Block, since it's stack allocated
+			// We must instead recreate it
 			char* ptr = m_Block;
 
 			ptr += align_to_architecture(size_t(ptr));
@@ -68,22 +60,12 @@ namespace ktl
 			m_Free = reinterpret_cast<free_footer*>(ptr);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
-
-			std::cout << "Copy" << std::endl;
-			std::cout << (int*)m_Free << std::endl;
-			std::cout << (int*)m_Block << std::endl;
-			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
 		}
 
 		virtual ~freelist_allocator() = default;
 
 		T* allocate(size_type n)
 		{
-			std::cout << "Allocate" << std::endl;
-			std::cout << (int*)m_Free << std::endl;
-			std::cout << (int*)m_Block << std::endl;
-			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
-
 			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
 			totalSize += align_to_architecture(totalSize);
 
@@ -92,11 +74,6 @@ namespace ktl
 
 			if (m_Free == nullptr)
 				return nullptr;
-
-			if (!owns(reinterpret_cast<T*>(m_Free)))
-			{
-				std::cout << "FUUUUUUUUUUUUUUUUUUUUCKKKK!!!!!";
-			}
 
 			free_footer* parent = nullptr;
 			free_footer* current = m_Free;
@@ -120,14 +97,14 @@ namespace ktl
 
 			char* offset = reinterpret_cast<char*>(current);
 
-			free_footer footer = *current;
+			//free_footer footer = *current;
 
-			if (footer.AvailableSpace >= totalSize + sizeof(free_footer))
+			if (current->AvailableSpace >= totalSize + sizeof(free_footer))
 			{
 				free_footer* newFooter = reinterpret_cast<free_footer*>(offset + totalSize);
 
-				newFooter->AvailableSpace = footer.AvailableSpace - totalSize;
-				newFooter->Next = footer.Next;
+				newFooter->AvailableSpace = current->AvailableSpace - totalSize;
+				newFooter->Next = current->Next;
 
 				if (parent)
 					parent->Next = newFooter;
@@ -138,10 +115,10 @@ namespace ktl
 			else
 			{
 				if (parent)
-					parent->Next = footer.Next;
+					parent->Next = current->Next;
 
 				if (m_Free == current)
-					m_Free = footer.Next;
+					m_Free = current->Next;
 			}
 
 			return reinterpret_cast<T*>(current);
