@@ -1,4 +1,4 @@
-#include "overflow_allocator_test.h"
+#include "test.h"
 
 #include "shared/allocation_utility.h"
 
@@ -13,7 +13,7 @@ namespace ktl
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);
 
-    void test_freelist_overflow()
+    KTL_ADD_TEST(test_freelist_overflow)
     {
         stringBuffer = std::stringbuf();
 
@@ -53,7 +53,7 @@ namespace ktl
         KTL_ASSERT(stringBuffer.str().empty());
     }
 
-    void test_binary_heap_overflow()
+    KTL_ADD_TEST(test_binary_heap_overflow)
     {
         stringBuffer = std::stringbuf();
 

@@ -1,4 +1,4 @@
-#include "freelist_allocator_test.h"
+#include "test.h"
 
 #include "shared/allocation_utility.h"
 
@@ -6,7 +6,7 @@
 
 namespace ktl
 {
-    void test_freelist_allocator()
+    KTL_ADD_TEST(test_freelist_allocator)
     {
         constexpr double value1 = 42.5;
         constexpr double value2 = 81.3;
@@ -38,7 +38,7 @@ namespace ktl
         assert_deallocate<double>(alloc, ptr5);
     }
 
-    void test_freelist_allocator_packed()
+    KTL_ADD_TEST(test_freelist_allocator_packed)
     {
         // Has to be bigger than 16, but not aligned
 #pragma pack(push, 1)

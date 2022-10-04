@@ -1,4 +1,4 @@
-#include "trivial_vector_test.h"
+#include "test.h"
 
 #include "shared/assert_utility.h"
 
@@ -19,7 +19,7 @@ namespace ktl
             KTL_ASSERT(vec[i] == values[i]);
     }
 
-    void test_trivial_vector_freelist()
+    KTL_ADD_TEST(test_trivial_vector_freelist)
     {
         constexpr double values[] = {
             0.0,

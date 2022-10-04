@@ -4,7 +4,8 @@
 #include <string>
 
 #define KTL_ADD_TEST3(func_ptr, line) void func_ptr(); \
-	static int test_##line = (::ktl::test::add_test(#func_ptr, func_ptr), 0);
+	static int test_##line = (::ktl::test::add_test(#func_ptr, func_ptr), 0); \
+	void func_ptr()
 
 #define KTL_ADD_TEST2(func_ptr, line) KTL_ADD_TEST3(func_ptr, line)
 

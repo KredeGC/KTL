@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstring>
 #include <ostream>
 #include <vector>
 
@@ -10,13 +9,11 @@ namespace ktl
     {
         float gCost;
         float hCost;
-        std::vector<trivial_t*> Neighbours;
 
         bool operator==(const trivial_t& other) const
         {
             return gCost == other.gCost
-                && hCost == other.hCost
-                && Neighbours.size() == other.Neighbours.size();
+                && hCost == other.hCost;
         }
 
         bool operator<(const trivial_t& other) const
@@ -42,12 +39,12 @@ namespace ktl
 
         complex_t(double value) noexcept : m_Value(new double[1])
         {
-            std::memcpy(m_Value, &value, sizeof(double));
+            *m_Value = value;
         }
 
         complex_t(const complex_t& other) noexcept : m_Value(new double[1])
         {
-            std::memcpy(m_Value, other.m_Value, sizeof(double));
+            *m_Value = *other.m_Value;
         }
 
         complex_t(complex_t&& other) noexcept : m_Value(other.m_Value)
@@ -67,7 +64,9 @@ namespace ktl
                 delete[] m_Value;
 
             m_Value = new double[1];
-            std::memcpy(m_Value, rhs.m_Value, sizeof(double));
+            *m_Value = *rhs.m_Value;
+
+            return *this;
         }
 
         complex_t& operator=(complex_t&& rhs) noexcept
@@ -77,6 +76,28 @@ namespace ktl
 
             m_Value = rhs.m_Value;
             rhs.m_Value = nullptr;
+
+            return *this;
+        }
+
+        bool operator==(const complex_t& other) const
+        {
+            return *m_Value == *other.m_Value;
+        }
+
+        bool operator<(const complex_t& other) const
+        {
+            return *m_Value < *other.m_Value;
+        }
+
+        bool operator>(const complex_t& other) const
+        {
+            return *m_Value > *other.m_Value;
+        }
+
+        friend std::ostream& operator<<(std::ostream& output, const complex_t& rhs)
+        {
+            return output << "[m_Value:" << rhs.m_Value << "]";
         }
 
     private:

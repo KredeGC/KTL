@@ -1,4 +1,4 @@
-#include "mallocator_test.h"
+#include "test.h"
 
 #include "shared/allocation_utility.h"
 
@@ -6,7 +6,7 @@
 
 namespace ktl
 {
-    void test_mallocator()
+    KTL_ADD_TEST(test_mallocator)
     {
         constexpr double value1 = 42.5;
         constexpr double value2 = 81.3;
