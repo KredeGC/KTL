@@ -38,10 +38,10 @@ jobs:
         version: "5.0.0-beta1"
     - name: Install GCC
       if: matrix.machine.os == 'ubuntu-latest' && matrix.machine.toolset == 'gcc'
-      run: sudo app update && sudo apt install -y gcc g++
+      run: sudo apt update && sudo apt install -y gcc g++
     - name: Install Clang & LLVM
       if: matrix.machine.os == 'ubuntu-latest' && matrix.machine.toolset == 'clang'
-      run: sudo app update && sudo apt install -y clang llvm lld
+      run: sudo apt update && sudo apt install -y clang llvm lld
     - name: Install msbuild to PATH
       if: matrix.machine.os == 'windows-latest' && matrix.machine.toolset == 'msc'
       uses: microsoft/setup-msbuild@v1.1
