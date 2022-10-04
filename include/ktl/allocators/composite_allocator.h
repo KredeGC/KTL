@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/meta_template.h"
 #include "type_allocator.h"
 
 #include <limits>
@@ -117,5 +118,5 @@ namespace ktl
 	}
 
 	template<typename T, typename P, typename F>
-	using composite_type_allocator = type_allocator<T, composite_allocator<P, F>>;
+	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
 }

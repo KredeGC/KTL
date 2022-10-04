@@ -188,5 +188,5 @@ namespace ktl
 	};
 
 	template<typename T>
-	using freelist_type_allocator = type_allocator<T, freelist_allocator>;
+	using type_freelist_allocator = type_allocator<T, freelist_allocator>;
 }

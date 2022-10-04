@@ -99,5 +99,5 @@ namespace ktl
 	};
 
 	template<typename T>
-	using stack_type_allocator = type_allocator<T, stack_allocator>;
+	using type_stack_allocator = type_allocator<T, stack_allocator>;
 }

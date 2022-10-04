@@ -1,6 +1,7 @@
-#include "test.h"
-
 #include "shared/allocation_utility.h"
+#include "shared/test.h"
+
+#include "ktl/ktl_fwd.h"
 
 #include "ktl/allocators/freelist_allocator.h"
 
@@ -15,7 +16,7 @@ namespace ktl
         constexpr double value5 = 99.9;
 
         stack block;
-        freelist_type_allocator<double> alloc(block);
+        type_freelist_allocator<double> alloc(block);
 
         double* ptr1 = assert_allocate<double>(alloc, value1);
         double* ptr2 = assert_allocate<double>(alloc, value2);
@@ -67,7 +68,7 @@ namespace ktl
         packed_t value5 = { &forRef1, &forRef2, 40000, 'a' };
 
         stack block;
-        freelist_type_allocator<packed_t> alloc(block);
+        type_freelist_allocator<packed_t> alloc(block);
 
         packed_t* ptr1 = assert_allocate<packed_t>(alloc, value1);
         packed_t* ptr2 = assert_allocate<packed_t>(alloc, value2);

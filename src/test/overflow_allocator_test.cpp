@@ -1,6 +1,7 @@
-#include "test.h"
-
 #include "shared/allocation_utility.h"
+#include "shared/test.h"
+
+#include "ktl/ktl_fwd.h"
 
 #include "ktl/containers/binary_heap.h"
 #include "ktl/allocators/freelist_allocator.h"

@@ -1,6 +1,7 @@
-#include "test.h"
-
 #include "shared/allocation_utility.h"
+#include "shared/test.h"
+
+#include "ktl/ktl_fwd.h"
 
 #include "ktl/allocators/mallocator.h"
 

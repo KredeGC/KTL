@@ -1,7 +1,8 @@
-#include "test.h"
-
 #include "shared/assert_utility.h"
+#include "shared/test.h"
 #include "shared/types.h"
+
+#include "ktl/ktl_fwd.h"
 
 #include "ktl/containers/trivial_vector.h"
 
@@ -37,7 +38,7 @@ namespace ktl
         };
 
         stack block;
-        std::vector<double, stack_type_allocator<double>> vec({ block });
+        std::vector<double, type_freelist_allocator<double>> vec({ block });
         test_trivial_vector_push_back(vec, values, 8);
     }
 

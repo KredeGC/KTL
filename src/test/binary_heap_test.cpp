@@ -1,7 +1,8 @@
-#include "test.h"
-
 #include "shared/assert_utility.h"
+#include "shared/test.h"
 #include "shared/types.h"
+
+#include "ktl/ktl_fwd.h"
 
 #include "ktl/containers/binary_heap.h"
 
@@ -52,14 +53,14 @@ namespace ktl
 
         stack block;
         {
-            binary_min_heap<double, freelist_type_allocator<double>> min_heap(3, { block });
+            binary_min_heap<double, type_freelist_allocator<double>> min_heap(3, { block });
             test_binary_heap_insert_pop(min_heap, values, size);
         }
 
         // Reuse block once the previous allocator is done with it
         {
             std::sort(values, values + size, std::greater<double>());
-            binary_max_heap<double, freelist_type_allocator<double>> max_heap(3, { block });
+            binary_max_heap<double, type_freelist_allocator<double>> max_heap(3, { block });
             test_binary_heap_insert_pop(max_heap, values, size);
         }
     }
@@ -81,14 +82,14 @@ namespace ktl
 
         stack block;
         {
-            binary_min_heap<trivial_t, freelist_type_allocator<trivial_t>> min_heap(3, { block });
+            binary_min_heap<trivial_t, type_freelist_allocator<trivial_t>> min_heap(3, { block });
             test_binary_heap_insert_pop(min_heap, values, size);
         }
 
         // Reuse block once the previous allocator is done with it
         {
             std::sort(values, values + size, std::greater<trivial_t>());
-            binary_max_heap<trivial_t, freelist_type_allocator<trivial_t>> max_heap(3, { block });
+            binary_max_heap<trivial_t, type_freelist_allocator<trivial_t>> max_heap(3, { block });
             test_binary_heap_insert_pop(max_heap, values, size);
         }
     }
@@ -110,7 +111,7 @@ namespace ktl
 
         stack block;
         {
-            binary_min_heap<complex_t, freelist_type_allocator<complex_t>> min_heap(3, { block });
+            binary_min_heap<complex_t, type_freelist_allocator<complex_t>> min_heap(3, { block });
             test_binary_heap_insert_pop(min_heap, values, size);
         }
 
@@ -118,7 +119,7 @@ namespace ktl
         // Only matters for complex types with destructors
         {
             std::sort(values, values + size, std::greater<complex_t>());
-            binary_max_heap<complex_t, freelist_type_allocator<complex_t>> max_heap(3, { block });
+            binary_max_heap<complex_t, type_freelist_allocator<complex_t>> max_heap(3, { block });
             test_binary_heap_insert_pop(max_heap, values, size);
         }
     }

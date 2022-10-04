@@ -2,6 +2,7 @@
 
 // Containers
 #include "containers/binary_heap.h"
+#include "containers/trivial_vector.h"
 
 // Allocators
 #include "allocators/composite_allocator.h"
