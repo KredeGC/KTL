@@ -95,7 +95,7 @@ namespace ktl
 
 			if (!owns(reinterpret_cast<T*>(m_Free)))
 			{
-				__debugbreak();
+				std::cout << "FUUUUUUUUUUUUUUUUUUUUCKKKK!!!!!";
 			}
 
 			free_footer* parent = nullptr;
