@@ -43,7 +43,7 @@ namespace ktl
 
     KTL_ADD_TEST(test_trivial_vector_trivial)
     {
-        trivial_t values[] = {
+        /*trivial_t values[] = {
             { 0.0f, 0.0f },
             { 8.0f, 7.0f },
             { 10.0f, 9.0f },
@@ -56,6 +56,6 @@ namespace ktl
 
         stack block;
         trivial_vector<trivial_t, freelist_type_allocator<trivial_t>> vec({ block });
-        test_trivial_vector_push_back(vec, values, 8);
+        test_trivial_vector_push_back(vec, values, 8);*/
     }
 }
