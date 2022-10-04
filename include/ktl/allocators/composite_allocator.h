@@ -81,7 +81,7 @@ namespace ktl
 			if constexpr (!has_no_max_size<P>::value && !has_no_max_size<F>::value)
 				return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 			else
-				return std::numeric_limits<size_type>::max() / sizeof(T);
+				return std::numeric_limits<size_type>::max();
 		}
 
 		bool owns(void* p)
