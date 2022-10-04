@@ -1,5 +1,6 @@
 #include "composite_allocator_test.h"
-#include "utility/allocation_utility.h"
+
+#include "shared/allocation_utility.h"
 
 #include "ktl/allocators/composite_allocator.h"
 #include "ktl/allocators/freelist_allocator.h"

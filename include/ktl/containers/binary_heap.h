@@ -4,26 +4,16 @@
 #include <memory>
 #include <utility>
 
-// FIXME: Corruption is happening somewhere in insert or pop
-// This could either be a logic error in the binary_heap or a logic error in free_list
-// This only happens on GCC in release mode, good luck
-
 namespace ktl
 {
     template<typename T, typename Comp, typename Alloc = std::allocator<T>>
     class binary_heap
     {
     private:
-        Alloc m_Alloc;
-        T* m_Data = nullptr;
-        size_t m_Size = 0;
-        size_t m_Capacity = 2;
-        Comp m_Comp;
-
         typedef std::allocator_traits<Alloc> Traits;
 
     public:
-        binary_heap(const Alloc& allocator = Alloc()) :
+        binary_heap(const Alloc& allocator = Alloc()) noexcept :
             m_Alloc(allocator),
             m_Comp(Comp()),
             m_Data(Traits::allocate(m_Alloc, m_Capacity))
@@ -32,7 +22,7 @@ namespace ktl
                 Traits::construct(m_Alloc, m_Data + i);
         }
 
-        binary_heap(size_t capacity, const Alloc& allocator = Alloc()) :
+        binary_heap(size_t capacity, const Alloc& allocator = Alloc()) noexcept :
             m_Alloc(allocator),
             m_Comp(Comp()),
             m_Capacity(capacity),
@@ -42,7 +32,7 @@ namespace ktl
                 Traits::construct(m_Alloc, m_Data + i);
         }
 
-        binary_heap(const binary_heap& other) noexcept :
+        binary_heap(const binary_heap& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
             m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
             m_Comp(other.m_Comp),
             m_Capacity(other.m_Size),
@@ -53,8 +43,8 @@ namespace ktl
                 Traits::construct(m_Alloc, m_Data + i, other.m_Data[i]);
         }
 
-        binary_heap(binary_heap&& other) noexcept :
-            Alloc(std::move(other)),
+        binary_heap(binary_heap&& other) noexcept(std::is_nothrow_move_constructible_v<T>) :
+            m_Alloc(std::move(other)),
             m_Comp(other.m_Comp),
             m_Capacity(other.m_Size),
             m_Size(other.m_Size),
@@ -65,7 +55,7 @@ namespace ktl
             other.m_Data = nullptr;
         }
 
-        virtual ~binary_heap() // FIXME: Doesn't work without virtual, some corruption is going on
+        ~binary_heap()
         {
             // Deconstruct elements
             if (m_Data)
@@ -77,7 +67,7 @@ namespace ktl
             }
         }
 
-        binary_heap& operator=(const binary_heap& other) noexcept
+        binary_heap& operator=(const binary_heap& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
         {
             if (m_Data)
             {
@@ -104,7 +94,7 @@ namespace ktl
             return *this;
         }
 
-        binary_heap& operator=(binary_heap&& other) noexcept
+        binary_heap& operator=(binary_heap&& other) noexcept(std::is_nothrow_move_assignable_v<T>)
         {
             // Deconstruct elements
             if (m_Data)
@@ -159,11 +149,13 @@ namespace ktl
             return root;
         }
 
-        T* data() { return m_Data; }
+        T* data() noexcept { return m_Data; }
 
-        const T* data() const { return m_Data; }
+        const T* data() const noexcept { return m_Data; }
 
-        size_t size() const { return m_Size; }
+        size_t size() const noexcept { return m_Size; }
+
+        bool empty() const noexcept { return m_Size == 0; }
 
         void clear() { m_Size = 0; }
 
@@ -248,6 +240,13 @@ namespace ktl
 
             m_Data[child] = value;
         }
+
+    private:
+        Alloc m_Alloc;
+        T* m_Data = nullptr;
+        size_t m_Size = 0;
+        size_t m_Capacity = 2;
+        Comp m_Comp;
     };
 
     template<typename T, typename Alloc = std::allocator<T>>

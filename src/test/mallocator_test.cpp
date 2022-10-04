@@ -1,5 +1,6 @@
 #include "mallocator_test.h"
-#include "utility/allocation_utility.h"
+
+#include "shared/allocation_utility.h"
 
 #include "ktl/allocators/mallocator.h"
 

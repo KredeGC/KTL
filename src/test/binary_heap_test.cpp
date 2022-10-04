@@ -1,50 +1,45 @@
 #include "binary_heap_test.h"
-#include "utility/assert_utility.h"
+
+#include "shared/assert_utility.h"
+#include "shared/types.h"
 
 #include "ktl/containers/binary_heap.h"
 
 #include "ktl/allocators/freelist_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
+#include <algorithm>
 #include <ostream>
+#include <random>
 #include <vector>
-
-struct node_t
-{
-    float gCost;
-    float hCost;
-    std::vector<node_t*> Neighbours;
-
-    bool operator==(const node_t& other) const
-    {
-        return gCost == other.gCost
-            && hCost == other.hCost
-            && Neighbours.size() == other.Neighbours.size();
-    }
-
-    bool operator<(const node_t& other) const
-    {
-        return (gCost + hCost) < (other.gCost + other.hCost);
-    }
-
-    bool operator>(const node_t& other) const
-    {
-        return (gCost + hCost) > (other.gCost + other.hCost);
-    }
-
-    friend std::ostream& operator<<(std::ostream& output, const node_t& rhs)
-    {
-        return output << "[g:" << rhs.gCost << ", h:" << rhs.hCost << "]";
-    }
-};
 
 namespace ktl
 {
+    std::random_device rd;
+    std::mt19937 random_generator(rd());
+
+    template<typename Heap, typename T>
+    void test_binary_heap_insert_pop(Heap& heap, const T* values, size_t amount)
+    {
+        T* random_copy = new T[amount];
+        std::copy(values, values + amount, random_copy);
+
+        std::shuffle(random_copy, random_copy + amount, random_generator);
+
+        for (size_t i = 0; i < amount; i++)
+            heap.insert(random_copy[i]);
+
+        for (size_t i = 0; i < amount; i++)
+            KTL_ASSERT(heap.pop() == values[i]);
+
+        delete[] random_copy;
+    }
+
     void test_min_heap_complex()
     {
-        node_t nodeTmp{ -1.0f, -1.0f };
+        trivial_t nodeTmp{ -1.0f, -1.0f };
 
-        node_t values[] = {
+        trivial_t values[] = {
             { 0.0f, 0.0f, { &nodeTmp } },
             { 8.0f, 7.0f },
             { 10.0f, 9.0f },
@@ -55,26 +50,8 @@ namespace ktl
             { 58.0f, 31.0f }
         };
 
-        binary_min_heap<node_t, freelist_allocator<node_t>> heap(3);
-        heap.insert(values[0]);
-        heap.insert(values[5]);
-        heap.insert(values[7]);
-        heap.insert(values[6]);
-        heap.insert(values[3]);
-        heap.insert(values[2]);
-        heap.insert(values[4]);
-        heap.insert(values[1]);
-
-        size_t size = heap.size();
-        for (size_t i = 0; i < size; i++)
-            KTL_ASSERT(heap.pop() == values[i]);
-
-        /*auto data = heap.data();
-        for (size_t i = 0; i < size; i++)
-            std::cout << data[i] << std::endl;
-
-        for (size_t i = 0; i < size; i++)
-            std::cout << heap.pop() << std::endl;*/
+        binary_min_heap<trivial_t, freelist_allocator<trivial_t>> heap(3);
+        test_binary_heap_insert_pop(heap, values, 8);
     }
 
     void test_min_heap_double()
@@ -91,24 +68,6 @@ namespace ktl
         };
 
         binary_min_heap<double, freelist_allocator<double>> heap(3);
-        heap.insert(values[0]);
-        heap.insert(values[5]);
-        heap.insert(values[7]);
-        heap.insert(values[6]);
-        heap.insert(values[3]);
-        heap.insert(values[2]);
-        heap.insert(values[4]);
-        heap.insert(values[1]);
-
-        size_t size = heap.size();
-        for (size_t i = 0; i < size; i++)
-            KTL_ASSERT(heap.pop() == values[i]);
-
-        /*auto data = heap.data();
-        for (size_t i = 0; i < size; i++)
-            std::cout << data[i] << std::endl;
-
-        for (size_t i = 0; i < size; i++)
-            std::cout << heap.pop() << std::endl;*/
+        test_binary_heap_insert_pop(heap, values, 8);
     }
 }
