@@ -69,9 +69,9 @@ namespace ktl
 		void destroy(T* p)
 		{
 			if constexpr (!has_no_owns<P>::value && !has_no_destroy<void, P, T*>::value)
-				m_Primary.construct(p, std::forward<Args>(args)...);
+				m_Primary.destroy(p);
 			else if constexpr (!has_no_owns<F>::value && !has_no_destroy<void, F, T*>::value)
-				m_Fallback.construct(p, std::forward<Args>(args)...);
+				m_Fallback.destroy(p);
 			else
 				p->~T();
 		}
