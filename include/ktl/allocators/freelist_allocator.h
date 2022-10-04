@@ -1,6 +1,6 @@
 #pragma once
 
-#include "alignment_utility.h"
+#include "../utility/alignment_utility.h"
 
 #include <memory>
 #include <type_traits>
@@ -61,8 +61,6 @@ namespace ktl
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
 		}
-
-		virtual ~freelist_allocator() = default;
 
 		T* allocate(size_type n)
 		{

@@ -1,9 +1,9 @@
 #include "overflow_allocator_test.h"
 #include "utility/allocation_utility.h"
 
-#include "ktl/binary_heap.h"
-#include "ktl/freelist_allocator.h"
-#include "ktl/overflow_allocator.h"
+#include "ktl/containers/binary_heap.h"
+#include "ktl/allocators/freelist_allocator.h"
+#include "ktl/allocators/overflow_allocator.h"
 
 #include <sstream>
 

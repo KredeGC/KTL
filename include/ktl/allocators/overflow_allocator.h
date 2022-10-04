@@ -50,8 +50,8 @@ namespace ktl
 			 size_t overflowSize = n * 3;
 			 value_type* ptr = traits::allocate(m_Alloc, overflowSize);
 
-			 memset(ptr, 31, n);
-			 memset(ptr + 2 * n, 31, n);
+			 std::memset(ptr, 31, n);
+			 std::memset(ptr + 2 * n, 31, n);
 
 			return ptr + n;
 		}
@@ -60,9 +60,9 @@ namespace ktl
 		{
 			m_Allocs -= n;
 
-			 // HACK: In reality this should be compared to 0 directly, but that would require more allocation etc...
+			 // HACK: In reality this should be compared to the reference directly, but that would require more allocation etc...
 			 // Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
-			 if (memcmp(p - n, p + n, n) != 0)
+			 if (std::memcmp(p - n, p + n, n) != 0)
 			 	Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p + n) << " has been modified\n";
 
 			 size_t overflowSize = n * 3;

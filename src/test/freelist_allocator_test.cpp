@@ -1,7 +1,7 @@
 #include "freelist_allocator_test.h"
 #include "utility/allocation_utility.h"
 
-#include "ktl/freelist_allocator.h"
+#include "ktl/allocators/freelist_allocator.h"
 
 namespace ktl
 {

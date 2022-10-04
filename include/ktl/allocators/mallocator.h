@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utility/alignment_malloc.h"
+
 #include <memory>
 #include <type_traits>
 #include <unordered_set>
@@ -28,7 +30,7 @@ namespace ktl
 
 		T* allocate(size_t n)
 		{
-			T* ptr = static_cast<T*>(::operator new(sizeof(T) * n));
+			T* ptr = static_cast<T*>(aligned_malloc(sizeof(T) * n, 8));
 
 			m_Allocs.insert(ptr);
 
@@ -38,6 +40,8 @@ namespace ktl
 		void deallocate(T* p, size_t n)
 		{
 			m_Allocs.erase(m_Allocs.find(p));
+
+			aligned_free(p);
 		}
 
 		bool owns(T* p)

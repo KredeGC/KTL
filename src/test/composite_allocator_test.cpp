@@ -1,9 +1,9 @@
 #include "composite_allocator_test.h"
 #include "utility/allocation_utility.h"
 
-#include "ktl/composite_allocator.h"
-#include "ktl/freelist_allocator.h"
-#include "ktl/stack_allocator.h"
+#include "ktl/allocators/composite_allocator.h"
+#include "ktl/allocators/freelist_allocator.h"
+#include "ktl/allocators/stack_allocator.h"
 
 namespace ktl
 {

@@ -1,11 +1,11 @@
 #include "binary_heap_test.h"
 #include "utility/assert_utility.h"
-#include "ktl/binary_heap.h"
 
-#include "ktl/freelist_allocator.h"
-#include "ktl/stack_allocator.h"
+#include "ktl/containers/binary_heap.h"
 
-#include <iostream>
+#include "ktl/allocators/freelist_allocator.h"
+#include "ktl/allocators/stack_allocator.h"
+
 #include <ostream>
 #include <vector>
 
