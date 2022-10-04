@@ -4,12 +4,17 @@
 #include <memory>
 #include <utility>
 
+// FIXME: Corruption is happening somewhere in insert or pop
+// This could either be a logic error in the binary_heap or a logic error in free_list
+// This only happens on GCC in release mode, good luck
+
 namespace ktl
 {
     template<typename T, typename Comp, typename Alloc = std::allocator<T>>
-    class binary_heap : private Alloc
+    class binary_heap
     {
     private:
+        Alloc m_Alloc;
         T* m_Data = nullptr;
         size_t m_Size = 0;
         size_t m_Capacity = 2;
@@ -19,33 +24,33 @@ namespace ktl
 
     public:
         binary_heap(const Alloc& allocator = Alloc()) :
-            Alloc(allocator),
+            m_Alloc(allocator),
             m_Comp(Comp()),
-            m_Data(Traits::allocate(*this, m_Capacity))
+            m_Data(Traits::allocate(m_Alloc, m_Capacity))
         {
             for (size_t i = 0; i < m_Capacity; i++)
-                Traits::construct(*this, m_Data + i);
+                Traits::construct(m_Alloc, m_Data + i);
         }
 
         binary_heap(size_t capacity, const Alloc& allocator = Alloc()) :
-            Alloc(allocator),
+            m_Alloc(allocator),
             m_Comp(Comp()),
             m_Capacity(capacity),
-            m_Data(Traits::allocate(*this, capacity))
+            m_Data(Traits::allocate(m_Alloc, capacity))
         {
             for (size_t i = 0; i < m_Capacity; i++)
-                Traits::construct(*this, m_Data + i);
+                Traits::construct(m_Alloc, m_Data + i);
         }
 
         binary_heap(const binary_heap& other) noexcept :
-            Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
+            m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
             m_Comp(other.m_Comp),
             m_Capacity(other.m_Size),
             m_Size(other.m_Size),
-            m_Data(Traits::allocate(*this, other.m_Size))
+            m_Data(Traits::allocate(m_Alloc, other.m_Size))
         {
             for (size_t i = 0; i < m_Size; i++)
-                Traits::construct(*this, m_Data + i, other.m_Data[i]);
+                Traits::construct(m_Alloc, m_Data + i, other.m_Data[i]);
         }
 
         binary_heap(binary_heap&& other) noexcept :
@@ -60,15 +65,15 @@ namespace ktl
             other.m_Data = nullptr;
         }
 
-        ~binary_heap()
+        virtual ~binary_heap() // FIXME: Doesn't work without virtual, some corruption is going on
         {
             // Deconstruct elements
             if (m_Data)
             {
                 for (size_t i = 0; i < m_Capacity; i++)
-                    Traits::destroy(*this, m_Data + i);
+                    Traits::destroy(m_Alloc, m_Data + i);
 
-                Traits::deallocate(*this, m_Data, m_Capacity);
+                Traits::deallocate(m_Alloc, m_Data, m_Capacity);
             }
         }
 
@@ -77,20 +82,20 @@ namespace ktl
             if (m_Data)
             {
                 for (size_t i = 0; i < m_Capacity; i++)
-                    Traits::destroy(*this, m_Data + i);
+                    Traits::destroy(m_Alloc, m_Data + i);
 
-                Traits::deallocate(*this, m_Data, m_Capacity);
+                Traits::deallocate(m_Alloc, m_Data, m_Capacity);
             }
 
             m_Comp = other.m_Comp;
             m_Capacity = other.m_Size;
             m_Size = other.m_Size;
-            m_Data = Traits::allocate(*this, other.m_Size);
+            m_Data = Traits::allocate(m_Alloc, other.m_Size);
 
             // Construct elements
             {
                 for (size_t i = 0; i < m_Size; i++)
-                    Traits::construct(*this, m_Data + i);
+                    Traits::construct(m_Alloc, m_Data + i);
 
                 for (size_t i = 0; i < m_Size; i++)
                     m_Data[i] = other.m_Data[i];
@@ -105,9 +110,9 @@ namespace ktl
             if (m_Data)
             {
                 for (size_t i = 0; i < m_Capacity; i++)
-                    Traits::destroy(*this, m_Data + i);
+                    Traits::destroy(m_Alloc, m_Data + i);
 
-                Traits::deallocate(*this, m_Data, m_Capacity);
+                Traits::deallocate(m_Alloc, m_Data, m_Capacity);
             }
 
             m_Comp = other.m_Comp;
@@ -168,12 +173,12 @@ namespace ktl
             if (m_Data && m_Size >= m_Capacity)
             {
                 size_t newCapacity = m_Capacity * 2 + 1;
-                T* newData = Traits::allocate(*this, newCapacity);
+                T* newData = Traits::allocate(m_Alloc, newCapacity);
 
                 // Construct elements
                 {
                     for (size_t i = 0; i < newCapacity; i++)
-                        Traits::construct(*this, newData + i);
+                        Traits::construct(m_Alloc, newData + i);
 
                     for (size_t i = 0; i < m_Size; i++)
                         newData[i] = std::move(m_Data[i]);
@@ -182,9 +187,9 @@ namespace ktl
                 // Deconstruct elements
                 {
                     for (size_t i = 0; i < m_Capacity; i++)
-                        Traits::destroy(*this, m_Data + i);
+                        Traits::destroy(m_Alloc, m_Data + i);
 
-                    Traits::deallocate(*this, m_Data, m_Capacity);
+                    Traits::deallocate(m_Alloc, m_Data, m_Capacity);
                 }
 
                 m_Capacity = newCapacity;

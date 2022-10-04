@@ -42,6 +42,8 @@ namespace ktl
 			m_Free = m_Begin;
 		}
 
+		virtual ~stack_allocator() = default; // FIXME: Why does this work, but doesn't in freelist_allocator?
+
 		value_type* allocate(size_type n)
 		{
 			if ((size_t(m_Free - m_Begin) + n) > (Size / sizeof(value_type)))

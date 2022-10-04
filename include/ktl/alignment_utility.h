@@ -6,7 +6,7 @@ namespace ktl
 {
     constexpr size_t ALIGNMENT = sizeof(void*);
 
-    inline size_t align_to_architecture(size_t n)
+    constexpr inline size_t align_to_architecture(size_t n) noexcept
     {
         size_t align = n % ALIGNMENT;
         if (align != 0)

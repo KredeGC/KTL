@@ -5,6 +5,8 @@
 #include <memory>
 #include <type_traits>
 
+#include <iostream>
+
 namespace ktl
 {
 	template<typename T, size_t Size = 4096>
@@ -33,6 +35,11 @@ namespace ktl
 			m_Free = reinterpret_cast<free_footer*>(ptr);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
+
+			std::cout << "Construct" << std::endl;
+			std::cout << (int*)m_Free << std::endl;
+			std::cout << (int*)m_Block << std::endl;
+			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
 		}
 
 		template<typename U>
@@ -45,12 +52,20 @@ namespace ktl
 			m_Free = reinterpret_cast<free_footer*>(ptr);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
-		}
 
-		virtual ~freelist_allocator() = default;
+			std::cout << "Copy" << std::endl;
+			std::cout << (int*)m_Free << std::endl;
+			std::cout << (int*)m_Block << std::endl;
+			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
+		}
 
 		T* allocate(size_type n)
 		{
+			std::cout << "Allocate" << std::endl;
+			std::cout << (int*)m_Free << std::endl;
+			std::cout << (int*)m_Block << std::endl;
+			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
+
 			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
 			totalSize += align_to_architecture(totalSize);
 

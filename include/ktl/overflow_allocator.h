@@ -9,7 +9,7 @@
 namespace ktl
 {
 	template<typename Alloc, std::ostream& Stream = std::cerr>
-	class overflow_allocator : private Alloc
+	class overflow_allocator
 	{
 	private:
 		using traits = std::allocator_traits<Alloc>;
@@ -24,10 +24,10 @@ namespace ktl
 			using other = overflow_allocator<U, V>;
 		};
 
-		overflow_allocator() noexcept : Alloc() {}
+		overflow_allocator(const Alloc& alloc = Alloc()) noexcept : m_Alloc(alloc) {}
 
 		template<typename U, std::ostream& V>
-		overflow_allocator(const overflow_allocator<U, V>&) noexcept {}
+		overflow_allocator(const overflow_allocator<U, V>&) noexcept : m_Alloc(Alloc()) {}
 
 		~overflow_allocator()
 		{
@@ -39,27 +39,27 @@ namespace ktl
 		{
 			m_Allocs += n;
 
-			size_t overflowSize = n * 3;
-			value_type* ptr = traits::allocate(*this, overflowSize);
+			// size_t overflowSize = n * 3;
+			// value_type* ptr = traits::allocate(m_Alloc, overflowSize);
 
-			memset(ptr, 0, n);
-			memset(ptr + 2 * n, 0, n);
+			// memset(ptr, 31, n);
+			// memset(ptr + 2 * n, 31, n);
 
-			return ptr + n;
+			return traits::allocate(m_Alloc, n);
 		}
 
 		void deallocate(value_type* p, size_t n)
 		{
 			m_Allocs -= n;
 
-			// HACK: In reality this should be compared to 0 directly, but that would require more allocation etc...
-			// Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
-			if (memcmp(p - n, p + n, n) != 0)
-				Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << p << " has been modified\n";
+			// // HACK: In reality this should be compared to 0 directly, but that would require more allocation etc...
+			// // Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
+			// if (memcmp(p - n, p + n, n) != 0)
+			// 	Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p + n) << " has been modified\n";
 
-			size_t overflowSize = n * 3;
+			// size_t overflowSize = n * 3;
 
-			traits::deallocate(*this, p - n, overflowSize);
+			traits::deallocate(m_Alloc, p, n);
 		}
 
 		template<class... Args>
@@ -67,17 +67,19 @@ namespace ktl
 		{
 			m_Constructs++;
 
-			traits::construct(*this, p, std::forward<Args>(args)...);
+			traits::construct(m_Alloc, p, std::forward<Args>(args)...);
 		}
 
 		void destroy(value_type* p)
 		{
 			m_Constructs--;
 
-			traits::destroy(*this, p);
+			traits::destroy(m_Alloc, p);
 		}
 
 	private:
+		Alloc m_Alloc;
+
 		size_t m_Allocs = 0;
 		size_t m_Constructs = 0;
 	};
