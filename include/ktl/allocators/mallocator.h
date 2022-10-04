@@ -1,6 +1,9 @@
 #pragma once
 
+#include "type_allocator.h"
+
 #include "../utility/alignment_malloc.h"
+#include "../utility/alignment_utility.h"
 
 #include <memory>
 #include <type_traits>
@@ -8,60 +11,50 @@
 
 namespace ktl
 {
-	template<typename T>
 	class mallocator
 	{
 	public:
-		using value_type = T;
-		using is_always_equal = std::true_type;
-
-		template<typename U>
-		struct rebind
-		{
-			using other = mallocator<U>;
-		};
+		using size_type = size_t;
 
 		mallocator() noexcept = default;
 
 		mallocator(const mallocator& other) noexcept : m_Allocs(other.m_Allocs) {}
 
-		template<typename U>
-		mallocator(const mallocator<U>&) noexcept {}
-
-		T* allocate(size_t n)
+		[[nodiscard]] void* allocate(size_t n)
 		{
-			T* ptr = static_cast<T*>(aligned_malloc(sizeof(T) * n, 8));
+			void* ptr = aligned_malloc(n, ALIGNMENT);
 
 			m_Allocs.insert(ptr);
 
 			return ptr;
 		}
 
-		void deallocate(T* p, size_t n)
+		void deallocate(void* p, size_t n) noexcept
 		{
 			m_Allocs.erase(m_Allocs.find(p));
 
 			aligned_free(p);
 		}
 
-		bool owns(T* p)
+		bool owns(void* p)
 		{
 			return m_Allocs.find(p) != m_Allocs.end();
 		}
 
+		bool operator==(const mallocator& rhs) noexcept
+		{
+			return m_Allocs.begin() == rhs.m_Allocs.begin();
+		}
+
+		bool operator!=(const mallocator& rhs) noexcept
+		{
+			return m_Allocs.begin() != rhs.m_Allocs.begin();
+		}
+
 	private:
-		std::unordered_set<T*> m_Allocs;
+		std::unordered_set<void*> m_Allocs;
 	};
 
-	template<typename T, typename U>
-	bool operator==(const mallocator<T>&, const mallocator<U>&) noexcept
-	{
-		return true;
-	}
-
-	template<typename T, typename U>
-	bool operator!=(const mallocator<T>&, const mallocator<U>&) noexcept
-	{
-		return false;
-	}
+	template<typename T>
+	using type_mallocator = type_allocator<T, mallocator>;
 }

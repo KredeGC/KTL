@@ -14,7 +14,7 @@ namespace ktl
         constexpr double value4 = 182.1;
         constexpr double value5 = 99.9;
 
-        mallocator<double> alloc;
+        type_mallocator<double> alloc;
 
         double* ptr1 = assert_allocate<double>(alloc, value1);
         double* ptr2 = assert_allocate<double>(alloc, value2);

@@ -11,7 +11,7 @@ namespace ktl
 	class trivial_vector
 	{
 	private:
-		static_assert(std::is_standard_layout<T>(), "Template class needs standard layout");
+		static_assert(std::is_trivial<T>(), "Template class needs to be trivial");
 
 		typedef std::allocator_traits<Alloc> Traits;
 

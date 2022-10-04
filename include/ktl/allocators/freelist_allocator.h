@@ -1,73 +1,47 @@
 #pragma once
 
+#include "type_allocator.h"
+
 #include "../utility/alignment_utility.h"
+#include "../utility/stack_type.h"
 
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<typename T, size_t Size = 4096>
 	class freelist_allocator
 	{
 	private:
 		struct free_footer;
 
 	public:
-		using value_type = T;
 		using size_type = size_t;
-		using is_always_equal = std::true_type;
 
-		template<typename U>
-		struct rebind
+		template<size_t Size>
+		freelist_allocator(stack<Size>& block) noexcept :
+			m_Size(Size)
 		{
-			using other = freelist_allocator<U>;
-		};
+			m_Block = block.Data;
 
-		freelist_allocator() noexcept
-		{
-			char* ptr = m_Block;
+			m_Block += align_to_architecture(size_t(m_Block));
 
-			ptr += align_to_architecture(size_t(ptr));
-
-			m_Free = reinterpret_cast<free_footer*>(ptr);
+			m_Free = reinterpret_cast<free_footer*>(m_Block);
 			m_Free->AvailableSpace = Size;
 			m_Free->Next = nullptr;
 		}
 
-		freelist_allocator(const freelist_allocator& other) noexcept
+		freelist_allocator(const freelist_allocator& other) noexcept :
+			m_Block(other.m_Block),
+			m_Free(other.m_Free),
+			m_Size(other.m_Size) {}
+
+		[[nodiscard]] void* allocate(size_type n)
 		{
-			// We can't copy m_Block, since it's stack allocated
-			// We must instead recreate it
-			char* ptr = m_Block;
-
-			ptr += align_to_architecture(size_t(ptr));
-
-			m_Free = reinterpret_cast<free_footer*>(ptr);
-			m_Free->AvailableSpace = Size;
-			m_Free->Next = nullptr;
-		}
-
-		template<typename U, size_t V>
-		freelist_allocator(const freelist_allocator<U, V>& other) noexcept
-		{
-			// We can't copy m_Block, since it's stack allocated
-			// We must instead recreate it
-			char* ptr = m_Block;
-
-			ptr += align_to_architecture(size_t(ptr));
-
-			m_Free = reinterpret_cast<free_footer*>(ptr);
-			m_Free->AvailableSpace = Size;
-			m_Free->Next = nullptr;
-		}
-
-		T* allocate(size_type n)
-		{
-			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
+			size_t totalSize = (std::max)(n, sizeof(free_footer));
 			totalSize += align_to_architecture(totalSize);
 
-			if (totalSize > Size)
+			if (totalSize > m_Size)
 				return nullptr;
 
 			if (m_Free == nullptr)
@@ -119,12 +93,12 @@ namespace ktl
 					m_Free = current->Next;
 			}
 
-			return reinterpret_cast<T*>(current);
+			return current;
 		}
 
-		void deallocate(T* p, size_type n)
+		void deallocate(void* p, size_type n) noexcept
 		{
-			size_t totalSize = (std::max)(sizeof(T) * n, sizeof(free_footer));
+			size_t totalSize = (std::max)(n, sizeof(free_footer));
 			totalSize += align_to_architecture(totalSize);
 
 			free_footer* header = reinterpret_cast<free_footer*>(p);
@@ -161,16 +135,16 @@ namespace ktl
 
 		size_type max_size() const noexcept
 		{
-			return Size / sizeof(T);
+			return m_Size;
 		}
 
-		bool owns(T* p)
+		bool owns(void* p)
 		{
 			char* ptr = reinterpret_cast<char*>(p);
-			return ptr >= m_Block && ptr < m_Block + Size + ALIGNMENT - 1;
+			return ptr >= m_Block && ptr < m_Block + m_Size;
 		}
 
-		void coalesce(free_footer* header)
+		void coalesce(free_footer* header) noexcept
 		{
 			char* headerOffset = reinterpret_cast<char*>(header);
 			char* nextOffset = reinterpret_cast<char*>(header->Next);
@@ -190,6 +164,16 @@ namespace ktl
 			}
 		}
 
+		bool operator==(const freelist_allocator& rhs) noexcept
+		{
+			return m_Block == rhs.m_Block;
+		}
+
+		bool operator!=(const freelist_allocator& rhs) noexcept
+		{
+			return m_Block != rhs.m_Block;
+		}
+
 	private:
 		struct free_footer
 		{
@@ -197,19 +181,12 @@ namespace ktl
 			free_footer* Next;
 		};
 
-		char m_Block[Size + ALIGNMENT - 1];
+		char* m_Block;
 		free_footer* m_Free;
+
+		size_t m_Size;
 	};
 
-	template<typename T, typename U>
-	bool operator==(const freelist_allocator<T>&, const freelist_allocator<U>&) noexcept
-	{
-		return true;
-	}
-
-	template<typename T, typename U>
-	bool operator!=(const freelist_allocator<T>&, const freelist_allocator<U>&) noexcept
-	{
-		return false;
-	}
+	template<typename T>
+	using freelist_type_allocator = type_allocator<T, freelist_allocator>;
 }

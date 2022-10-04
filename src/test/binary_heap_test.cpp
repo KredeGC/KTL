@@ -50,12 +50,18 @@ namespace ktl
             58.0
         };
 
-        binary_min_heap<double, freelist_allocator<double>> min_heap(3);
-        test_binary_heap_insert_pop(min_heap, values, size);
+        stack block;
+        {
+            binary_min_heap<double, freelist_type_allocator<double>> min_heap(3, { block });
+            test_binary_heap_insert_pop(min_heap, values, size);
+        }
 
-        std::sort(values, values + size, std::greater<double>());
-        binary_max_heap<double, freelist_allocator<double>> max_heap(3);
-        test_binary_heap_insert_pop(max_heap, values, size);
+        // Reuse block once the previous allocator is done with it
+        {
+            std::sort(values, values + size, std::greater<double>());
+            binary_max_heap<double, freelist_type_allocator<double>> max_heap(3, { block });
+            test_binary_heap_insert_pop(max_heap, values, size);
+        }
     }
 
     KTL_ADD_TEST(test_binary_heap_trivial)
@@ -73,12 +79,18 @@ namespace ktl
             { 58.0f, 31.0f }
         };
 
-        binary_min_heap<trivial_t, freelist_allocator<trivial_t>> min_heap(3);
-        test_binary_heap_insert_pop(min_heap, values, size);
+        stack block;
+        {
+            binary_min_heap<trivial_t, freelist_type_allocator<trivial_t>> min_heap(3, { block });
+            test_binary_heap_insert_pop(min_heap, values, size);
+        }
 
-        std::sort(values, values + size, std::greater<trivial_t>());
-        binary_max_heap<trivial_t, freelist_allocator<trivial_t>> max_heap(3);
-        test_binary_heap_insert_pop(max_heap, values, size);
+        // Reuse block once the previous allocator is done with it
+        {
+            std::sort(values, values + size, std::greater<trivial_t>());
+            binary_max_heap<trivial_t, freelist_type_allocator<trivial_t>> max_heap(3, { block });
+            test_binary_heap_insert_pop(max_heap, values, size);
+        }
     }
 
     KTL_ADD_TEST(test_binary_heap_complex)
@@ -96,11 +108,18 @@ namespace ktl
             58.0
         };
 
-        binary_min_heap<complex_t, freelist_allocator<complex_t>> min_heap(3);
-        test_binary_heap_insert_pop(min_heap, values, size);
+        stack block;
+        {
+            binary_min_heap<complex_t, freelist_type_allocator<complex_t>> min_heap(3, { block });
+            test_binary_heap_insert_pop(min_heap, values, size);
+        }
 
-        std::sort(values, values + size, std::greater<complex_t>());
-        binary_max_heap<complex_t, freelist_allocator<complex_t>> max_heap(3);
-        test_binary_heap_insert_pop(max_heap, values, size);
+        // Reuse block once the previous allocator is done with it
+        // Only matters for complex types with destructors
+        {
+            std::sort(values, values + size, std::greater<complex_t>());
+            binary_max_heap<complex_t, freelist_type_allocator<complex_t>> max_heap(3, { block });
+            test_binary_heap_insert_pop(max_heap, values, size);
+        }
     }
 }

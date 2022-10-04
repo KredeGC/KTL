@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ostream>
-#include <vector>
 
 namespace ktl
 {
@@ -42,9 +41,13 @@ namespace ktl
             *m_Value = value;
         }
 
-        complex_t(const complex_t& other) noexcept : m_Value(new double[1])
+        complex_t(const complex_t& other) noexcept : m_Value(nullptr)
         {
-            *m_Value = *other.m_Value;
+            if (other.m_Value)
+            {
+                m_Value = new double[1];
+                *m_Value = *other.m_Value;
+            }
         }
 
         complex_t(complex_t&& other) noexcept : m_Value(other.m_Value)
@@ -63,8 +66,15 @@ namespace ktl
             if (m_Value)
                 delete[] m_Value;
 
-            m_Value = new double[1];
-            *m_Value = *rhs.m_Value;
+            if (rhs.m_Value)
+            {
+                m_Value = new double[1];
+                *m_Value = *rhs.m_Value;
+            }
+            else
+            {
+                m_Value = nullptr;
+            }
 
             return *this;
         }

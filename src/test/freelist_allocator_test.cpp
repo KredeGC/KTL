@@ -14,7 +14,8 @@ namespace ktl
         constexpr double value4 = 182.1;
         constexpr double value5 = 99.9;
 
-        freelist_allocator<double> alloc;
+        stack block;
+        freelist_type_allocator<double> alloc(block);
 
         double* ptr1 = assert_allocate<double>(alloc, value1);
         double* ptr2 = assert_allocate<double>(alloc, value2);
@@ -65,7 +66,8 @@ namespace ktl
         packed_t value4 = { &forRef1, &forRef2, 666, 'd' };
         packed_t value5 = { &forRef1, &forRef2, 40000, 'a' };
 
-        freelist_allocator<packed_t> alloc;
+        stack block;
+        freelist_type_allocator<packed_t> alloc(block);
 
         packed_t* ptr1 = assert_allocate<packed_t>(alloc, value1);
         packed_t* ptr2 = assert_allocate<packed_t>(alloc, value2);

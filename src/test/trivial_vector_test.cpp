@@ -1,11 +1,15 @@
 #include "test.h"
 
 #include "shared/assert_utility.h"
+#include "shared/types.h"
 
 #include "ktl/containers/trivial_vector.h"
 
 #include "ktl/allocators/freelist_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
+#include "ktl/allocators/mallocator.h"
+
+#include <vector>
 
 namespace ktl
 {
@@ -19,7 +23,7 @@ namespace ktl
             KTL_ASSERT(vec[i] == values[i]);
     }
 
-    KTL_ADD_TEST(test_trivial_vector_freelist)
+    KTL_ADD_TEST(test_trivial_vector_double)
     {
         constexpr double values[] = {
             0.0,
@@ -32,7 +36,26 @@ namespace ktl
             8.0
         };
 
-        trivial_vector<double, freelist_allocator<double>> vec;
+        stack block;
+        std::vector<double, stack_type_allocator<double>> vec({ block });
+        test_trivial_vector_push_back(vec, values, 8);
+    }
+
+    KTL_ADD_TEST(test_trivial_vector_trivial)
+    {
+        trivial_t values[] = {
+            { 0.0f, 0.0f },
+            { 8.0f, 7.0f },
+            { 10.0f, 9.0f },
+            { 9.0f, 11.0f },
+            { 20.0f, 3.0f },
+            { 32.0f, 8.0f },
+            { 28.0f, 24.0f },
+            { 58.0f, 31.0f }
+        };
+
+        stack block;
+        trivial_vector<trivial_t, freelist_type_allocator<trivial_t>> vec({ block });
         test_trivial_vector_push_back(vec, values, 8);
     }
 }

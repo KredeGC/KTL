@@ -1,5 +1,8 @@
 #pragma once
 
+#include "type_allocator.h"
+
+#include <limits>
 #include <memory>
 #include <type_traits>
 
@@ -9,19 +12,12 @@ namespace ktl
 	class composite_allocator
 	{
 	private:
-		using primary_traits = std::allocator_traits<P>;
-		using fallback_traits = std::allocator_traits<F>;
+		static_assert(has_value_type<P>(), "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(has_value_type<F>(), "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(!has_no_owns<P>(), "The primary allocator is required to have an 'own(void*)' method");
 
 	public:
-		using value_type = typename P::value_type;
 		using size_type = typename P::size_type;
-		using is_always_equal = std::true_type;
-
-		template<typename U, typename V>
-		struct rebind
-		{
-			using other = composite_allocator<U, V>;
-		};
 
 		composite_allocator(const P& primary = P(), const F& fallback = F()) noexcept :
 			m_Primary(primary),
@@ -33,33 +29,74 @@ namespace ktl
 
 		template<typename U, typename V>
 		composite_allocator(const composite_allocator<U, V>& other) noexcept :
-			m_Primary(other.m_Primary),
-			m_Fallback(other.m_Fallback) {}
+			m_Primary(reinterpret_cast<P>(other.m_Primary)),
+			m_Fallback(reinterpret_cast<F>(other.m_Fallback)) {}
 
-		value_type* allocate(size_t n)
+		void* allocate(size_t n)
 		{
-			value_type* ptr = primary_traits::allocate(m_Primary, n);
+			void* ptr = m_Primary.allocate(n);
 			if (!ptr)
-				return fallback_traits::allocate(m_Fallback, n);
+				return m_Fallback.allocate(n);
 			return ptr;
 		}
 
-		void deallocate(value_type* p, size_t n)
+		void deallocate(void* p, size_t n)
 		{
-			if (m_Primary.owns(p))
-				primary_traits::deallocate(m_Primary, p, n);
+			if constexpr (!has_no_owns<P>::value)
+			{
+				if (m_Primary.owns(p))
+				{
+					m_Primary.deallocate(p, n);
+					return;
+				}
+			}
+
+			m_Fallback.deallocate(p, n);
+		}
+
+		template<typename T, typename... Args>
+		void construct(T* p, Args&&... args)
+		{
+			if constexpr (!has_no_owns<P>::value && !has_no_construct<void, P, T*, Args...>::value)
+				m_Primary.construct(p, std::forward<Args>(args)...);
+			else if constexpr (!has_no_owns<F>::value && !has_no_construct<void, F, T*, Args...>::value)
+				m_Fallback.construct(p, std::forward<Args>(args)...);
 			else
-				fallback_traits::deallocate(m_Fallback, p, n);
+				::new (p) T(std::forward<Args>(args)...);
+		}
+
+		template<typename T>
+		void destroy(T* p)
+		{
+			if constexpr (!has_no_owns<P>::value && !has_no_destroy<void, P, T*>::value)
+				m_Primary.construct(p, std::forward<Args>(args)...);
+			else if constexpr (!has_no_owns<F>::value && !has_no_destroy<void, F, T*>::value)
+				m_Fallback.construct(p, std::forward<Args>(args)...);
+			else
+				p->~T();
 		}
 
 		size_type max_size() const noexcept
 		{
-			return (std::max)(primary_traits::max_size(m_Primary), fallback_traits::max_size(m_Fallback));
+			if constexpr (!has_no_max_size<P>::value && !has_no_max_size<F>::value)
+				return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
+			else
+				return std::numeric_limits<size_type>::max() / sizeof(T);
 		}
 
-		bool owns(value_type* p)
+		bool owns(void* p)
 		{
-			return m_Primary.owns(p) || m_Fallback.owns(p);
+			if constexpr (!has_no_owns<P>::value)
+			{
+				if (m_Primary.owns(p))
+					return true;
+			}
+			else if constexpr (!has_no_owns<F>::value)
+			{
+				if (m_Fallback.owns(p))
+					return true;
+			}
+			return false;
 		}
 
 	private:
@@ -78,4 +115,7 @@ namespace ktl
 	{
 		return false;
 	}
+
+	template<typename T, typename P, typename F>
+	using composite_type_allocator = type_allocator<T, composite_allocator<P, F>>;
 }

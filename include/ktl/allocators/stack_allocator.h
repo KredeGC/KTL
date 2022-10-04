@@ -1,65 +1,43 @@
 #pragma once
 
+#include "type_allocator.h"
+
 #include "../utility/alignment_utility.h"
+#include "../utility/stack_type.h"
 
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<typename T, size_t Size = 4096>
 	class stack_allocator
 	{
 	public:
-		using value_type = T;
 		using size_type = size_t;
-		using is_always_equal = std::true_type;
 
-		template<typename U>
-		struct rebind
+		template<size_t Size>
+		stack_allocator(stack<Size>& block) noexcept :
+			m_Size(Size)
 		{
-			using other = stack_allocator<U>;
-		};
+			m_Block = block.Data;
 
-		stack_allocator() noexcept
-		{
-			char* ptr = m_Block;
+			m_Block += align_to_architecture(size_t(m_Block));
 
-			ptr += align_to_architecture(size_t(ptr));
-
-			m_Begin = reinterpret_cast<value_type*>(ptr);
-			m_Free = m_Begin;
+			m_Free = reinterpret_cast<char*>(m_Block);
 		}
 
-		stack_allocator(const stack_allocator& other) noexcept
+		stack_allocator(const stack_allocator& other) noexcept :
+			m_Block(other.m_Block),
+			m_Free(other.m_Free),
+			m_Size(other.m_Size),
+			m_ObjectCount(other.m_ObjectCount) {}
+
+		[[nodiscard]] void* allocate(size_type n)
 		{
-			char* ptr = m_Block;
-
-			ptr += align_to_architecture(size_t(ptr));
-
-			m_Begin = reinterpret_cast<value_type*>(ptr);
-			m_Free = m_Begin;
-		}
-
-		template<typename U>
-		stack_allocator(const stack_allocator<U>& other) noexcept
-		{
-			char* ptr = m_Block;
-
-			ptr += align_to_architecture(size_t(ptr));
-
-			m_Begin = reinterpret_cast<value_type*>(ptr);
-			m_Free = m_Begin;
-		}
-
-		virtual ~stack_allocator() = default; // FIXME: Why does this work, but doesn't in freelist_allocator?
-
-		value_type* allocate(size_type n)
-		{
-			if ((size_t(m_Free - m_Begin) + n) > (Size / sizeof(value_type)))
+			if ((size_t(m_Free - m_Block) + n) > m_Size)
 				return nullptr;
 
-			value_type* current = m_Free;
+			char* current = m_Free;
 
 			m_Free += n;
 			m_ObjectCount += n;
@@ -67,7 +45,7 @@ namespace ktl
 			return current;
 		}
 
-		void deallocate(value_type* p, size_type n)
+		void deallocate(void* p, size_type n) noexcept
 		{
 			if (m_Free - n == p)
 				m_Free -= n;
@@ -76,38 +54,50 @@ namespace ktl
 
 			// Assumes that people don't deallocate the same memory twice
 			if (m_ObjectCount == 0)
-				m_Free = m_Begin;
+				m_Free = m_Block;
 		}
 
 		size_type max_size() const noexcept
 		{
-			return Size / sizeof(value_type);
+			return m_Size;
 		}
 
-		bool owns(value_type* p)
+		bool owns(void* p)
 		{
 			char* ptr = reinterpret_cast<char*>(p);
-			return ptr >= m_Block && ptr < m_Block + Size + ALIGNMENT - 1;
+			return ptr >= m_Block && ptr < m_Block + m_Size;
+		}
+
+		bool operator==(const stack_allocator& rhs) const noexcept
+		{
+			return m_Block == rhs.m_Block;
+		}
+
+		bool operator!=(const stack_allocator& rhs) const noexcept
+		{
+			return m_Block != rhs.m_Block;
+		}
+
+		template<typename T, typename... Args>
+		void construct(T* p, Args&&... args)
+		{
+			::new (static_cast<void*>(p)) T(std::forward<Args>(args)...);
+		}
+
+		template<typename T>
+		void destroy(T* p)
+		{
+			p->~T();
 		}
 
 	private:
-		char m_Block[Size + ALIGNMENT - 1];
+		char* m_Block;
+		char* m_Free;
 
-		value_type* m_Begin;
-		value_type* m_Free;
-
+		size_t m_Size;
 		size_t m_ObjectCount = 0;
 	};
 
-	template<typename T, typename U>
-	bool operator==(const stack_allocator<T>&, const stack_allocator<U>&) noexcept
-	{
-		return true;
-	}
-
-	template<typename T, typename U>
-	bool operator!=(const stack_allocator<T>&, const stack_allocator<U>&) noexcept
-	{
-		return false;
-	}
+	template<typename T>
+	using stack_type_allocator = type_allocator<T, stack_allocator>;
 }
