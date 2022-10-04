@@ -24,10 +24,18 @@ namespace ktl
 			using other = overflow_allocator<U, V>;
 		};
 
-		overflow_allocator(const Alloc& alloc = Alloc()) noexcept : m_Alloc(alloc) {}
+		overflow_allocator(const Alloc& alloc = Alloc()) noexcept: m_Alloc(alloc) {}
 
-		template<typename U, std::ostream& V>
-		overflow_allocator(const overflow_allocator<U, V>&) noexcept : m_Alloc(Alloc()) {}
+		overflow_allocator(const overflow_allocator& other) noexcept :
+			m_Alloc(other.m_Alloc),
+			m_Allocs(other.m_Allocs),
+			m_Constructs(other.m_Constructs) {}
+
+		template<typename A, std::ostream& S>
+		overflow_allocator(const overflow_allocator<A, S>& other) noexcept :
+			m_Alloc(other.m_Alloc),
+			m_Allocs(other.m_Allocs),
+			m_Constructs(other.m_Constructs) {}
 
 		~overflow_allocator()
 		{
@@ -39,27 +47,27 @@ namespace ktl
 		{
 			m_Allocs += n;
 
-			// size_t overflowSize = n * 3;
-			// value_type* ptr = traits::allocate(m_Alloc, overflowSize);
+			 size_t overflowSize = n * 3;
+			 value_type* ptr = traits::allocate(m_Alloc, overflowSize);
 
-			// memset(ptr, 31, n);
-			// memset(ptr + 2 * n, 31, n);
+			 memset(ptr, 31, n);
+			 memset(ptr + 2 * n, 31, n);
 
-			return traits::allocate(m_Alloc, n);
+			return ptr + n;
 		}
 
 		void deallocate(value_type* p, size_t n)
 		{
 			m_Allocs -= n;
 
-			// // HACK: In reality this should be compared to 0 directly, but that would require more allocation etc...
-			// // Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
-			// if (memcmp(p - n, p + n, n) != 0)
-			// 	Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p + n) << " has been modified\n";
+			 // HACK: In reality this should be compared to 0 directly, but that would require more allocation etc...
+			 // Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
+			 if (memcmp(p - n, p + n, n) != 0)
+			 	Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p + n) << " has been modified\n";
 
-			// size_t overflowSize = n * 3;
+			 size_t overflowSize = n * 3;
 
-			traits::deallocate(m_Alloc, p, n);
+			traits::deallocate(m_Alloc, p - n, overflowSize);
 		}
 
 		template<class... Args>
@@ -84,14 +92,14 @@ namespace ktl
 		size_t m_Constructs = 0;
 	};
 
-	template<typename T, typename U>
-	bool operator==(const overflow_allocator<T>&, const overflow_allocator<U>&) noexcept
+	template<typename A, std::ostream& S, typename U, std::ostream& V>
+	bool operator==(const overflow_allocator<A, S>&, const overflow_allocator<U, V>&) noexcept
 	{
 		return true;
 	}
 
-	template<typename T, typename U>
-	bool operator!=(const overflow_allocator<T>&, const overflow_allocator<U>&) noexcept
+	template<typename A, std::ostream& S, typename U, std::ostream& V>
+	bool operator!=(const overflow_allocator<A, S>&, const overflow_allocator<U, V>&) noexcept
 	{
 		return false;
 	}

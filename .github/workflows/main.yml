@@ -11,19 +11,23 @@ jobs:
     strategy:
       matrix:
         config: [debug, release]
+        architecture: [x86_64]
         machine:
         - host: linux
           os: ubuntu-latest
           action: gmake2
           toolset: gcc
+          extension:
         - host: linux
           os: ubuntu-latest
           action: gmake2
           toolset: clang
+          extension:
         - host: windows
           os: windows-latest
           action: vs2019
           toolset: msc
+          extension: .exe
     runs-on: ${{ matrix.machine.os }}
     steps:
     - name: Checkout
@@ -47,7 +51,4 @@ jobs:
       run: premake5 build --config=${{ matrix.config }}
     - name: Test linux
       if: matrix.machine.os == 'ubuntu-latest'
-      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}-x86_64/Test
-    - name: Test windows
-      if: matrix.machine.os == 'windows-latest'
-      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}-x86_64/Test.exe
+      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}-${{ matrix.machine.architecture }}/Test${{ matrix.machine.extension }}

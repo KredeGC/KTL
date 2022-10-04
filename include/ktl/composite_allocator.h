@@ -6,7 +6,7 @@
 namespace ktl
 {
 	template<typename P, typename F>
-	class composite_allocator : public P, private F
+	class composite_allocator
 	{
 	private:
 		using primary_traits = std::allocator_traits<P>;
@@ -23,36 +23,48 @@ namespace ktl
 			using other = composite_allocator<U, V>;
 		};
 
-		composite_allocator() noexcept : P(), F() {}
+		composite_allocator(const P& primary = P(), const F& fallback = F()) noexcept :
+			m_Primary(primary),
+			m_Fallback(fallback) {}
+
+		composite_allocator(const composite_allocator& other) noexcept :
+			m_Primary(other.m_Primary),
+			m_Fallback(other.m_Fallback) {}
 
 		template<typename U, typename V>
-		composite_allocator(const composite_allocator<U, V>& other) noexcept : P(), F() {}
+		composite_allocator(const composite_allocator<U, V>& other) noexcept :
+			m_Primary(other.m_Primary),
+			m_Fallback(other.m_Fallback) {}
 
 		value_type* allocate(size_t n)
 		{
-			value_type* ptr = primary_traits::allocate(*this, n);
+			value_type* ptr = primary_traits::allocate(m_Primary, n);
 			if (!ptr)
-				return fallback_traits::allocate(*this, n);
+				return fallback_traits::allocate(m_Fallback, n);
 			return ptr;
 		}
 
 		void deallocate(value_type* p, size_t n)
 		{
-			if (P::owns(p))
-				primary_traits::deallocate(*this, p, n);
+			if (m_Primary.owns(p))
+				primary_traits::deallocate(m_Primary, p, n);
 			else
-				fallback_traits::deallocate(*this, p, n);
+				fallback_traits::deallocate(m_Fallback, p, n);
 		}
 
 		size_type max_size() const noexcept
 		{
-			return (std::max)(primary_traits::max_size(*this), fallback_traits::max_size(*this));
+			return (std::max)(primary_traits::max_size(m_Primary), fallback_traits::max_size(m_Fallback));
 		}
 
 		bool owns(value_type* p)
 		{
-			return P::owns(p) || F::owns(p);
+			return m_Primary.owns(p) || m_Fallback.owns(p);
 		}
+
+	private:
+		P m_Primary;
+		F m_Fallback;
 	};
 
 	template<typename P, typename F, typename U, typename V>

@@ -42,8 +42,7 @@ namespace ktl
 			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
 		}
 
-		template<typename U>
-		freelist_allocator(const freelist_allocator<U>& other) noexcept
+		freelist_allocator(const freelist_allocator& other) noexcept
 		{
 			char* ptr = m_Block;
 
@@ -58,6 +57,25 @@ namespace ktl
 			std::cout << (int*)m_Block << std::endl;
 			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
 		}
+
+		template<typename U, size_t V>
+		freelist_allocator(const freelist_allocator<U, V>& other) noexcept
+		{
+			char* ptr = m_Block;
+
+			ptr += align_to_architecture(size_t(ptr));
+
+			m_Free = reinterpret_cast<free_footer*>(ptr);
+			m_Free->AvailableSpace = Size;
+			m_Free->Next = nullptr;
+
+			std::cout << "Copy" << std::endl;
+			std::cout << (int*)m_Free << std::endl;
+			std::cout << (int*)m_Block << std::endl;
+			std::cout << (int*)(m_Block + Size + ALIGNMENT - 1) << std::endl;
+		}
+
+		virtual ~freelist_allocator() = default;
 
 		T* allocate(size_type n)
 		{
@@ -74,6 +92,11 @@ namespace ktl
 
 			if (m_Free == nullptr)
 				return nullptr;
+
+			if (!owns(reinterpret_cast<T*>(m_Free)))
+			{
+				__debugbreak();
+			}
 
 			free_footer* parent = nullptr;
 			free_footer* current = m_Free;

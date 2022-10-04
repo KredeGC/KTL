@@ -21,6 +21,8 @@ namespace ktl
 
 		mallocator() noexcept = default;
 
+		mallocator(const mallocator& other) noexcept : m_Allocs(other.m_Allocs) {}
+
 		template<typename U>
 		mallocator(const mallocator<U>&) noexcept {}
 
@@ -28,23 +30,23 @@ namespace ktl
 		{
 			T* ptr = static_cast<T*>(::operator new(sizeof(T) * n));
 
-			m_Alloc.insert(ptr);
+			m_Allocs.insert(ptr);
 
 			return ptr;
 		}
 
 		void deallocate(T* p, size_t n)
 		{
-			m_Alloc.erase(m_Alloc.find(p));
+			m_Allocs.erase(m_Allocs.find(p));
 		}
 
 		bool owns(T* p)
 		{
-			return m_Alloc.find(p) != m_Alloc.end();
+			return m_Allocs.find(p) != m_Allocs.end();
 		}
 
 	private:
-		std::unordered_set<T*> m_Alloc;
+		std::unordered_set<T*> m_Allocs;
 	};
 
 	template<typename T, typename U>

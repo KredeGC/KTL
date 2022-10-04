@@ -31,6 +31,16 @@ namespace ktl
 			m_Free = m_Begin;
 		}
 
+		stack_allocator(const stack_allocator& other) noexcept
+		{
+			char* ptr = m_Block;
+
+			ptr += align_to_architecture(size_t(ptr));
+
+			m_Begin = reinterpret_cast<value_type*>(ptr);
+			m_Free = m_Begin;
+		}
+
 		template<typename U>
 		stack_allocator(const stack_allocator<U>& other) noexcept
 		{
