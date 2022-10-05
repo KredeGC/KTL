@@ -41,8 +41,6 @@ namespace ktl
 		typedef typename freelist<Size>::footer footer;
 
 	public:
-		using size_type = size_t;
-
 		freelist_allocator() = delete;
 
 		freelist_allocator(freelist<Size>& block) noexcept
@@ -51,7 +49,7 @@ namespace ktl
 		freelist_allocator(const freelist_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
-		[[nodiscard]] void* allocate(size_type n)
+		[[nodiscard]] void* allocate(size_t n)
 		{
 			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
@@ -111,7 +109,7 @@ namespace ktl
 			return current;
 		}
 
-		void deallocate(void* p, size_type n) noexcept
+		void deallocate(void* p, size_t n) noexcept
 		{
 			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
@@ -148,7 +146,7 @@ namespace ktl
 			}
 		}
 
-		size_type max_size() const noexcept
+		size_t max_size() const noexcept
 		{
 			return Size;
 		}

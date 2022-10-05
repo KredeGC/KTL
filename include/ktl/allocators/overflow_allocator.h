@@ -4,7 +4,6 @@
 #include "type_allocator.h"
 
 #include <cstring>
-#include <limits>
 #include <memory>
 #include <type_traits>
 
@@ -18,19 +17,21 @@ namespace ktl
 	private:
 		static_assert(has_value_type<Alloc>(), "Building on top of typed allocators is not allowed. Use allocators without a type");
 
+	public:
+		typedef typename get_size_type<Alloc>::type size_type;
+
+	private:
 		static constexpr int OVERFLOW_PATTERN = 0b01010101010101010101010101010101;
 		static constexpr size_t OVERFLOW_SIZE = 64;
 
 		struct stats
 		{
-			size_t Allocs = 0;
-			size_t Constructs = 0;
+			size_type Allocs = 0;
+			size_type Constructs = 0;
 		};
 
 	public:
-		using size_type = typename Alloc::size_type;
-
-		overflow_allocator(const Alloc& alloc = Alloc()) noexcept:
+		overflow_allocator(const Alloc& alloc = Alloc()) noexcept :
 			m_Alloc(alloc),
 			m_Stats(std::make_shared<stats>()) {}
 
@@ -49,11 +50,11 @@ namespace ktl
 			}
 		}
 
-		void* allocate(size_t n)
+		void* allocate(size_type n)
 		{
 			m_Stats->Allocs += n;
 
-			size_t size = n + OVERFLOW_SIZE * 2;
+			size_type size = n + OVERFLOW_SIZE * 2;
 			char* ptr = reinterpret_cast<char*>(m_Alloc.allocate(size));
 
 			if (!ptr)
@@ -65,7 +66,7 @@ namespace ktl
 			return ptr + OVERFLOW_SIZE;
 		}
 
-		void deallocate(void* p, size_t n)
+		void deallocate(void* p, size_type n)
 		{
 			m_Stats->Allocs -= n;
 
@@ -78,47 +79,41 @@ namespace ktl
 				if (std::memcmp(ptr - OVERFLOW_SIZE, ptr + n, OVERFLOW_SIZE) != 0)
 					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr + OVERFLOW_SIZE) << " has been modified\n";
 
-				size_t size = n + OVERFLOW_SIZE * 2;
+				size_type size = n + OVERFLOW_SIZE * 2;
 				m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);
 			}
 		}
 
 		template<typename T, typename... Args>
-		void construct(T* p, Args&&... args)
+		typename std::enable_if<has_construct<void, Alloc, T*, Args...>::value, void>::type
+		construct(T* p, Args&&... args)
 		{
 			m_Stats->Constructs++;
 
-			if constexpr (has_no_construct<void, Alloc, T*, Args...>::value)
-				::new (p) T(std::forward<Args>(args)...);
-			else
-				m_Alloc.construct(p, std::forward<Args>(args)...);
+			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		void destroy(T* p)
+		typename std::enable_if<has_destroy<Alloc, T*>::value, void>::type
+		destroy(T* p)
 		{
 			m_Stats->Constructs--;
 
-			if constexpr (has_no_destroy<Alloc, T*>::value)
-				p->~T();
-			else
-				m_Alloc.destroy(p);
+			m_Alloc.destroy(p);
 		}
 
-		size_type max_size() const noexcept
+		template<typename A = Alloc>
+		typename std::enable_if<has_max_size<A>::value, size_type>::type
+		max_size() const noexcept
 		{
-			if constexpr (has_no_max_size<Alloc>::value)
-				return std::numeric_limits<size_type>::max();
-			else
-				return m_Alloc.max_size();
+			return m_Alloc.max_size();
 		}
 
-		bool owns(void* p)
+		template<typename A = Alloc>
+		typename std::enable_if<has_owns<A>::value, bool>::type
+		owns(void* p)
 		{
-			if constexpr (has_no_owns<Alloc>::value)
-				return false;
-			else
-				return m_Alloc.owns(p);
+			return m_Alloc.owns(reinterpret_cast<value_type*>(p));
 		}
 
 	private:

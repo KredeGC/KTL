@@ -31,6 +31,9 @@ namespace ktl
 	template<typename Alloc, std::ostream& Stream>
 	class overflow_allocator;
 
+	template<typename T, typename A, std::ostream& Stream>
+	using type_overflow_allocator = type_allocator<T, overflow_allocator<A, Stream>>;
+
 	// stack_allocator
 	template<size_t Size>
 	class stack_allocator;

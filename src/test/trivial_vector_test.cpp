@@ -29,4 +29,18 @@ namespace ktl
         trivial_vector<trivial_t, type_freelist_allocator<trivial_t, 4096>> vec({ block });
         assert_vector_values<trivial_t>(vec);
     }
+
+    KTL_ADD_TEST(test_trivial_vector_stack_double)
+    {
+        stack<4096> block;
+        trivial_vector<double, type_stack_allocator<double, 4096>> vec({ block });
+        assert_vector_values<double>(vec);
+    }
+
+    KTL_ADD_TEST(test_trivial_vector_stack_trivial)
+    {
+        stack<4096> block;
+        trivial_vector<trivial_t, type_stack_allocator<trivial_t, 4096>> vec({ block });
+        assert_vector_values<trivial_t>(vec);
+    }
 }

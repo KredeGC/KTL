@@ -14,8 +14,6 @@ namespace ktl
 	class mallocator
 	{
 	public:
-		using size_type = size_t;
-
 		mallocator() noexcept = default;
 
 		mallocator(const mallocator& other) noexcept : m_Allocs(other.m_Allocs) {}

@@ -2,7 +2,6 @@
 
 #include "../utility/meta_template.h"
 
-#include <limits>
 #include <memory>
 #include <type_traits>
 
@@ -18,14 +17,14 @@ namespace ktl
 		friend class type_allocator;
 
 	public:
-		using value_type = T;
-		using size_type = typename Alloc::size_type;
-		using is_always_equal = std::false_type;
+		typedef T value_type;
+		typedef typename get_size_type<Alloc>::type size_type;
+		typedef std::false_type is_always_equal;
 
 		template<typename U>
 		struct rebind
 		{
-			using other = type_allocator<U, Alloc>;
+			typedef type_allocator<U, Alloc> other;
 		};
 
 		type_allocator(const Alloc& alloc = Alloc()) noexcept :
@@ -48,37 +47,32 @@ namespace ktl
 			m_Alloc.deallocate(p, sizeof(value_type) * n);
 		}
 
-		template<typename... Args>
-		void construct(value_type* p, Args&&... args)
+		template<typename A = Alloc, typename... Args>
+		typename std::enable_if<has_construct<void, A, value_type*, Args...>::value, void>::type
+		construct(value_type* p, Args&&... args)
 		{
-			if constexpr (has_no_construct<void, Alloc, value_type*, Args...>::value)
-				::new (p) value_type(std::forward<Args>(args)...);
-			else
-				m_Alloc.construct(p, std::forward<Args>(args)...);
+			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
-		void destroy(value_type* p)
+		template<typename A = Alloc>
+		typename std::enable_if<has_destroy<A, value_type*>::value, void>::type
+		destroy(value_type* p)
 		{
-			if constexpr (has_no_destroy<Alloc, value_type*>::value)
-				p->~value_type();
-			else
-				m_Alloc.destroy(p);
+			m_Alloc.destroy(p);
 		}
 
-		size_type max_size() const noexcept
+		template<typename A = Alloc>
+		typename std::enable_if<has_max_size<A>::value, void>::type
+		max_size() const noexcept
 		{
-			if constexpr (has_no_max_size<Alloc>::value)
-				return std::numeric_limits<size_type>::max() / sizeof(T);
-			else
-				return m_Alloc.max_size() / sizeof(T);
+			return m_Alloc.max_size() / sizeof(T);
 		}
 
-		bool owns(value_type* p)
+		template<typename A = Alloc>
+		typename std::enable_if<has_owns<A>::value, bool>::type
+		owns(value_type* p)
 		{
-			if constexpr (has_no_owns<Alloc>::value)
-				return false;
-			else
-				return m_Alloc.owns(reinterpret_cast<value_type*>(p));
+			return m_Alloc.owns(reinterpret_cast<value_type*>(p));
 		}
 
 		Alloc& get_allocator()

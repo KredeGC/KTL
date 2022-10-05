@@ -13,12 +13,12 @@ namespace ktl
 	class composite_allocator
 	{
 	private:
-		static_assert(has_value_type<P>(), "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(has_value_type<F>(), "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(!has_no_owns<P>(), "The primary allocator is required to have an 'own(void*)' method");
+		static_assert(has_value_type<P>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(has_value_type<F>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(has_owns<P>::value, "The primary allocator is required to have an 'own(void*)' method");
 
 	public:
-		using size_type = typename P::size_type;
+		typedef typename get_size_type<P>::type size_type;
 
 		composite_allocator(const P& primary = P(), const F& fallback = F()) noexcept :
 			m_Primary(primary),
@@ -38,7 +38,7 @@ namespace ktl
 
 		void deallocate(void* p, size_t n)
 		{
-			if constexpr (!has_no_owns<P>::value)
+			if constexpr (has_owns<P>::value)
 			{
 				if (m_Primary.owns(p))
 				{
@@ -51,43 +51,40 @@ namespace ktl
 		}
 
 		template<typename T, typename... Args>
-		void construct(T* p, Args&&... args)
+		typename std::enable_if<has_construct<void, P, T*, Args...>::value || has_construct<void, F, T*, Args...>::value, void>::type
+		construct(T* p, Args&&... args)
 		{
-			if constexpr (!has_no_owns<P>::value && !has_no_construct<void, P, T*, Args...>::value)
+			if constexpr (has_owns<P>::value && has_construct<void, P, T*, Args...>::value)
 				m_Primary.construct(p, std::forward<Args>(args)...);
-			else if constexpr (!has_no_owns<F>::value && !has_no_construct<void, F, T*, Args...>::value)
-				m_Fallback.construct(p, std::forward<Args>(args)...);
 			else
-				::new (p) T(std::forward<Args>(args)...);
+				m_Fallback.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		void destroy(T* p)
+		typename std::enable_if<has_destroy<P, T*>::value || has_destroy<F, T*>::value, void>::type
+		destroy(T* p)
 		{
-			if constexpr (!has_no_owns<P>::value && !has_no_destroy<void, P, T*>::value)
+			if constexpr (has_owns<P>::value && has_destroy<P, T*>::value)
 				m_Primary.destroy(p);
-			else if constexpr (!has_no_owns<F>::value && !has_no_destroy<void, F, T*>::value)
-				m_Fallback.destroy(p);
 			else
-				p->~T();
+				m_Fallback.destroy(p);
 		}
 
-		size_type max_size() const noexcept
+		template<typename Pr = P, typename Fr = F>
+		typename std::enable_if<has_max_size<Pr>::value && has_max_size<Fr>::value, size_type>::type
+		max_size() const noexcept
 		{
-			if constexpr (!has_no_max_size<P>::value && !has_no_max_size<F>::value)
-				return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
-			else
-				return std::numeric_limits<size_type>::max();
+			return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 		}
 
 		bool owns(void* p)
 		{
-			if constexpr (!has_no_owns<P>::value)
+			if constexpr (has_owns<P>::value)
 			{
 				if (m_Primary.owns(p))
 					return true;
 			}
-			else if constexpr (!has_no_owns<F>::value)
+			else if constexpr (has_owns<F>::value)
 			{
 				if (m_Fallback.owns(p))
 					return true;
