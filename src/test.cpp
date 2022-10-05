@@ -58,13 +58,12 @@ namespace ktl
 			else
 			{
 				std::cout << test_names[i] << std::endl;
-				passed++;
 			}
 		}
 
-		std::cout << passed << " out of " << test_counter << " tests passed" << std::endl;
+		std::cout << passed << " out of " << count << " tests passed" << std::endl;
 
-		if (passed < test_counter)
+		if (passed < count)
 			KTL_BREAKPOINT();
 
 #ifdef _MSC_VER

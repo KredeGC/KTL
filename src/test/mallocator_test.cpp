@@ -7,6 +7,8 @@
 
 #include "ktl/allocators/mallocator.h"
 
+#include <vector>
+
 // Naming scheme: test_mallocator_[Container]_[Type]
 // Contains tests that relate directly to the ktl::mallocator
 
