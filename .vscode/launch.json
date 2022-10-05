@@ -21,7 +21,7 @@
                 }
             ],
             "linux": {
-                "program": "${workspaceFolder}/bin/release-linux-x86_64/Test",
+                "program": "${workspaceFolder}/bin/debug-linux-x86_64/Test",
                 "MIMode": "gdb",
                 "miDebuggerPath": "/usr/bin/gdb"
             },

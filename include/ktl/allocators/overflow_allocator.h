@@ -1,106 +1,104 @@
 #pragma once
 
+#include "type_allocator.h"
+
 #include <cstring>
 #include <memory>
 #include <type_traits>
 
-#include <iostream>
+#include <ostream>
 
 namespace ktl
 {
-	template<typename Alloc, std::ostream& Stream = std::cerr>
+	template<typename Alloc, std::ostream& Stream>
 	class overflow_allocator
 	{
 	private:
-		using traits = std::allocator_traits<Alloc>;
+		static constexpr size_t OVERFLOW_SIZE = 512;
 
-	public:
-		using value_type = typename Alloc::value_type;
-		using is_always_equal = std::true_type;
-
-		template<typename U, std::ostream& V>
-		struct rebind
+		struct stats
 		{
-			using other = overflow_allocator<U, V>;
+			size_t Allocs = 0;
+			size_t Constructs = 0;
 		};
 
-		overflow_allocator(const Alloc& alloc = Alloc()) noexcept: m_Alloc(alloc) {}
+	public:
+		overflow_allocator(const Alloc& alloc = Alloc()) noexcept:
+			m_Alloc(alloc),
+			m_Stats(std::make_shared<stats>()) {}
 
 		overflow_allocator(const overflow_allocator& other) noexcept :
 			m_Alloc(other.m_Alloc),
-			m_Allocs(other.m_Allocs),
-			m_Constructs(other.m_Constructs) {}
-
-		template<typename A, std::ostream& S>
-		overflow_allocator(const overflow_allocator<A, S>& other) noexcept :
-			m_Alloc(other.m_Alloc),
-			m_Allocs(other.m_Allocs),
-			m_Constructs(other.m_Constructs) {}
+			m_Stats(other.m_Stats) {}
 
 		~overflow_allocator()
 		{
-			if (m_Allocs != 0 || m_Constructs != 0)
-				Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n" << m_Allocs << " Allocations\n" << m_Constructs << " Constructions\n";
+			if (m_Stats->Allocs != 0 || m_Stats->Constructs != 0)
+				Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n" << m_Stats->Allocs << " Allocations\n" << m_Stats->Constructs << " Constructions\n";
 		}
 
-		value_type* allocate(size_t n)
+		void* allocate(size_t n)
 		{
-			m_Allocs += n;
+			m_Stats->Allocs += n;
 
-			 size_t overflowSize = n * 3;
-			 value_type* ptr = traits::allocate(m_Alloc, overflowSize);
+			 size_t size = n + OVERFLOW_SIZE * 2;
+			 char* ptr = reinterpret_cast<char*>(m_Alloc.allocate(size));
 
-			 std::memset(ptr, 31, n);
-			 std::memset(ptr + 2 * n, 31, n);
+			 std::memset(ptr, 31, OVERFLOW_SIZE);
+			 std::memset(ptr + OVERFLOW_SIZE + n, 31, OVERFLOW_SIZE);
 
-			return ptr + n;
+			return ptr + OVERFLOW_SIZE;
 		}
 
-		void deallocate(value_type* p, size_t n)
+		void deallocate(void* p, size_t n)
 		{
-			m_Allocs -= n;
+			m_Stats->Allocs -= n;
+
+			 char* ptr = reinterpret_cast<char*>(p);
 
 			 // HACK: In reality this should be compared to the reference directly, but that would require more allocation etc...
 			 // Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted similarly in both blocks
-			 if (std::memcmp(p - n, p + n, n) != 0)
-			 	Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p + n) << " has been modified\n";
+			 if (std::memcmp(ptr - OVERFLOW_SIZE, ptr + OVERFLOW_SIZE, OVERFLOW_SIZE) != 0)
+			 	Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr + OVERFLOW_SIZE) << " has been modified\n";
 
-			 size_t overflowSize = n * 3;
+			 size_t size = n + OVERFLOW_SIZE * 2;
 
-			traits::deallocate(m_Alloc, p - n, overflowSize);
+			m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);
 		}
 
-		template<class... Args>
-		void construct(value_type* p, Args&&... args)
+		template<typename T, class... Args>
+		void construct(T* p, Args&&... args)
 		{
-			m_Constructs++;
+			m_Stats->Constructs++;
 
-			traits::construct(m_Alloc, p, std::forward<Args>(args)...);
+			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
-		void destroy(value_type* p)
+		template<typename T>
+		void destroy(T* p)
 		{
-			m_Constructs--;
+			m_Stats->Constructs--;
 
-			traits::destroy(m_Alloc, p);
+			m_Alloc.destroy(p);
 		}
 
 	private:
 		Alloc m_Alloc;
-
-		size_t m_Allocs = 0;
-		size_t m_Constructs = 0;
+		std::shared_ptr<stats> m_Stats;
 	};
 
 	template<typename A, std::ostream& S, typename U, std::ostream& V>
-	bool operator==(const overflow_allocator<A, S>&, const overflow_allocator<U, V>&) noexcept
+	bool operator==(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
 	{
-		return true;
+		return &lhs == &rhs;
 	}
 
 	template<typename A, std::ostream& S, typename U, std::ostream& V>
-	bool operator!=(const overflow_allocator<A, S>&, const overflow_allocator<U, V>&) noexcept
+	bool operator!=(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
 	{
-		return false;
+		return &lhs != &rhs;
 	}
+
+	template<typename T, typename A, std::ostream& Stream>
+	using type_overflow_allocator = type_allocator<T, overflow_allocator<A, Stream>>;
 }
