@@ -3,52 +3,67 @@
 #include "type_allocator.h"
 
 #include "../utility/alignment_utility.h"
-#include "../utility/stack_type.h"
 
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
+	// Weirdness: std::vector allocates some data in the constructor with a different allocator (std::_ContainerProxy_t or smth)
+	// Question: Why have stateful allocators when copying requires that the state is not altered?
+	// Is this just an msc thing? Other compilers seem to work fine, despite *potentially* being UB
+
+	template<size_t Size>
+	struct freelist
+	{
+		struct footer
+		{
+			size_t AvailableSpace;
+			footer* Next;
+		};
+
+		footer* Free;
+		alignas(ALIGNMENT) char Data[Size];
+
+		freelist() noexcept :
+			Data{}
+		{
+			Free = reinterpret_cast<footer*>(Data);
+			Free->AvailableSpace = Size;
+			Free->Next = nullptr;
+		}
+	};
+
+	template<size_t Size>
 	class freelist_allocator
 	{
 	private:
-		struct free_footer;
+		typedef typename freelist<Size>::footer footer;
 
 	public:
 		using size_type = size_t;
 
-		template<size_t Size>
-		freelist_allocator(stack<Size>& block) noexcept :
-			m_Size(Size)
-		{
-			m_Block = block.Data;
+		freelist_allocator() = delete;
 
-			m_Block += align_to_architecture(size_t(m_Block));
-
-			m_Free = reinterpret_cast<free_footer*>(m_Block);
-			m_Free->AvailableSpace = Size;
-			m_Free->Next = nullptr;
-		}
+		freelist_allocator(freelist<Size>& block) noexcept
+			: m_Block(&block) {}
 
 		freelist_allocator(const freelist_allocator& other) noexcept :
-			m_Block(other.m_Block),
-			m_Free(other.m_Free),
-			m_Size(other.m_Size) {}
+			m_Block(other.m_Block) {}
 
 		[[nodiscard]] void* allocate(size_type n)
 		{
-			size_t totalSize = (std::max)(n, sizeof(free_footer));
+			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
 
-			if (totalSize > m_Size)
+			if (totalSize > Size)
 				return nullptr;
 
-			if (m_Free == nullptr)
+			if (m_Block->Free == nullptr)
 				return nullptr;
 
-			free_footer* parent = nullptr;
-			free_footer* current = m_Free;
+			footer* parent = nullptr;
+			footer* current = m_Block->Free;
 			while (current->Next)
 			{
 				if (current->AvailableSpace < totalSize)
@@ -71,9 +86,9 @@ namespace ktl
 
 			//free_footer footer = *current;
 
-			if (current->AvailableSpace >= totalSize + sizeof(free_footer))
+			if (current->AvailableSpace >= totalSize + sizeof(footer))
 			{
-				free_footer* newFooter = reinterpret_cast<free_footer*>(offset + totalSize);
+				footer* newFooter = reinterpret_cast<footer*>(offset + totalSize);
 
 				newFooter->AvailableSpace = current->AvailableSpace - totalSize;
 				newFooter->Next = current->Next;
@@ -81,16 +96,16 @@ namespace ktl
 				if (parent)
 					parent->Next = newFooter;
 
-				if (m_Free == current)
-					m_Free = newFooter;
+				if (m_Block->Free == current)
+					m_Block->Free = newFooter;
 			}
 			else
 			{
 				if (parent)
 					parent->Next = current->Next;
 
-				if (m_Free == current)
-					m_Free = current->Next;
+				if (m_Block->Free == current)
+					m_Block->Free = current->Next;
 			}
 
 			return current;
@@ -98,24 +113,24 @@ namespace ktl
 
 		void deallocate(void* p, size_type n) noexcept
 		{
-			size_t totalSize = (std::max)(n, sizeof(free_footer));
+			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
 
-			free_footer* header = reinterpret_cast<free_footer*>(p);
+			footer* header = reinterpret_cast<footer*>(p);
 
 			header->AvailableSpace = totalSize;
 
-			if (m_Free > header || m_Free == nullptr)
+			if (m_Block->Free > header || m_Block->Free == nullptr)
 			{
-				free_footer* begin = m_Free;
+				footer* begin = m_Block->Free;
 				header->Next = begin;
-				m_Free = header;
+				m_Block->Free = header;
 
-				coalesce(m_Free);
+				coalesce(m_Block->Free);
 			}
 			else
 			{
-				free_footer* current = m_Free;
+				footer* current = m_Block->Free;
 				while (current->Next)
 				{
 					if (current->Next < header)
@@ -135,16 +150,16 @@ namespace ktl
 
 		size_type max_size() const noexcept
 		{
-			return m_Size;
+			return Size;
 		}
 
 		bool owns(void* p)
 		{
 			char* ptr = reinterpret_cast<char*>(p);
-			return ptr >= m_Block && ptr < m_Block + m_Size;
+			return ptr >= m_Block->Data && ptr < m_Block->Data + Size;
 		}
 
-		void coalesce(free_footer* header) noexcept
+		void coalesce(footer* header) noexcept
 		{
 			char* headerOffset = reinterpret_cast<char*>(header);
 			char* nextOffset = reinterpret_cast<char*>(header->Next);
@@ -164,29 +179,22 @@ namespace ktl
 			}
 		}
 
-		bool operator==(const freelist_allocator& rhs) noexcept
-		{
-			return m_Block == rhs.m_Block;
-		}
-
-		bool operator!=(const freelist_allocator& rhs) noexcept
-		{
-			return m_Block != rhs.m_Block;
-		}
-
 	private:
-		struct free_footer
-		{
-			size_t AvailableSpace;
-			free_footer* Next;
-		};
-
-		char* m_Block;
-		free_footer* m_Free;
-
-		size_t m_Size;
+		freelist<Size>* m_Block;
 	};
 
-	template<typename T>
-	using type_freelist_allocator = type_allocator<T, freelist_allocator>;
+	template<size_t S, size_t T>
+	bool operator==(const freelist_allocator<S>& lhs, const freelist_allocator<T>& rhs) noexcept
+	{
+		return &lhs == &rhs;
+	}
+
+	template<size_t S, size_t T>
+	bool operator!=(const freelist_allocator<S>& lhs, const freelist_allocator<T>& rhs) noexcept
+	{
+		return &lhs != &rhs;
+	}
+
+	template<typename T, size_t Size>
+	using type_freelist_allocator = type_allocator<T, freelist_allocator<Size>>;
 }

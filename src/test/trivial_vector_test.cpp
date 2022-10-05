@@ -37,8 +37,9 @@ namespace ktl
             8.0
         };
 
-        stack block;
-        std::vector<double, type_freelist_allocator<double>> vec({ block });
+        freelist<4096> block;
+        size_t* ptr = reinterpret_cast<size_t*>(block.Data + 16);
+        std::vector<double, type_freelist_allocator<double, 4096>> vec({ block });
         test_trivial_vector_push_back(vec, values, 8);
     }
 

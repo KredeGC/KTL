@@ -3,81 +3,78 @@
 #include "type_allocator.h"
 
 #include "../utility/alignment_utility.h"
-#include "../utility/stack_type.h"
 
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
+	template<size_t Size>
+	struct stack
+	{
+		char* Free;
+		alignas(ALIGNMENT) char Data[Size];
+		size_t ObjectCount;
+
+		stack() noexcept :
+			Data{},
+			Free(Data),
+			ObjectCount(0) {}
+	};
+
+	template<size_t Size>
 	class stack_allocator
 	{
 	public:
 		using size_type = size_t;
 
-		template<size_t Size>
 		stack_allocator(stack<Size>& block) noexcept :
-			m_Size(Size)
-		{
-			m_Block = block.Data;
-
-			m_Block += align_to_architecture(size_t(m_Block));
-
-			m_Free = reinterpret_cast<char*>(m_Block);
-		}
+			m_Block(&block) {}
 
 		stack_allocator(const stack_allocator& other) noexcept :
-			m_Block(other.m_Block),
-			m_Free(other.m_Free),
-			m_Size(other.m_Size),
-			m_ObjectCount(other.m_ObjectCount) {}
+			m_Block(other.m_Block) {}
 
 		[[nodiscard]] void* allocate(size_type n)
 		{
-			if ((size_t(m_Free - m_Block) + n) > m_Size)
+			size_t totalSize = n + align_to_architecture(n);
+
+			if ((size_t(m_Block->Free - m_Block->Data) + totalSize) > Size)
 				return nullptr;
 
-			char* current = m_Free;
+			char* current = m_Block->Free;
 
-			m_Free += n;
-			m_ObjectCount += n;
+			m_Block->Free += totalSize;
+			m_Block->ObjectCount += totalSize;
 
 			return current;
 		}
 
 		void deallocate(void* p, size_type n) noexcept
 		{
-			if (m_Free - n == p)
-				m_Free -= n;
+			size_t totalSize = n + align_to_architecture(n);
 
-			m_ObjectCount -= n;
+			if (m_Block->Free - totalSize == p)
+				m_Block->Free -= totalSize;
+
+			m_Block->ObjectCount -= totalSize;
 
 			// Assumes that people don't deallocate the same memory twice
-			if (m_ObjectCount == 0)
-				m_Free = m_Block;
+			if (m_Block->ObjectCount == 0)
+				m_Block->Free = m_Block->Data;
 		}
 
 		size_type max_size() const noexcept
 		{
-			return m_Size;
+			return Size;
 		}
 
 		bool owns(void* p)
 		{
 			char* ptr = reinterpret_cast<char*>(p);
-			return ptr >= m_Block && ptr < m_Block + m_Size;
+			return ptr >= m_Block->Data && ptr < m_Block->Data + Size;
 		}
 
-		bool operator==(const stack_allocator& rhs) const noexcept
-		{
-			return m_Block == rhs.m_Block;
-		}
-
-		bool operator!=(const stack_allocator& rhs) const noexcept
-		{
-			return m_Block != rhs.m_Block;
-		}
-
+		// TEMP
 		template<typename T, typename... Args>
 		void construct(T* p, Args&&... args)
 		{
@@ -89,15 +86,24 @@ namespace ktl
 		{
 			p->~T();
 		}
+		// TEMP
 
 	private:
-		char* m_Block;
-		char* m_Free;
-
-		size_t m_Size;
-		size_t m_ObjectCount = 0;
+		stack<Size>* m_Block;
 	};
 
-	template<typename T>
-	using type_stack_allocator = type_allocator<T, stack_allocator>;
+	template<size_t S, size_t T>
+	bool operator==(const stack_allocator<S>& lhs, const stack_allocator<T>& rhs) noexcept
+	{
+		return &lhs == &rhs;
+	}
+
+	template<size_t S, size_t T>
+	bool operator!=(const stack_allocator<S>& lhs, const stack_allocator<T>& rhs) noexcept
+	{
+		return &lhs != &rhs;
+	}
+
+	template<typename T, size_t Size>
+	using type_stack_allocator = type_allocator<T, stack_allocator<Size>>;
 }

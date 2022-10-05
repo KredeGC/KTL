@@ -19,8 +19,8 @@ namespace ktl
         constexpr double value5 = 99.9;
 
         stack<16> primaryStack;
-        stack<4096> fallbackStack;
-        type_composite_allocator<double, stack_allocator, freelist_allocator> alloc({ primaryStack, fallbackStack });
+        freelist<4096> fallbackStack;
+        type_composite_allocator<double, stack_allocator<16>, freelist_allocator<4096>> alloc({ primaryStack, fallbackStack });
 
         double* ptr1 = assert_allocate<double>(alloc, value1);
         double* ptr2 = assert_allocate<double>(alloc, value2);
@@ -53,7 +53,7 @@ namespace ktl
         constexpr double value5 = 99.9;
 
         stack<16> stack;
-        type_composite_allocator<double, stack_allocator, mallocator> alloc({ stack });
+        type_composite_allocator<double, stack_allocator<16>, mallocator> alloc({ stack });
 
         double* ptr1 = assert_allocate<double>(alloc, value1);
         double* ptr2 = assert_allocate<double>(alloc, value2);
@@ -85,9 +85,9 @@ namespace ktl
         constexpr double value4 = 182.1;
         constexpr double value5 = 99.9;
 
-        stack<32> primaryStack;
-        stack<4096> fallbackStack;
-        type_composite_allocator<double, freelist_allocator, freelist_allocator> alloc({ primaryStack, fallbackStack });
+        freelist<32> primaryStack;
+        freelist<4096> fallbackStack;
+        type_composite_allocator<double, freelist_allocator<32>, freelist_allocator<4096>> alloc({ primaryStack, fallbackStack });
 
         double* ptr1 = assert_allocate<double>(alloc, value1);
         double* ptr2 = assert_allocate<double>(alloc, value2);

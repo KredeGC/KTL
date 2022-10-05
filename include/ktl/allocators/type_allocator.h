@@ -20,6 +20,7 @@ namespace ktl
 	public:
 		using value_type = T;
 		using size_type = typename Alloc::size_type;
+		using is_always_equal = std::false_type;
 
 		template<typename U>
 		struct rebind
@@ -95,14 +96,14 @@ namespace ktl
 	};
 
 	template<typename T, typename U, typename Alloc>
-	bool operator==(const type_allocator<T, Alloc>&, const type_allocator<U, Alloc>&) noexcept
+	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs) noexcept
 	{
-		return true;
+		return lhs == rhs;
 	}
 
 	template<typename T, typename U, typename Alloc>
-	bool operator!=(const type_allocator<T, Alloc>&, const type_allocator<U, Alloc>&) noexcept
+	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs) noexcept
 	{
-		return false;
+		return lhs == rhs;
 	}
 }

@@ -15,10 +15,11 @@ namespace ktl
 	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
 
 	// freelist_allocator
+	template<size_t Size>
 	class freelist_allocator;
 
-	template<typename T>
-	using type_freelist_allocator = type_allocator<T, freelist_allocator>;
+	template<typename T, size_t Size>
+	using type_freelist_allocator = type_allocator<T, freelist_allocator<Size>>;
 	
 	// mallocator
 	class mallocator;
@@ -31,8 +32,9 @@ namespace ktl
 	class overflow_allocator;
 
 	// stack_allocator
+	template<size_t Size>
 	class stack_allocator;
 
-	template<typename T>
-	using type_stack_allocator = type_allocator<T, stack_allocator>;
+	template<typename T, size_t Size>
+	using type_stack_allocator = type_allocator<T, stack_allocator<Size>>;
 }

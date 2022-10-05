@@ -28,11 +28,6 @@ namespace ktl
 			m_Primary(other.m_Primary),
 			m_Fallback(other.m_Fallback) {}
 
-		template<typename U, typename V>
-		composite_allocator(const composite_allocator<U, V>& other) noexcept :
-			m_Primary(reinterpret_cast<P>(other.m_Primary)),
-			m_Fallback(reinterpret_cast<F>(other.m_Fallback)) {}
-
 		void* allocate(size_t n)
 		{
 			void* ptr = m_Primary.allocate(n);
