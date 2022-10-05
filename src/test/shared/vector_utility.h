@@ -65,7 +65,7 @@ namespace ktl
         int forRef1 = 42;
         int forRef2 = 9;
 
-        packed_t values[] = { ,
+        packed_t values[] = {
             { &forRef1, &forRef2, 40000, 'a' },
             { &forRef2, &forRef2, 1, 'q' },
             { &forRef1, &forRef2, 300, 'p' },
