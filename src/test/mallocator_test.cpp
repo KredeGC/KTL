@@ -1,24 +1,25 @@
 #include "shared/allocation_utility.h"
 #include "shared/test.h"
+#include "shared/types.h"
 
 #include "ktl/ktl_fwd.h"
 
 #include "ktl/allocators/mallocator.h"
 
+// Naming scheme: test_mallocator_[Type]
+// Contains tests that relate directly to the ktl::mallocator
+
 namespace ktl
 {
     KTL_ADD_TEST(test_mallocator_double)
     {
-        double values[] = {
-                42.5,
-                81.3,
-                384.6,
-                182.1,
-                99.9
-        };
-
         type_mallocator<double> alloc;
+        assert_unordered_values<double>(alloc);
+    }
 
-        assert_allocate_unordered(alloc, values);
+    KTL_ADD_TEST(test_mallocator_packed)
+    {
+        type_mallocator<packed_t> alloc;
+        assert_unordered_values<packed_t>(alloc);
     }
 }

@@ -52,6 +52,7 @@ namespace ktl
 		}
 
 	private:
+		// TODO: Use std::shared_ptr to ensure copy-ability
 		std::unordered_set<void*> m_Allocs;
 	};
 

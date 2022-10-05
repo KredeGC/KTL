@@ -1,6 +1,7 @@
 #pragma once
 
 #include "assert_utility.h"
+#include "types.h"
 
 namespace ktl
 {
@@ -39,7 +40,7 @@ namespace ktl
     }
 
     template<typename Alloc, typename T>
-    void assert_allocate_unordered(Alloc& alloc, const T* values)
+    void assert_allocate_deallocate(Alloc& alloc, const T* values)
     {
         T* ptr1 = assert_allocate(alloc, values[0]);
         T* ptr2 = assert_allocate(alloc, values[1]);
@@ -61,5 +62,68 @@ namespace ktl
         assert_deallocate(alloc, ptr2);
         assert_deallocate(alloc, ptr3);
         assert_deallocate(alloc, ptr5);
+    }
+
+    template<typename T, typename Alloc>
+    typename std::enable_if<std::is_same<T, double>::value, void>::type
+    assert_unordered_values(Alloc& alloc)
+    {
+        double values[] = {
+            42.5,
+            81.3,
+            384.6,
+            182.1,
+            99.9
+        };
+
+        assert_allocate_deallocate(alloc, values);
+    }
+
+    template<typename T, typename Alloc>
+    typename std::enable_if<std::is_same<T, trivial_t>::value, void>::type
+    assert_unordered_values(Alloc& alloc)
+    {
+        trivial_t values[] = {
+            { 0.0f, 0.0f },
+            { 8.0f, 7.0f },
+            { 10.0f, 9.0f },
+            { 9.0f, 11.0f },
+            { 20.0f, 3.0f }
+        };
+
+        assert_allocate_deallocate(alloc, values);
+    }
+
+    template<typename T, typename Alloc>
+    typename std::enable_if<std::is_same<T, packed_t>::value, void>::type
+    assert_unordered_values(Alloc& alloc)
+    {
+        int forRef1 = 42;
+        int forRef2 = 9;
+
+        packed_t values[] = {
+            { &forRef1, &forRef2, 55, 'm' },
+            { &forRef1, &forRef2, 982, 'c' },
+            { &forRef1, &forRef2, 761, 'p' },
+            { &forRef1, &forRef2, 666, 'd' },
+            { &forRef1, &forRef2, 40000, 'a' }
+        };
+
+        assert_allocate_deallocate(alloc, values);
+    }
+
+    template<typename T, typename Alloc>
+    typename std::enable_if<std::is_same<T, complex_t>::value, void>::type
+    assert_unordered_values(Alloc& alloc)
+    {
+        complex_t values[] = {
+            42.5,
+            81.3,
+            384.6,
+            182.1,
+            99.9
+        };
+
+        assert_allocate_deallocate(alloc, values);
     }
 }
