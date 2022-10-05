@@ -37,6 +37,7 @@ namespace ktl
             8.0
         };
 
+        // TODO: Use trivial_vector instead, and add std::vector to other allocator tests
         freelist<4096> block;
         size_t* ptr = reinterpret_cast<size_t*>(block.Data + 16);
         std::vector<double, type_freelist_allocator<double, 4096>> vec({ block });
