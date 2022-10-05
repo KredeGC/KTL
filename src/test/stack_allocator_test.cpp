@@ -7,7 +7,7 @@
 #include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_stack_allocator_[Type]
-// Contains tests that relate directly to the stack_allocator
+// Contains tests that relate directly to the ktl::stack_allocator
 
 namespace ktl
 {

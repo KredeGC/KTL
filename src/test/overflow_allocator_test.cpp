@@ -11,40 +11,42 @@
 #include <sstream>
 
 // Naming scheme: test_overflow_[Alloc]_[Container]_[Type]
-// Contains tests that relate directly to the mallocator
+// Contains tests that relate directly to the ktl::overflow_allocator
 
 namespace ktl
 {
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);
 
-    KTL_ADD_TEST(test_overflow_freelist_unordered_double)
+    template<typename Fn>
+    void assert_no_overflow(Fn func)
     {
         stringBuffer = std::stringbuf();
 
-        {
-            freelist<4096> list;
-            type_overflow_allocator<double, freelist_allocator<4096>, stringOut> alloc({ list });
-            assert_unordered_values<double>(alloc);
-        }
+        func();
 
         std::cout << stringBuffer.str();
 
         KTL_ASSERT(stringBuffer.str().empty());
     }
 
+    KTL_ADD_TEST(test_overflow_freelist_unordered_double)
+    {
+        assert_no_overflow([]()
+        {
+            freelist<4096> list;
+            type_overflow_allocator<double, freelist_allocator<4096>, stringOut> alloc({ list });
+            assert_unordered_values<double>(alloc);
+        });
+    }
+
     KTL_ADD_TEST(test_overflow_freelist_binary_heap_double)
     {
-        stringBuffer = std::stringbuf();
-
+        assert_no_overflow([]()
         {
             freelist<4096> block;
             type_overflow_allocator<double, freelist_allocator<4096>, stringOut> alloc({ block });
             assert_binary_heap<double>(3, alloc);
-        }
-
-        std::cout << stringBuffer.str();
-
-        KTL_ASSERT(stringBuffer.str().empty());
+        });
     }
 }
