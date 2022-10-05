@@ -49,7 +49,7 @@ namespace ktl
 		freelist_allocator(const freelist_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
-		[[nodiscard]] void* allocate(size_t n)
+		void* allocate(size_t n)
 		{
 			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);

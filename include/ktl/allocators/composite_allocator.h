@@ -28,6 +28,7 @@ namespace ktl
 			m_Primary(other.m_Primary),
 			m_Fallback(other.m_Fallback) {}
 
+#pragma region Allocation
 		void* allocate(size_t n)
 		{
 			void* ptr = m_Primary.allocate(n);
@@ -49,7 +50,9 @@ namespace ktl
 
 			m_Fallback.deallocate(p, n);
 		}
+#pragma endregion
 
+#pragma region Construction
 		template<typename T, typename... Args>
 		typename std::enable_if<has_construct<void, P, T*, Args...>::value || has_construct<void, F, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
@@ -69,7 +72,9 @@ namespace ktl
 			else
 				m_Fallback.destroy(p);
 		}
+#pragma endregion
 
+#pragma region Utility
 		template<typename Pr = P, typename Fr = F>
 		typename std::enable_if<has_max_size<Pr>::value && has_max_size<Fr>::value, size_type>::type
 		max_size() const noexcept
@@ -91,6 +96,7 @@ namespace ktl
 			}
 			return false;
 		}
+#pragma endregion
 
 	private:
 		P m_Primary;

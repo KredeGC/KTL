@@ -50,6 +50,7 @@ namespace ktl
 			}
 		}
 
+#pragma region Allocation
 		void* allocate(size_type n)
 		{
 			m_Stats->Allocs += n;
@@ -83,7 +84,9 @@ namespace ktl
 				m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);
 			}
 		}
+#pragma endregion
 
+#pragma region Construction
 		template<typename T, typename... Args>
 		typename std::enable_if<has_construct<void, Alloc, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
@@ -101,7 +104,9 @@ namespace ktl
 
 			m_Alloc.destroy(p);
 		}
+#pragma endregion
 
+#pragma region Utility
 		template<typename A = Alloc>
 		typename std::enable_if<has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
@@ -114,6 +119,17 @@ namespace ktl
 		owns(void* p)
 		{
 			return m_Alloc.owns(p);
+		}
+#pragma endregion
+
+		Alloc& get_allocator()
+		{
+			return m_Alloc;
+		}
+
+		const Alloc& get_allocator() const
+		{
+			return m_Alloc;
 		}
 
 	private:

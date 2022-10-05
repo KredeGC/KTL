@@ -23,32 +23,42 @@ namespace ktl
 
 	void test::run_all_tests()
 	{
+		size_t count = 0;
 		size_t passed = 0;
 
 		for (uint32_t i = 0; i < test_counter; i++)
 		{
-			std::cout << "[" << (i + 1) << "] " << test_names[i] << " running" << std::endl;
-			try
+			if (test_functions[i])
 			{
-				test_functions[i]();
-				std::cout << "  ->passed" << std::endl;
+				count++;
+				std::cout << "[" << count << "] " << test_names[i] << " running" << std::endl;
+				try
+				{
+					test_functions[i]();
+					std::cout << "  ->passed" << std::endl;
+					passed++;
+				}
+				catch (const char* e)
+				{
+					std::cout << "  ->failed assertion: " << e << std::endl;
+				}
+				catch (const std::string& e)
+				{
+					std::cout << "  ->failed assertion: " << e << std::endl;
+				}
+				catch (const std::exception& e)
+				{
+					std::cout << "  ->exception encountered: " << e.what() << std::endl;
+				}
+				catch (...)
+				{
+					std::cout << "  ->fatal error" << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << test_names[i] << std::endl;
 				passed++;
-			}
-			catch (const char* e)
-			{
-				std::cout << "  ->failed assertion: " << e << std::endl;
-			}
-			catch (const std::string& e)
-			{
-				std::cout << "  ->failed assertion: " << e << std::endl;
-			}
-			catch (const std::exception& e)
-			{
-				std::cout << "  ->exception encountered: " << e.what() << std::endl;
-			}
-			catch (...)
-			{
-				std::cout << "  ->fatal error" << std::endl;
 			}
 		}
 

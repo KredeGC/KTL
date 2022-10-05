@@ -32,7 +32,7 @@ namespace ktl
 		stack_allocator(const stack_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
-		[[nodiscard]] void* allocate(size_t n)
+		void* allocate(size_t n)
 		{
 			size_t totalSize = n + align_to_architecture(n);
 

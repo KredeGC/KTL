@@ -10,3 +10,4 @@
 #include "allocators/mallocator.h"
 #include "allocators/overflow_allocator.h"
 #include "allocators/stack_allocator.h"
+#include "allocators/type_allocator.h"

@@ -11,6 +11,8 @@
 
 namespace ktl
 {
+    KTL_ADD_HEADER();
+
     KTL_ADD_TEST(test_freelist_allocator_double)
     {
         freelist<4096> block;

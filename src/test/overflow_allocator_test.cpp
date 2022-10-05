@@ -16,6 +16,8 @@
 
 namespace ktl
 {
+    KTL_ADD_HEADER();
+
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);
 

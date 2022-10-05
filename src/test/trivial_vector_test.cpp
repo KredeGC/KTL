@@ -16,6 +16,8 @@
 
 namespace ktl
 {
+    KTL_ADD_HEADER();
+
     KTL_ADD_TEST(test_trivial_vector_freelist_double)
     {
         freelist<4096> block;

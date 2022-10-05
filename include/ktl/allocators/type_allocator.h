@@ -37,6 +37,7 @@ namespace ktl
 		type_allocator(const type_allocator<U, Alloc>& other) noexcept :
 			m_Alloc(other.m_Alloc) {}
 
+#pragma region Allocation
 		value_type* allocate(size_t n)
 		{
 			return reinterpret_cast<value_type*>(m_Alloc.allocate(sizeof(value_type) * n));
@@ -46,7 +47,9 @@ namespace ktl
 		{
 			m_Alloc.deallocate(p, sizeof(value_type) * n);
 		}
+#pragma endregion
 
+#pragma region Construction
 		template<typename A = Alloc, typename... Args>
 		typename std::enable_if<has_construct<void, A, value_type*, Args...>::value, void>::type
 		construct(value_type* p, Args&&... args)
@@ -60,7 +63,9 @@ namespace ktl
 		{
 			m_Alloc.destroy(p);
 		}
+#pragma endregion
 
+#pragma region Utility
 		template<typename A = Alloc>
 		typename std::enable_if<has_max_size<A>::value, void>::type
 		max_size() const noexcept
@@ -74,6 +79,7 @@ namespace ktl
 		{
 			return m_Alloc.owns(reinterpret_cast<value_type*>(p));
 		}
+#pragma endregion
 
 		Alloc& get_allocator()
 		{

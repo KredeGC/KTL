@@ -13,6 +13,8 @@
 
 namespace ktl
 {
+    KTL_ADD_HEADER();
+
     KTL_ADD_TEST(test_composite_stack_freelist_unordered_double)
     {
         stack<16> primaryStack;

@@ -11,6 +11,8 @@
 
 namespace ktl
 {
+    KTL_ADD_HEADER();
+
     KTL_ADD_TEST(test_stack_allocator_double)
     {
         stack<4096> block;
