@@ -1,4 +1,5 @@
 #include "shared/assert_utility.h"
+#include "shared/binary_heap_utility.h"
 #include "shared/test.h"
 #include "shared/types.h"
 
@@ -9,33 +10,8 @@
 #include "ktl/allocators/freelist_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
-#include <algorithm>
-#include <ostream>
-#include <random>
-#include <vector>
-
 namespace ktl
 {
-    std::random_device rd;
-    std::mt19937 random_generator(rd());
-
-    template<typename Heap, typename T>
-    void test_binary_heap_insert_pop(Heap& heap, const T* values, size_t amount)
-    {
-        T* random_copy = new T[amount];
-        std::copy(values, values + amount, random_copy);
-
-        std::shuffle(random_copy, random_copy + amount, random_generator);
-
-        for (size_t i = 0; i < amount; i++)
-            heap.insert(random_copy[i]);
-
-        for (size_t i = 0; i < amount; i++)
-            KTL_ASSERT(heap.pop() == values[i]);
-
-        delete[] random_copy;
-    }
-
     KTL_ADD_TEST(test_binary_heap_double)
     {
         constexpr size_t size = 8;
@@ -52,17 +28,8 @@ namespace ktl
         };
 
         freelist<4096> block;
-        {
-            binary_min_heap<double, type_freelist_allocator<double, 4096>> min_heap(3, { block });
-            test_binary_heap_insert_pop(min_heap, values, size);
-        }
-
-        // Reuse block once the previous allocator is done with it
-        {
-            std::sort(values, values + size, std::greater<double>());
-            binary_max_heap<double, type_freelist_allocator<double, 4096>> max_heap(3, { block });
-            test_binary_heap_insert_pop(max_heap, values, size);
-        }
+        type_freelist_allocator<double, 4096> alloc(block);
+        test_binary_heap_min_max<3>(alloc, values, size);
     }
 
     KTL_ADD_TEST(test_binary_heap_trivial)
@@ -81,17 +48,8 @@ namespace ktl
         };
 
         freelist<4096> block;
-        {
-            binary_min_heap<trivial_t, type_freelist_allocator<trivial_t, 4096>> min_heap(3, { block });
-            test_binary_heap_insert_pop(min_heap, values, size);
-        }
-
-        // Reuse block once the previous allocator is done with it
-        {
-            std::sort(values, values + size, std::greater<trivial_t>());
-            binary_max_heap<trivial_t, type_freelist_allocator<trivial_t, 4096>> max_heap(3, { block });
-            test_binary_heap_insert_pop(max_heap, values, size);
-        }
+        type_freelist_allocator<trivial_t, 4096> alloc(block);
+        test_binary_heap_min_max<3>(alloc, values, size);
     }
 
     KTL_ADD_TEST(test_binary_heap_complex)
@@ -110,17 +68,7 @@ namespace ktl
         };
 
         freelist<4096> block;
-        {
-            binary_min_heap<complex_t, type_freelist_allocator<complex_t, 4096>> min_heap(3, { block });
-            test_binary_heap_insert_pop(min_heap, values, size);
-        }
-
-        // Reuse block once the previous allocator is done with it
-        // Only matters for complex types with destructors
-        {
-            std::sort(values, values + size, std::greater<complex_t>());
-            binary_max_heap<complex_t, type_freelist_allocator<complex_t, 4096>> max_heap(3, { block });
-            test_binary_heap_insert_pop(max_heap, values, size);
-        }
+        type_freelist_allocator<complex_t, 4096> alloc(block);
+        test_binary_heap_min_max<3>(alloc, values, size);
     }
 }

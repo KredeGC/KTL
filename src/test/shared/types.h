@@ -31,6 +31,37 @@ namespace ktl
         }
     };
 
+    // Has to be bigger than 16, but not aligned
+#pragma pack(push, 1)
+    struct packed_t
+    {
+        int* ptr1;
+        int* ptr2;
+        uint16_t shorty;
+        char caca;
+
+        bool operator==(const packed_t& rhs) const
+        {
+            return ptr1 == rhs.ptr1 && ptr2 == rhs.ptr2 && shorty == rhs.shorty && caca == rhs.caca;
+        }
+
+        bool operator<(const packed_t& other) const
+        {
+            return shorty < other.shorty;
+        }
+
+        bool operator>(const packed_t& other) const
+        {
+            return shorty > other.shorty;
+        }
+
+        friend std::ostream& operator<<(std::ostream& output, const packed_t& rhs)
+        {
+            return output << "[p1:" << rhs.ptr1 << ", p2:" << rhs.ptr2 << ", short:" << rhs.shorty << ", caca:" << rhs.caca << "]";
+        }
+    };
+#pragma pack(pop)
+
     class complex_t
     {
     public:
