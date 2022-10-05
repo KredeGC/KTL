@@ -113,7 +113,7 @@ namespace ktl
 		typename std::enable_if<has_owns<A>::value, bool>::type
 		owns(void* p)
 		{
-			return m_Alloc.owns(reinterpret_cast<value_type*>(p));
+			return m_Alloc.owns(p);
 		}
 
 	private:
