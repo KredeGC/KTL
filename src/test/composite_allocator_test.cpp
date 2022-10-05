@@ -15,6 +15,14 @@ namespace ktl
 {
     KTL_ADD_HEADER();
 
+    KTL_ADD_TEST(test_composite_stack_stack_unordered_double)
+    {
+        stack<16> primaryStack;
+        stack<4096> fallbackStack;
+        type_composite_allocator<double, stack_allocator<16>, stack_allocator<4096>> alloc({ primaryStack, fallbackStack });
+        assert_unordered_values<double>(alloc);
+    }
+
     KTL_ADD_TEST(test_composite_stack_freelist_unordered_double)
     {
         stack<16> primaryStack;

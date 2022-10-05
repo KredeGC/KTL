@@ -57,20 +57,44 @@ namespace ktl
 		typename std::enable_if<has_construct<void, P, T*, Args...>::value || has_construct<void, F, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
 		{
-			if constexpr (has_owns<P>::value && has_construct<void, P, T*, Args...>::value)
-				m_Primary.construct(p, std::forward<Args>(args)...);
-			else
+			if constexpr (has_construct<void, P, T*, Args...>::value)
+			{
+				if (m_Primary.owns(p))
+				{
+					m_Primary.construct(p, std::forward<Args>(args)...);
+					return;
+				}
+			}
+
+			if constexpr (has_construct<void, F, T*, Args...>::value)
+			{
 				m_Fallback.construct(p, std::forward<Args>(args)...);
+				return;
+			}
+
+			::new(p) T(std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		typename std::enable_if<has_destroy<P, T*>::value || has_destroy<F, T*>::value, void>::type
 		destroy(T* p)
 		{
-			if constexpr (has_owns<P>::value && has_destroy<P, T*>::value)
-				m_Primary.destroy(p);
-			else
+			if constexpr (has_destroy<P, T*>::value)
+			{
+				if (m_Primary.owns(p))
+				{
+					m_Primary.destroy(p);
+					return;
+				}
+			}
+
+			if constexpr (has_destroy<F, T*>::value)
+			{
 				m_Fallback.destroy(p);
+				return;
+			}
+
+			p->~T();
 		}
 #pragma endregion
 
@@ -104,15 +128,15 @@ namespace ktl
 	};
 
 	template<typename P, typename F, typename U, typename V>
-	bool operator==(const composite_allocator<P, F>&, const composite_allocator<U, V>&) noexcept
+	bool operator==(const composite_allocator<P, F>& lhs, const composite_allocator<U, V>& rhs) noexcept
 	{
-		return true;
+		return lhs.m_Primary == rhs.m_Primary && lhs.m_Fallback == rhs.m_Fallback;
 	}
 
 	template<typename P, typename F, typename U, typename V>
-	bool operator!=(const composite_allocator<P, F>&, const composite_allocator<U, V>&) noexcept
+	bool operator!=(const composite_allocator<P, F>& lhs, const composite_allocator<U, V>& rhs) noexcept
 	{
-		return false;
+		return lhs.m_Primary != rhs.m_Primary || lhs.m_Fallback != rhs.m_Fallback;
 	}
 
 	template<typename T, typename P, typename F>
