@@ -56,6 +56,17 @@ namespace ktl
 #pragma endregion
 
 #pragma region Performance
+    KTL_ADD_PERFORMANCE(performance_mallocator_ordered_double)
+    {
+        type_mallocator<double> alloc;
+
+        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
+        {
+            double* ptr = alloc.allocate(1);
+            alloc.deallocate(ptr, 1);
+        }
+    }
+
     KTL_ADD_PERFORMANCE(performance_mallocator_unordered_double)
     {
         type_mallocator<double> alloc;

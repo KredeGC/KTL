@@ -29,6 +29,18 @@ namespace ktl
     }
 
 #pragma region Performance
+    KTL_ADD_PERFORMANCE(performance_pre_allocator_ordered_double)
+    {
+        arena<4096> block;
+        type_pre_allocator<double, 4096> alloc(block);
+
+        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
+        {
+            double* ptr = alloc.allocate(1);
+            alloc.deallocate(ptr, 1);
+        }
+    }
+
     KTL_ADD_PERFORMANCE(performance_pre_allocator_unordered_double)
     {
         arena<4096> block;

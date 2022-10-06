@@ -16,6 +16,8 @@
 
 # Status
 The interface is currently not in a stable state, so expect changes between updates to cause some disruption, as functions or types may not exist between versions.
+In addition, most allocators presented are not thread-safe.
+For now thread safety is not on the roadmap as it would degrade performance on single-threaded applications.
 The library itself is fairly stable and should be able to be used in a production environment.
 
 # Installation
