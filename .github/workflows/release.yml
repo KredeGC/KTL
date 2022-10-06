@@ -23,15 +23,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Copy LICENSE
-      run: cp LICENSE include/LICENSE
+      run: cp LICENSE include/ktl/LICENSE
     - name: Install zip
       run: |
         sudo apt update
         sudo apt install -y zip
     - name: Zip headers
-      run: zip -r KTL.zip include
+      run: zip -r KTL.zip include/ktl
     - name: Tar headers
-      run: tar czvf KTL.tar.gz include
+      run: tar czvf KTL.tar.gz include/ktl
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
