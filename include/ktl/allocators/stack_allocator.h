@@ -72,20 +72,6 @@ namespace ktl
 			return ptr >= m_Block->Data && ptr < m_Block->Data + Size;
 		}
 
-		// TEMP
-		template<typename T, typename... Args>
-		void construct(T* p, Args&&... args)
-		{
-			::new (static_cast<void*>(p)) T(std::forward<Args>(args)...);
-		}
-
-		template<typename T>
-		void destroy(T* p)
-		{
-			p->~T();
-		}
-		// TEMP
-
 	private:
 		stack<Size>* m_Block;
 	};

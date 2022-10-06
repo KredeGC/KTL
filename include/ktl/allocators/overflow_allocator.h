@@ -88,21 +88,25 @@ namespace ktl
 
 #pragma region Construction
 		template<typename T, typename... Args>
-		typename std::enable_if<has_construct<void, Alloc, T*, Args...>::value, void>::type
-		construct(T* p, Args&&... args)
+		void construct(T* p, Args&&... args)
 		{
 			m_Stats->Constructs++;
 
-			m_Alloc.construct(p, std::forward<Args>(args)...);
+			if constexpr (has_construct<void, Alloc, T*, Args...>::value)
+				m_Alloc.construct(p, std::forward<Args>(args)...);
+			else
+				::new (p) T(std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		typename std::enable_if<has_destroy<Alloc, T*>::value, void>::type
-		destroy(T* p)
+		void destroy(T* p)
 		{
 			m_Stats->Constructs--;
 
-			m_Alloc.destroy(p);
+			if constexpr (has_destroy<Alloc, T*>::value)
+				m_Alloc.destroy(p);
+			else
+				p->~T();
 		}
 #pragma endregion
 
