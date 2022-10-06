@@ -17,8 +17,6 @@
 
 #define KTL_ADD_HEADER() KTL_ADD_HEADER2(__FILE__, __LINE__)
 
-#define KTL_ADD_HEADER_NAME(name) KTL_ADD_HEADER2(name, __LINE__)
-
 namespace ktl
 {
 	class test

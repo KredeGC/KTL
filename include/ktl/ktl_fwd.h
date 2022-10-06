@@ -4,6 +4,15 @@
 
 namespace ktl
 {
+	// stack
+	template<size_t Size>
+	struct stack;
+
+	// arena
+	template<size_t Size>
+	struct arena;
+
+	// type_allocator
 	template<typename T, typename Alloc>
 	class type_allocator;
 
