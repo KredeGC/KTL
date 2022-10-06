@@ -54,6 +54,9 @@ namespace ktl
 		typename std::enable_if<has_construct<void, Alloc, value_type*, Args...>::value, void>::type
 		construct(value_type* p, Args&&... args)
 		{
+			/*std::forward<decltype(func)>(func)(
+				std::forward<decltype(params)>(params)...);*/
+
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
