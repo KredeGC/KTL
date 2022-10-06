@@ -50,8 +50,8 @@ namespace ktl
 #pragma endregion
 
 #pragma region Construction
-		template<typename A = Alloc, typename... Args>
-		typename std::enable_if<has_construct<void, A, value_type*, Args...>::value, void>::type
+		template<typename... Args>
+		typename std::enable_if<has_construct<void, Alloc, value_type*, Args...>::value, void>::type
 		construct(value_type* p, Args&&... args)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);

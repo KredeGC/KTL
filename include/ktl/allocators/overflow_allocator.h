@@ -95,7 +95,7 @@ namespace ktl
 			if constexpr (has_construct<void, Alloc, T*, Args...>::value)
 				m_Alloc.construct(p, std::forward<Args>(args)...);
 			else
-				::new (p) T(std::forward<Args>(args)...);
+				::new(p) T(std::forward<Args>(args)...);
 		}
 
 		template<typename T>

@@ -31,7 +31,7 @@ namespace ktl
             func();
         }
 
-        std::cout << stringBuffer.str();
+        std::cerr << stringBuffer.str();
 
         KTL_ASSERT(stringBuffer.str().empty());
     }
