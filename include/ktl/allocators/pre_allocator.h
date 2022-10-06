@@ -14,7 +14,7 @@ namespace ktl
 	// Is this just an msc thing? Other compilers seem to work fine, despite *potentially* being UB
 
 	template<size_t Size>
-	struct freelist
+	struct arena
 	{
 		struct footer
 		{
@@ -25,7 +25,7 @@ namespace ktl
 		footer* Free;
 		alignas(ALIGNMENT) char Data[Size];
 
-		freelist() noexcept :
+		arena() noexcept :
 			Data{}
 		{
 			Free = reinterpret_cast<footer*>(Data);
@@ -35,18 +35,18 @@ namespace ktl
 	};
 
 	template<size_t Size>
-	class freelist_allocator
+	class pre_allocator
 	{
 	private:
-		typedef typename freelist<Size>::footer footer;
+		typedef typename arena<Size>::footer footer;
 
 	public:
-		freelist_allocator() = delete;
+		pre_allocator() = delete;
 
-		freelist_allocator(freelist<Size>& block) noexcept
+		pre_allocator(arena<Size>& block) noexcept
 			: m_Block(&block) {}
 
-		freelist_allocator(const freelist_allocator& other) noexcept :
+		pre_allocator(const pre_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
 		void* allocate(size_t n)
@@ -178,21 +178,21 @@ namespace ktl
 		}
 
 	private:
-		freelist<Size>* m_Block;
+		arena<Size>* m_Block;
 	};
 
 	template<size_t S, size_t T>
-	bool operator==(const freelist_allocator<S>& lhs, const freelist_allocator<T>& rhs) noexcept
+	bool operator==(const pre_allocator<S>& lhs, const pre_allocator<T>& rhs) noexcept
 	{
 		return &lhs == &rhs;
 	}
 
 	template<size_t S, size_t T>
-	bool operator!=(const freelist_allocator<S>& lhs, const freelist_allocator<T>& rhs) noexcept
+	bool operator!=(const pre_allocator<S>& lhs, const pre_allocator<T>& rhs) noexcept
 	{
 		return &lhs != &rhs;
 	}
 
 	template<typename T, size_t Size>
-	using type_freelist_allocator = type_allocator<T, freelist_allocator<Size>>;
+	using type_pre_allocator = type_allocator<T, pre_allocator<Size>>;
 }

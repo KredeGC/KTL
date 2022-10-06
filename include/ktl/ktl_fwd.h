@@ -14,12 +14,12 @@ namespace ktl
 	template<typename T, typename P, typename F>
 	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
 
-	// freelist_allocator
+	// pre_allocator
 	template<size_t Size>
-	class freelist_allocator;
+	class pre_allocator;
 
 	template<typename T, size_t Size>
-	using type_freelist_allocator = type_allocator<T, freelist_allocator<Size>>;
+	using type_pre_allocator = type_allocator<T, pre_allocator<Size>>;
 	
 	// mallocator
 	class mallocator;

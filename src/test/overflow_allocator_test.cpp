@@ -5,7 +5,7 @@
 #include "ktl/ktl_fwd.h"
 
 #include "ktl/containers/binary_heap.h"
-#include "ktl/allocators/freelist_allocator.h"
+#include "ktl/allocators/pre_allocator.h"
 #include "ktl/allocators/overflow_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
@@ -50,8 +50,8 @@ namespace ktl
     {
         assert_no_overflow([]()
         {
-            freelist<4096> block;
-            type_overflow_allocator<double, freelist_allocator<4096>, stringOut> alloc({ block });
+            arena<4096> block;
+            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc({ block });
             assert_unordered_values<double>(alloc);
         });
     }
@@ -60,8 +60,8 @@ namespace ktl
     {
         assert_no_overflow([]()
         {
-            freelist<4096> block;
-            type_overflow_allocator<double, freelist_allocator<4096>, stringOut> alloc({ block });
+            arena<4096> block;
+            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc({ block });
             assert_binary_heap<double>(3, alloc);
         });
     }

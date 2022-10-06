@@ -4,10 +4,10 @@
 
 #include "ktl/ktl_fwd.h"
 
-#include "ktl/allocators/freelist_allocator.h"
+#include "ktl/allocators/pre_allocator.h"
 
-// Naming scheme: test_freelist_allocator_[Type]
-// Contains tests that relate directly to the ktl::freelist_allocator
+// Naming scheme: test_pre_allocator_[Type]
+// Contains tests that relate directly to the ktl::pre_allocator
 
 namespace ktl
 {
@@ -15,15 +15,15 @@ namespace ktl
 
     KTL_ADD_TEST(test_freelist_allocator_double)
     {
-        freelist<4096> block;
-        type_freelist_allocator<double, 4096> alloc(block);
+        arena<4096> block;
+        type_pre_allocator<double, 4096> alloc(block);
         assert_unordered_values<double>(alloc);
     }
 
     KTL_ADD_TEST(test_freelist_allocator_packed)
     {
-        freelist<4096> block;
-        type_freelist_allocator<packed_t, 4096> alloc(block);
+        arena<4096> block;
+        type_pre_allocator<packed_t, 4096> alloc(block);
         assert_unordered_values<packed_t>(alloc);
     }
 }
