@@ -30,8 +30,9 @@ This library contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
-Both of these allocator types are not stl standard-compliant, but can be made to be if used with the `type_allocator<T, Allocator>` type.
-This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, mallocator>`.
+Both of these allocator types are not stl standard-compliant, but can be made to be if used with the `type_allocator<T, Allocator>` type.<br/>
+This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, mallocator>`.<br/>
+All allocators also have a typedef version with a `type_` prefix as a shorthand, such as: `type_mallocator<int>`.
 
 | Signature | Type | Description |
 | --- | --- |--- |
