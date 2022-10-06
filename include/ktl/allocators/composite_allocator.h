@@ -15,7 +15,7 @@ namespace ktl
 	private:
 		static_assert(has_value_type<P>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(has_value_type<F>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(has_owns<P>::value, "The primary allocator is required to have an 'own(void*)' method");
+		static_assert(has_owns<P>::value, "The primary allocator is required to have an 'owns(void*)' method");
 
 	public:
 		typedef typename get_size_type<P>::type size_type;

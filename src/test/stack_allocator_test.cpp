@@ -14,14 +14,14 @@ namespace ktl
 {
     KTL_ADD_HEADER();
 
-    KTL_ADD_TEST(test_stack_allocator_double)
+    KTL_ADD_TEST(test_stack_allocator_unordered_double)
     {
         stack<4096> block;
         type_stack_allocator<double, 4096> alloc(block);
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_stack_allocator_packed)
+    KTL_ADD_TEST(test_stack_allocator_unordered_packed)
     {
         stack<4096> block;
         type_stack_allocator<packed_t, 4096> alloc(block);
@@ -29,6 +29,18 @@ namespace ktl
     }
 
 #pragma region Performance
+    KTL_ADD_PERFORMANCE(performance_stack_allocator_ordered_double)
+    {
+        stack<4096> block;
+        type_stack_allocator<double, 4096> alloc(block);
+
+        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
+        {
+            double* ptr = alloc.allocate(1);
+            alloc.deallocate(ptr, 1);
+        }
+    }
+
     KTL_ADD_PERFORMANCE(performance_stack_allocator_unordered_double)
     {
         stack<4096> block;

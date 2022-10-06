@@ -134,9 +134,7 @@ int main(int argc, char* argv[])
 {
 	ktl::test::run_all_tests();
 
-#ifndef _DEBUG
 	ktl::profiler::run_all_performance_tests();
-#endif
 
 #ifdef _MSC_VER
 	system("pause");

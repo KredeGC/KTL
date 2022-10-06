@@ -17,13 +17,13 @@ namespace ktl
 {
     KTL_ADD_HEADER();
 
-    KTL_ADD_TEST(test_mallocator_double)
+    KTL_ADD_TEST(test_mallocator_unordered_double)
     {
         type_mallocator<double> alloc;
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_mallocator_packed)
+    KTL_ADD_TEST(test_mallocator_unordered_packed)
     {
         type_mallocator<packed_t> alloc;
         assert_unordered_values<packed_t>(alloc);

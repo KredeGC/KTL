@@ -46,7 +46,7 @@ namespace ktl
         });
     }
 
-    KTL_ADD_TEST(test_overflow_freelist_unordered_double)
+    KTL_ADD_TEST(test_overflow_pre_unordered_double)
     {
         assert_no_overflow([]()
         {
@@ -56,7 +56,7 @@ namespace ktl
         });
     }
 
-    KTL_ADD_TEST(test_overflow_freelist_binary_heap_double)
+    KTL_ADD_TEST(test_overflow_pre_binary_heap_double)
     {
         assert_no_overflow([]()
         {

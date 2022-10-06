@@ -23,7 +23,7 @@ namespace ktl
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_composite_stack_freelist_unordered_double)
+    KTL_ADD_TEST(test_composite_stack_pre_unordered_double)
     {
         stack<16> primaryStack;
         arena<4096> fallbackStack;
@@ -38,7 +38,7 @@ namespace ktl
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_composite_freelist_freelist_unordered_double)
+    KTL_ADD_TEST(test_composite_pre_pre_unordered_double)
     {
         arena<32> primaryStack;
         arena<4096> fallbackStack;

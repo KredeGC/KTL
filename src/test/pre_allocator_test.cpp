@@ -14,14 +14,14 @@ namespace ktl
 {
     KTL_ADD_HEADER();
 
-    KTL_ADD_TEST(test_freelist_allocator_double)
+    KTL_ADD_TEST(test_pre_allocator_unordered_double)
     {
         arena<4096> block;
         type_pre_allocator<double, 4096> alloc(block);
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_freelist_allocator_packed)
+    KTL_ADD_TEST(test_pre_allocator_unordered_packed)
     {
         arena<4096> block;
         type_pre_allocator<packed_t, 4096> alloc(block);
