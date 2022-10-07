@@ -21,6 +21,51 @@ namespace ktl::performance
 
 namespace ktl::performance
 {
+	class profiler
+	{
+	public:
+		inline constexpr static size_t RUN_COUNT = 1000;
+
+	private:
+		inline static std::chrono::steady_clock::time_point s_PausePoint;
+		inline static double* s_Duration;
+
+		inline constexpr static size_t MAX_TESTS = 1024;
+
+		inline static void (*s_TestFunctions[MAX_TESTS])();
+		inline static std::string s_TestNames[MAX_TESTS];
+		inline static size_t s_TestCounter;
+
+	public:
+		static inline void start(double* duration)
+		{
+			s_PausePoint = std::chrono::steady_clock::now();
+			s_Duration = duration;
+		}
+
+		static inline void pause()
+		{
+			auto currentPoint = std::chrono::steady_clock::now();
+
+			auto start = std::chrono::time_point_cast<std::chrono::microseconds>(s_PausePoint).time_since_epoch();
+			auto end = std::chrono::time_point_cast<std::chrono::microseconds>(currentPoint).time_since_epoch();
+
+			*s_Duration += (end - start).count();
+
+			s_PausePoint = std::chrono::steady_clock::now();
+		}
+
+		static inline void resume()
+		{
+			auto currentPoint = std::chrono::steady_clock::now();
+
+			s_PausePoint = currentPoint;
+		}
+
+		static void add_benchmark(const std::string& name, void (*func_ptr)());
+		static void run_all_benchmarks();
+	};
+
 	template<typename T, size_t Count = 1, typename Alloc>
 	void perform_ordered_allocation(Alloc& alloc)
 	{
@@ -96,49 +141,4 @@ namespace ktl::performance
 		for (size_t i = 0; i < Count; i++)
 			std::allocator_traits<Alloc>::deallocate(alloc, ptrs[i], 1);
 	}
-
-	class profiler
-	{
-	public:
-		inline constexpr static size_t RUN_COUNT = 1000;
-
-	private:
-		inline static std::chrono::steady_clock::time_point s_PausePoint;
-		inline static double* s_Duration;
-
-		inline constexpr static size_t MAX_TESTS = 1024;
-
-		inline static void (*s_TestFunctions[MAX_TESTS])();
-		inline static std::string s_TestNames[MAX_TESTS];
-		inline static size_t s_TestCounter;
-
-	public:
-		static inline void start(double* duration)
-		{
-			s_PausePoint = std::chrono::steady_clock::now();
-			s_Duration = duration;
-		}
-
-		static inline void pause()
-		{
-			auto currentPoint = std::chrono::steady_clock::now();
-
-			auto start = std::chrono::time_point_cast<std::chrono::microseconds>(s_PausePoint).time_since_epoch();
-			auto end = std::chrono::time_point_cast<std::chrono::microseconds>(currentPoint).time_since_epoch();
-
-			*s_Duration += (end - start).count();
-
-			s_PausePoint = std::chrono::steady_clock::now();
-		}
-
-		static inline void resume()
-		{
-			auto currentPoint = std::chrono::steady_clock::now();
-
-			s_PausePoint = currentPoint;
-		}
-
-		static void add_benchmark(const std::string& name, void (*func_ptr)());
-		static void run_all_benchmarks();
-	};
 }
