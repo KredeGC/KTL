@@ -13,7 +13,7 @@
 // Naming scheme: test_mallocator_[Container]_[Type]
 // Contains tests that relate directly to the ktl::mallocator
 
-namespace ktl
+namespace ktl::test
 {
     KTL_ADD_HEADER();
 
@@ -52,51 +52,6 @@ namespace ktl
     {
         std::vector<complex_t, type_mallocator<complex_t>> vec;
         assert_vector_values<complex_t>(vec);
-    }
-#pragma endregion
-
-#pragma region Performance
-    KTL_ADD_PERFORMANCE(performance_mallocator_ordered_double)
-    {
-        type_mallocator<double> alloc;
-
-        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
-        {
-            double* ptr = alloc.allocate(1);
-            alloc.deallocate(ptr, 1);
-        }
-    }
-
-    KTL_ADD_PERFORMANCE(performance_mallocator_unordered_double)
-    {
-        type_mallocator<double> alloc;
-
-        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
-            assert_unordered_values<double>(alloc);
-    }
-
-    KTL_ADD_PERFORMANCE(performance_mallocator_unordered_trivial)
-    {
-        type_mallocator<trivial_t> alloc;
-
-        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
-            assert_unordered_values<trivial_t>(alloc);
-    }
-
-    KTL_ADD_PERFORMANCE(performance_mallocator_unordered_packed)
-    {
-        type_mallocator<packed_t> alloc;
-
-        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
-            assert_unordered_values<packed_t>(alloc);
-    }
-
-    KTL_ADD_PERFORMANCE(performance_mallocator_unordered_complex)
-    {
-        type_mallocator<complex_t> alloc;
-
-        for (size_t i = 0; i < profiler::NUM_ALLOCATIONS; i++)
-            assert_unordered_values<complex_t>(alloc);
     }
 #pragma endregion
 }

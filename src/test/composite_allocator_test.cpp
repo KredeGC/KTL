@@ -11,7 +11,7 @@
 // Naming scheme: test_composite_[Primary]_[Fallback]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::composite_allocator
 
-namespace ktl
+namespace ktl::test
 {
     KTL_ADD_HEADER();
 

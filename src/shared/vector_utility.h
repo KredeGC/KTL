@@ -4,7 +4,7 @@
 
 #include "ktl/containers/trivial_vector.h"
 
-namespace ktl
+namespace ktl::test
 {
     template<typename Vec, typename T>
     void assert_vector_push_back(Vec& vec, const T* values, size_t amount)

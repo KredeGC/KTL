@@ -14,7 +14,7 @@
 // Naming scheme: test_trivial_vector_[Alloc]_[Type]
 // Contains tests that relate directly to the ktl::trivial_vector
 
-namespace ktl
+namespace ktl::test
 {
     KTL_ADD_HEADER();
 

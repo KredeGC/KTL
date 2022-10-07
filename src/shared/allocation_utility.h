@@ -1,9 +1,10 @@
 #pragma once
 
 #include "assert_utility.h"
+#include "random.h"
 #include "types.h"
 
-namespace ktl
+namespace ktl::test
 {
     template<typename T, typename Alloc>
     static T* assert_allocate(Alloc& alloc, const T& value)

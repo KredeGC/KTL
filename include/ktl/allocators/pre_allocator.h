@@ -46,6 +46,9 @@ namespace ktl
 		pre_allocator(arena<Size>& block) noexcept
 			: m_Block(&block) {}
 
+		pre_allocator(arena<Size>* block) noexcept
+			: m_Block(block) {}
+
 		pre_allocator(const pre_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 

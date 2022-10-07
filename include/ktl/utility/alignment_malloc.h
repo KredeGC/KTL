@@ -4,7 +4,7 @@
 #include <memory>
 
 // KTL_MALLOC_ALREADY_ALIGNED
-#if defined(__GLIBC__) && ((__GLIBC__>=2 && __GLIBC_MINOR__ >= 8) || __GLIBC__>2) && defined(__LP64__)
+#if defined(__GLIBC__) && ((__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 8) || __GLIBC__ > 2) && defined(__LP64__)
 #define KTL_GLIBC_MALLOC_ALREADY_ALIGNED 1
 #else
 #define KTL_GLIBC_MALLOC_ALREADY_ALIGNED 0
@@ -54,12 +54,19 @@ namespace ktl
 #elif KTL_HAS_POSIX_MEMALIGN
         void* res;
         const int failed = posix_memalign(&res, size, alignment);
-        if (failed) res = 0;
+        if (failed) res = nullptr;
         return res;
-#elif (defined _MSC_VER)
+#elif defined(_MSC_VER)
         return _aligned_malloc(size, alignment);
 #else
-        return malloc(size);
+        void* res = nullptr;
+        void* ptr = malloc(size + alignment);
+        if (ptr != nullptr)
+        {
+            res = reinterpret_cast<void*>((reinterpret_cast<size_t>(ptr) & ~(size_t(alignment - 1))) + alignment);
+            *(reinterpret_cast<void**>(res) - 1) = ptr;
+        }
+        return res;
 #endif
     }
 
@@ -74,7 +81,8 @@ namespace ktl
 #elif defined(_MSC_VER)
         _aligned_free(ptr);
 #else
-        free(ptr);
+        if (ptr != 0)
+            free(*(reinterpret_cast<void**>(ptr) - 1));
 #endif
     }
 }

@@ -14,7 +14,7 @@
 // Naming scheme: test_overflow_[Alloc]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::overflow_allocator
 
-namespace ktl
+namespace ktl::test
 {
     KTL_ADD_HEADER();
 

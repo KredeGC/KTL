@@ -1,17 +1,12 @@
 #pragma once
 #include "assert_utility.h"
+#include "random.h"
 #include "types.h"
 
 #include "ktl/containers/binary_heap.h"
 
-#include <algorithm>
-#include <random>
-
-namespace ktl
+namespace ktl::test
 {
-    inline std::random_device rd;
-    inline std::mt19937 random_generator(rd());
-
     template<typename Heap, typename T>
     void assert_binary_heap_insert_pop(Heap& heap, const T* values, size_t amount)
     {

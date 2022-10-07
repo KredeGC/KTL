@@ -29,6 +29,9 @@ namespace ktl
 		stack_allocator(stack<Size>& block) noexcept :
 			m_Block(&block) {}
 
+		stack_allocator(stack<Size>* block) noexcept
+			: m_Block(block) {}
+
 		stack_allocator(const stack_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
