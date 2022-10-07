@@ -1,5 +1,7 @@
 #pragma once
 
+#include "random.h"
+
 #include <algorithm>
 #include <chrono>
 #include <iostream>
