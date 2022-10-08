@@ -16,8 +16,6 @@
 
 namespace ktl::test
 {
-    KTL_ADD_HEADER();
-
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);
 
@@ -50,8 +48,7 @@ namespace ktl::test
     {
         assert_no_overflow([]()
         {
-            arena<4096> block;
-            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc({ block });
+            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc;
             assert_unordered_values<double>(alloc);
         });
     }
@@ -60,8 +57,7 @@ namespace ktl::test
     {
         assert_no_overflow([]()
         {
-            arena<4096> block;
-            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc({ block });
+            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc;
             assert_binary_heap<double>(3, alloc);
         });
     }

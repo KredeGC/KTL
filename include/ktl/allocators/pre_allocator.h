@@ -14,40 +14,33 @@ namespace ktl
 	// Is this just an msc thing? Other compilers seem to work fine, despite *potentially* being UB
 
 	template<size_t Size>
-	struct arena
+	class pre_allocator
 	{
+	private:
 		struct footer
 		{
 			size_t AvailableSpace;
 			footer* Next;
 		};
 
-		footer* Free;
-		alignas(ALIGNMENT) char Data[Size];
-
-		arena() noexcept :
-			Data{}
+		struct arena
 		{
-			Free = reinterpret_cast<footer*>(Data);
-			Free->AvailableSpace = Size;
-			Free->Next = nullptr;
-		}
-	};
+			footer* Free;
+			footer* Guess;
+			alignas(ALIGNMENT) char Data[Size];
 
-	template<size_t Size>
-	class pre_allocator
-	{
-	private:
-		typedef typename arena<Size>::footer footer;
+			arena() noexcept :
+				Data{}
+			{
+				Free = reinterpret_cast<footer*>(Data);
+				Free->AvailableSpace = Size;
+				Free->Next = nullptr;
+			}
+		};
 
 	public:
-		pre_allocator() = delete;
-
-		pre_allocator(arena<Size>& block) noexcept
-			: m_Block(&block) {}
-
-		pre_allocator(arena<Size>* block) noexcept
-			: m_Block(block) {}
+		pre_allocator() noexcept
+			: m_Block(std::make_shared<arena>()) {}
 
 		pre_allocator(const pre_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
@@ -85,20 +78,20 @@ namespace ktl
 
 			char* offset = reinterpret_cast<char*>(current);
 
-			//free_footer footer = *current;
-
 			if (current->AvailableSpace >= totalSize + sizeof(footer))
 			{
-				footer* newFooter = reinterpret_cast<footer*>(offset + totalSize);
+				footer* footerPtr = reinterpret_cast<footer*>(offset + totalSize);
 
-				newFooter->AvailableSpace = current->AvailableSpace - totalSize;
-				newFooter->Next = current->Next;
+				footerPtr->AvailableSpace = current->AvailableSpace - totalSize;
+				footerPtr->Next = current->Next;
 
 				if (parent)
-					parent->Next = newFooter;
+					parent->Next = footerPtr;
 
 				if (m_Block->Free == current)
-					m_Block->Free = newFooter;
+					m_Block->Free = footerPtr;
+
+				m_Block->Guess = footerPtr;
 			}
 			else
 			{
@@ -107,6 +100,8 @@ namespace ktl
 
 				if (m_Block->Free == current)
 					m_Block->Free = current->Next;
+
+				m_Block->Guess = current;
 			}
 
 			return current;
@@ -117,31 +112,41 @@ namespace ktl
 			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
 
-			footer* header = reinterpret_cast<footer*>(p);
+			footer* footerPtr = reinterpret_cast<footer*>(p);
 
-			header->AvailableSpace = totalSize;
+			footerPtr->AvailableSpace = totalSize;
 
-			if (m_Block->Free > header || m_Block->Free == nullptr)
+			if (m_Block->Free > footerPtr || m_Block->Free == nullptr)
 			{
 				footer* begin = m_Block->Free;
-				header->Next = begin;
-				m_Block->Free = header;
+				footerPtr->Next = begin;
+				m_Block->Free = footerPtr;
+				m_Block->Guess = footerPtr;
 
 				coalesce(m_Block->Free);
 			}
 			else
 			{
-				footer* current = m_Block->Free;
+				// Utilize the power of random chance
+				// Guessing is usually better than starting from scratch
+				footer* current;
+				if (m_Block->Guess < footerPtr)
+					current = m_Block->Guess;
+				else
+					current = m_Block->Free;
+
 				while (current->Next)
 				{
-					if (current->Next < header)
+					if (current->Next < footerPtr)
 						current = current->Next;
 					else
 						break;
 				}
 
-				header->Next = current->Next;
-				current->Next = header;
+				footerPtr->Next = current->Next;
+				current->Next = footerPtr;
+
+				m_Block->Guess = current;
 
 				// Coalesce twice. header's next may be right up against current
 				coalesce(current);
@@ -181,7 +186,7 @@ namespace ktl
 		}
 
 	private:
-		arena<Size>* m_Block;
+		std::shared_ptr<arena> m_Block;
 	};
 
 	template<size_t S, size_t T>

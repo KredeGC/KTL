@@ -16,19 +16,15 @@
 
 namespace ktl::test
 {
-    KTL_ADD_HEADER();
-
     KTL_ADD_TEST(test_trivial_vector_pre_double)
     {
-        arena<4096> block;
-        trivial_vector<double, type_pre_allocator<double, 4096>> vec({ block });
+        trivial_vector<double, type_pre_allocator<double, 4096>> vec;
         assert_vector_values<double>(vec);
     }
 
     KTL_ADD_TEST(test_trivial_vector_pre_trivial)
     {
-        arena<4096> block;
-        trivial_vector<trivial_t, type_pre_allocator<trivial_t, 4096>> vec({ block });
+        trivial_vector<trivial_t, type_pre_allocator<trivial_t, 4096>> vec;
         assert_vector_values<trivial_t>(vec);
     }
 

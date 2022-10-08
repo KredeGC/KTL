@@ -49,9 +49,9 @@ namespace ktl::performance
 			std::sort(run_times.begin(), run_times.end());
 
 			avgDuration /= profiler::RUN_COUNT;
-			std::cout << "  ->Min: " << minDuration << "us" << std::endl;
-			std::cout << "  ->Max: " << maxDuration << "us" << std::endl;
-			std::cout << "  ->Mean: " << avgDuration << "us" << std::endl;
+			std::cout << "  ->Min:    " << minDuration << "us" << std::endl;
+			std::cout << "  ->Max:    " << maxDuration << "us" << std::endl;
+			std::cout << "  ->Mean:   " << avgDuration << "us" << std::endl;
 			std::cout << "  ->Median: " << run_times[49] << "us" << std::endl;
 
 			run_times.clear();

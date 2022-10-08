@@ -7,12 +7,11 @@
 
 #include "ktl/allocators/stack_allocator.h"
 
-#define KTL_PERFORMANCE_RUN(perform, type) profiler::pause(); \
+#define KTL_PERFORMANCE_RUN(perform, type) profiler::pause(); { \
     auto block = new stack<sizeof(type) * 1000>; \
     type_stack_allocator<type, sizeof(type) * 1000> alloc(block); \
     profiler::resume(); \
-    perform<type, 1000>(alloc); \
-    profiler::pause();
+    perform<type, 1000>(alloc); }
 
 namespace ktl::performance
 {
@@ -40,19 +39,14 @@ namespace ktl::performance
         }
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_allocate_ordered_double)
+    KTL_ADD_PERFORMANCE(stack_allocator_allocate_double)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_allocation, double);
+        KTL_PERFORMANCE_RUN(perform_allocation, double);
     }
 
     KTL_ADD_PERFORMANCE(stack_allocator_deallocate_ordered_double)
     {
         KTL_PERFORMANCE_RUN(perform_ordered_deallocation, double);
-    }
-
-    KTL_ADD_PERFORMANCE(stack_allocator_allocate_unordered_double)
-    {
-        KTL_PERFORMANCE_RUN(perform_unordered_allocation, double);
     }
 
     KTL_ADD_PERFORMANCE(stack_allocator_deallocate_unordered_double)

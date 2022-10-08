@@ -15,8 +15,6 @@
 
 namespace ktl::test
 {
-    KTL_ADD_HEADER();
-
     KTL_ADD_TEST(test_mallocator_unordered_double)
     {
         type_mallocator<double> alloc;

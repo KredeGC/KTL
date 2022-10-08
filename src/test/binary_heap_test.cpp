@@ -16,8 +16,6 @@
 
 namespace ktl::test
 {
-    KTL_ADD_HEADER();
-
 #pragma region std::allocator
     KTL_ADD_TEST(test_binary_heap_std_double)
     {
@@ -73,29 +71,25 @@ namespace ktl::test
 #pragma region ktl::freelist_allocator
     KTL_ADD_TEST(test_binary_heap_pre_double)
     {
-        arena<4096> block;
-        type_pre_allocator<double, 4096> alloc(block);
+        type_pre_allocator<double, 4096> alloc;
         assert_binary_heap<double>(3, alloc);
     }
 
     KTL_ADD_TEST(test_binary_heap_pre_trivial)
     {
-        arena<4096> block;
-        type_pre_allocator<trivial_t, 4096> alloc(block);
+        type_pre_allocator<trivial_t, 4096> alloc;
         assert_binary_heap<trivial_t>(3, alloc);
     }
 
     KTL_ADD_TEST(test_binary_heap_pre_packed)
     {
-        arena<4096> block;
-        type_pre_allocator<packed_t, 4096> alloc(block);
+        type_pre_allocator<packed_t, 4096> alloc;
         assert_binary_heap<packed_t>(3, alloc);
     }
 
     KTL_ADD_TEST(test_binary_heap_pre_complex)
     {
-        arena<4096> block;
-        type_pre_allocator<complex_t, 4096> alloc(block);
+        type_pre_allocator<complex_t, 4096> alloc;
         assert_binary_heap<complex_t>(3, alloc);
     }
 #pragma endregion

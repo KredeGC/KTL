@@ -6,23 +6,18 @@
 
 #include "ktl/allocators/pre_allocator.h"
 
-#define KTL_PERFORMANCE_RUN(perform, type) profiler::pause(); \
-    auto block = new arena<sizeof(type) * 2000>; \
-    type_pre_allocator<type, sizeof(type) * 2000> alloc(block); \
+#define KTL_PERFORMANCE_RUN(perform, type, amount) profiler::pause(); { \
+    type_pre_allocator<type, sizeof(type) * amount * 2> alloc; \
     profiler::resume(); \
-    perform<type, 1000>(alloc); \
-    profiler::pause();
+    perform<type, amount>(alloc); }
 
 namespace ktl::performance
 {
     KTL_ADD_PERFORMANCE(pre_allocator_init)
     {
-        auto block = new arena<16384>;
-        type_pre_allocator<double, 16384> alloc(*block);
+        type_pre_allocator<double, 16384> alloc;
 
         profiler::pause();
-
-        delete block;
     }
 
     KTL_ADD_PERFORMANCE(pre_allocator_uninit)
@@ -30,32 +25,29 @@ namespace ktl::performance
         profiler::pause();
 
         {
-            auto block = new arena<16384>;
-            type_pre_allocator<double, 16384> alloc(block);
-
-            delete block;
+            type_pre_allocator<double, 16384> alloc;
 
             profiler::resume();
         }
     }
 
-    KTL_ADD_PERFORMANCE(pre_allocator_allocate_ordered_double)
+    KTL_ADD_PERFORMANCE(pre_allocator_allocate_double)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_allocation, double);
+        KTL_PERFORMANCE_RUN(perform_allocation, double, 1000);
     }
 
     KTL_ADD_PERFORMANCE(pre_allocator_deallocate_ordered_double)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, double);
+        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, double, 1000);
     }
 
     KTL_ADD_PERFORMANCE(pre_allocator_allocate_unordered_double)
     {
-        KTL_PERFORMANCE_RUN(perform_unordered_allocation, double);
+        KTL_PERFORMANCE_RUN(perform_unordered_allocation, double, 2000);
     }
 
     KTL_ADD_PERFORMANCE(pre_allocator_deallocate_unordered_double)
     {
-        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, double);
+        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, double, 1000);
     }
 }

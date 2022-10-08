@@ -13,8 +13,6 @@
 
 namespace ktl::test
 {
-    KTL_ADD_HEADER();
-
     KTL_ADD_TEST(test_composite_stack_stack_unordered_double)
     {
         stack<16> primaryStack;
@@ -26,8 +24,7 @@ namespace ktl::test
     KTL_ADD_TEST(test_composite_stack_pre_unordered_double)
     {
         stack<16> primaryStack;
-        arena<4096> fallbackStack;
-        type_composite_allocator<double, stack_allocator<16>, pre_allocator<4096>> alloc({ primaryStack, fallbackStack });
+        type_composite_allocator<double, stack_allocator<16>, pre_allocator<4096>> alloc({ primaryStack });
         assert_unordered_values<double>(alloc);
     }
 
@@ -40,9 +37,7 @@ namespace ktl::test
 
     KTL_ADD_TEST(test_composite_pre_pre_unordered_double)
     {
-        arena<32> primaryStack;
-        arena<4096> fallbackStack;
-        type_composite_allocator<double, pre_allocator<32>, pre_allocator<4096>> alloc({ primaryStack, fallbackStack });
+        type_composite_allocator<double, pre_allocator<32>, pre_allocator<4096>> alloc;
         assert_unordered_values<double>(alloc);
     }
 }

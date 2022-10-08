@@ -32,6 +32,7 @@ namespace ktl::performance
 	private:
 		inline static std::chrono::steady_clock::time_point s_PausePoint;
 		inline static double* s_Duration;
+		inline static bool s_Paused;
 
 		inline constexpr static size_t MAX_TESTS = 1024;
 
@@ -44,25 +45,30 @@ namespace ktl::performance
 		{
 			s_PausePoint = std::chrono::steady_clock::now();
 			s_Duration = duration;
+			s_Paused = false;
 		}
 
 		static inline void pause()
 		{
 			auto currentPoint = std::chrono::steady_clock::now();
 
-			auto start = std::chrono::time_point_cast<std::chrono::microseconds>(s_PausePoint).time_since_epoch();
-			auto end = std::chrono::time_point_cast<std::chrono::microseconds>(currentPoint).time_since_epoch();
+			if (!s_Paused)
+			{
+				s_Paused = true;
 
-			*s_Duration += (end - start).count();
+				auto start = std::chrono::time_point_cast<std::chrono::microseconds>(s_PausePoint).time_since_epoch();
+				auto end = std::chrono::time_point_cast<std::chrono::microseconds>(currentPoint).time_since_epoch();
 
-			s_PausePoint = std::chrono::steady_clock::now();
+				*s_Duration += (end - start).count();
+
+				s_PausePoint = std::chrono::steady_clock::now();
+			}
 		}
 
 		static inline void resume()
 		{
-			auto currentPoint = std::chrono::steady_clock::now();
-
-			s_PausePoint = currentPoint;
+			s_PausePoint = std::chrono::steady_clock::now();
+			s_Paused = false;
 		}
 
 		static void add_benchmark(const std::string& name, void (*func_ptr)());
@@ -70,11 +76,11 @@ namespace ktl::performance
 	};
 
 	template<typename T, size_t Count = 1, typename Alloc>
-	void perform_ordered_allocation(Alloc& alloc)
+	void perform_allocation(Alloc& alloc)
 	{
 		profiler::pause();
 
-		T* ptrs[Count];
+		T** ptrs = new T *[Count];
 
 		profiler::resume();
 
@@ -86,7 +92,7 @@ namespace ktl::performance
 		for (size_t i = 1; i <= Count; i++)
 			std::allocator_traits<Alloc>::deallocate(alloc, ptrs[Count - i], 1);
 
-		profiler::resume();
+		delete[] ptrs;
 	}
 
 	template<typename T, size_t Count = 1, typename Alloc>
@@ -94,7 +100,7 @@ namespace ktl::performance
 	{
 		profiler::pause();
 
-		T* ptrs[Count];
+		T** ptrs = new T *[Count];
 
 		for (size_t i = 0; i < Count; i++)
 			ptrs[i] = std::allocator_traits<Alloc>::allocate(alloc, 1);
@@ -103,6 +109,10 @@ namespace ktl::performance
 
 		for (size_t i = 1; i <= Count; i++)
 			std::allocator_traits<Alloc>::deallocate(alloc, ptrs[Count - i], 1);
+
+		profiler::pause();
+
+		delete[] ptrs;
 	}
 
 	template<typename T, size_t Count = 1, typename Alloc>
@@ -110,21 +120,30 @@ namespace ktl::performance
 	{
 		profiler::pause();
 
-		T* ptrs[Count];
-
-		profiler::resume();
+		T** ptrs = new T*[Count];
+		T** random_ptrs = new T*[Count];
 
 		for (size_t i = 0; i < Count; i++)
 			ptrs[i] = std::allocator_traits<Alloc>::allocate(alloc, 1);
 
-		profiler::pause();
+		std::memcpy(random_ptrs, ptrs, sizeof(T*) * Count);
+		std::shuffle(random_ptrs, random_ptrs + Count, random_generator);
 
-		std::shuffle(ptrs, ptrs + Count, random_generator);
+		for (size_t i = 0; i < Count / 2; i++)
+			std::allocator_traits<Alloc>::deallocate(alloc, random_ptrs[i], 1);
 
 		profiler::resume();
 
+		for (size_t i = 0; i < Count / 2; i++)
+			random_ptrs[i] = std::allocator_traits<Alloc>::allocate(alloc, 1);
+
+		profiler::pause();
+
 		for (size_t i = 0; i < Count; i++)
-			std::allocator_traits<Alloc>::deallocate(alloc, ptrs[i], 1);
+			std::allocator_traits<Alloc>::deallocate(alloc, random_ptrs[i], 1);
+
+		delete[] ptrs;
+		delete[] random_ptrs;
 	}
 
 	template<typename T, size_t Count = 1, typename Alloc>
@@ -132,7 +151,7 @@ namespace ktl::performance
 	{
 		profiler::pause();
 
-		T* ptrs[Count];
+		T** ptrs = new T*[Count];
 
 		for (size_t i = 0; i < Count; i++)
 			ptrs[i] = std::allocator_traits<Alloc>::allocate(alloc, 1);
@@ -143,5 +162,9 @@ namespace ktl::performance
 
 		for (size_t i = 0; i < Count; i++)
 			std::allocator_traits<Alloc>::deallocate(alloc, ptrs[i], 1);
+
+		profiler::pause();
+
+		delete[] ptrs;
 	}
 }
