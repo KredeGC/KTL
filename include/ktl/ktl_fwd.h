@@ -23,12 +23,12 @@ namespace ktl
 	template<typename T, typename P, typename F>
 	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
 
-	// pre_allocator
-	template<size_t Size>
-	class pre_allocator;
+	// freelist_allocator
+	template<size_t Min, size_t Max, size_t Threshold, typename Alloc>
+	class freelist_allocator;
 
-	template<typename T, size_t Size>
-	using type_pre_allocator = type_allocator<T, pre_allocator<Size>>;
+	template<typename T, size_t Min, size_t Max, size_t Threshold, typename A>
+	using type_freelist_allocator = type_allocator<T, freelist_allocator<Min, Max, Threshold, A>>;
 	
 	// mallocator
 	class mallocator;
@@ -42,6 +42,13 @@ namespace ktl
 
 	template<typename T, typename A, std::ostream& Stream>
 	using type_overflow_allocator = type_allocator<T, overflow_allocator<A, Stream>>;
+
+	// pre_allocator
+	template<size_t Size>
+	class pre_allocator;
+
+	template<typename T, size_t Size>
+	using type_pre_allocator = type_allocator<T, pre_allocator<Size>>;
 
 	// stack_allocator
 	template<size_t Size>
