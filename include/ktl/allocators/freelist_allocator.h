@@ -57,11 +57,14 @@ namespace ktl
 		{
 			if (n > Min && n <= Max)
 			{
-				if (!m_Stats->Free)
+				if (!m_Stats->Free && m_Stats->Count < Threshold)
 				{
 					for (size_t i = 0; i < Batch; i++)
 					{
 						link* next = reinterpret_cast<link*>(m_Alloc.allocate(Max));
+						if (!next)
+							break;
+
 						next->Next = m_Stats->Free;
 						m_Stats->Free = next;
 						m_Stats->Count++;
@@ -69,33 +72,21 @@ namespace ktl
 				}
 
 				link* next = m_Stats->Free;
-				m_Stats->Free = next->Next;
-				m_Stats->Count--;
+				if (next)
+					m_Stats->Free = next->Next;
 				return next;
 			}
 
-			return m_Alloc.allocate(n);
+			return nullptr;
 		}
 
 		void deallocate(void* p, size_type n)
 		{
-			if (n > Min && n <= Max)
+			if (n > Min && n <= Max && m_Stats->Count < Threshold)
 			{
-				if (m_Stats->Count < Threshold)
-				{
-					link* next = reinterpret_cast<link*>(p);
-					next->Next = m_Stats->Free;
-					m_Stats->Free = next;
-					m_Stats->Count++;
-				}
-				else
-				{
-					m_Alloc.deallocate(p, Max);
-				}
-			}
-			else
-			{
-				m_Alloc.deallocate(p, n);
+				link* next = reinterpret_cast<link*>(p);
+				next->Next = m_Stats->Free;
+				m_Stats->Free = next;
 			}
 		}
 #pragma endregion
