@@ -30,7 +30,7 @@ namespace ktl::performance
 
     KTL_ADD_PERFORMANCE(trivial_vector_pre_allocator_double)
     {
-        trivial_vector<double, type_pre_allocator<double, 16384>> vec;
+        trivial_vector<double, type_pre_allocator<double, 32768>> vec;
 
         for (size_t i = 0; i < 1000; i++)
             vec.push_back(42.0);
