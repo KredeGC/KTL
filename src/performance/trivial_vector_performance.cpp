@@ -38,7 +38,7 @@ namespace ktl::performance
 
     KTL_ADD_PERFORMANCE(trivial_vector_stack_allocator_double)
     {
-        stack<16384> block;
+        auto block = new stack<16384>;
         trivial_vector<double, type_stack_allocator<double, 16384>> vec({ block });
 
         for (size_t i = 0; i < 1000; i++)
