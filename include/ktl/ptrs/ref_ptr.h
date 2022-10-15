@@ -10,8 +10,8 @@ namespace ktl
 	class ref_ptr
 	{
 	private:
-		template<typename T, typename Alloc, typename ...Args>
-		friend ref_ptr<T, Alloc> allocate_ref(Alloc& alloc, Args&& ...args);
+		template<typename U, typename A, typename ...Args>
+		friend ref_ptr<U, A> allocate_ref(A& alloc, Args&& ...args);
 
 		struct control_block
 		{
