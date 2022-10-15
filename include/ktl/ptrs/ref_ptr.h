@@ -124,8 +124,8 @@ namespace ktl
 	ref_ptr<T, Alloc> allocate_ref(Alloc& alloc, Args&& ...args)
 	{
 		using control_block = typename ref_ptr<T, Alloc>::control_block;
-		using type_alloc = typename std::allocator_traits<Alloc>::rebind_alloc<control_block>;
-		using byte_alloc = typename std::allocator_traits<Alloc>::rebind_alloc<char>;
+		using type_alloc = typename std::allocator_traits<Alloc>::template rebind_alloc<control_block>;
+		using byte_alloc = typename std::allocator_traits<Alloc>::template rebind_alloc<char>;
 
 		control_block* ptr = reinterpret_cast<control_block*>(static_cast<byte_alloc>(alloc).allocate(sizeof(control_block) + sizeof(T)));
 
