@@ -91,7 +91,7 @@ namespace ktl
 
 		size_t use_count() const noexcept { return m_Block->UseCount; }
 
-		bool unique() const noexcept { m_Block->UseCount == 1; }
+		bool unique() const noexcept { return m_Block->UseCount == 1; }
 
 		operator bool() const noexcept { return m_Block; }
 
