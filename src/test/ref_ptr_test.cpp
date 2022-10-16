@@ -30,7 +30,7 @@ namespace ktl::test
         KTL_ASSERT(*ptr == 42.0);
     }
 
-    KTL_ADD_TEST(test_ref_ptr_complex)
+    KTL_ADD_TEST(test_ref_ptr_stack_complex)
     {
         stack<128> block;
         type_stack_allocator<complex_t, 128> alloc(block);
