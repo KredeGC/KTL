@@ -182,8 +182,7 @@ namespace ktl
 			size_t space = (diff - header->AvailableSpace);
 
 			// Coalesce if the difference in space is less than the size of footer
-			//if (space < sizeof(footer)) // TODO: Make this work somehow?
-			if (space == 0)
+			if (space < sizeof(footer))
 			{
 				header->AvailableSpace = diff;
 
