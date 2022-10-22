@@ -16,7 +16,7 @@ namespace ktl::performance
 }
 
 #define KTL_ADD_PERFORMANCE3(func_ptr, line) void func_ptr(); \
-	static int test_##line = (::ktl::performance::profiler::add_benchmark(#func_ptr, func_ptr), 0); \
+	static int profile_##line = (::ktl::performance::profiler::add_benchmark(#func_ptr, func_ptr), 0); \
 	void func_ptr()
 
 #define KTL_ADD_PERFORMANCE2(func_ptr, line) KTL_ADD_PERFORMANCE3(func_ptr, line)
@@ -37,9 +37,9 @@ namespace ktl::performance
 
 		inline constexpr static size_t MAX_TESTS = 1024;
 
-		inline static void (*s_TestFunctions[MAX_TESTS])();
-		inline static std::string s_TestNames[MAX_TESTS];
-		inline static size_t s_TestCounter;
+		inline static void (*s_ProfileFunctions[MAX_TESTS])();
+		inline static std::string s_ProfileNames[MAX_TESTS];
+		inline static size_t s_ProfileCounter;
 
 	public:
 		static inline void start(double* duration)

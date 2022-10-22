@@ -9,10 +9,10 @@ namespace ktl::performance
 {
 	void profiler::add_benchmark(const std::string& name, void (*func_ptr)())
 	{
-		s_TestNames[s_TestCounter] = name;
-		s_TestFunctions[s_TestCounter] = func_ptr;
+		s_ProfileNames[s_ProfileCounter] = name;
+		s_ProfileFunctions[s_ProfileCounter] = func_ptr;
 
-		s_TestCounter++;
+		s_ProfileCounter++;
 	}
 
 	void profiler::run_all_benchmarks()
@@ -20,9 +20,9 @@ namespace ktl::performance
 		std::vector<double> run_times;
 		run_times.reserve(100);
 
-		for (uint32_t i = 0; i < s_TestCounter; i++)
+		for (uint32_t i = 0; i < s_ProfileCounter; i++)
 		{
-			std::cout << "[" << (i + 1) << "] " << s_TestNames[i] << " running " << profiler::RUN_COUNT << " runs" << std::endl;
+			std::cout << "[" << (i + 1) << "] " << s_ProfileNames[i] << " running " << profiler::RUN_COUNT << " runs" << std::endl;
 			double minDuration = std::numeric_limits<double>::infinity();
 			double maxDuration = -std::numeric_limits<double>::infinity();
 			double avgDuration = 0.0;
@@ -31,7 +31,7 @@ namespace ktl::performance
 				double duration = 0.0;
 				profiler::start(&duration);
 
-				s_TestFunctions[i]();
+				s_ProfileFunctions[i]();
 
 				profiler::pause();
 
