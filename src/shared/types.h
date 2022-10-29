@@ -6,8 +6,8 @@ namespace ktl
 {
     struct trivial_t
     {
-        float gCost;
-        float hCost;
+        double gCost;
+        double hCost;
 
         bool operator==(const trivial_t& other) const
         {
