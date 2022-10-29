@@ -30,16 +30,10 @@ namespace ktl::performance
 
     KTL_ADD_PERFORMANCE(trivial_vector_pre_allocator_double)
     {
-        // TODO: Fix segfault in GCC release mode
-        // Seems to be a problem with pre_allocator, that somehow doesn't affect normal allocations
-        type_pre_allocator<double, 32768> alloc;
-        trivial_vector<double, type_pre_allocator<double, 32768>> vec(alloc);
+        trivial_vector<double, type_pre_allocator<double, 32768>> vec;
 
         for (size_t i = 0; i < 1000; i++)
-        {
-            std::cout << "Start " << i << std::endl;
             vec.push_back(42.0);
-        }
     }
 
     KTL_ADD_PERFORMANCE(trivial_vector_stack_allocator_double)
