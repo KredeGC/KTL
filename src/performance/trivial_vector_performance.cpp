@@ -34,7 +34,7 @@ namespace ktl::performance
         // Seems to be a problem with pre_allocator, that somehow doesn't affect normal allocations
         trivial_vector<double, type_pre_allocator<double, 32768>> vec;
 
-        for (size_t i = 0; i < 200; i++)
+        for (size_t i = 0; i < 10; i++)
             vec.push_back(42.0);
     }
 
