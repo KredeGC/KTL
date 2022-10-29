@@ -137,8 +137,7 @@ namespace ktl
 			{
 				// Utilize the power of random chance
 				// Guessing is usually better than starting from scratch
-				//footer* current = m_Block->Guess < footerPtr ? m_Block->Guess : m_Block->Free;
-				footer* current = m_Block->Free;
+				footer* current = m_Block->Guess < footerPtr ? m_Block->Guess : m_Block->Free;
 
 				while (current->Next)
 				{
