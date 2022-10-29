@@ -158,10 +158,13 @@ namespace ktl
 			{
 				size_t alSize = n;
 				T* alBlock = Traits::allocate(m_Alloc, alSize);
-				std::memcpy(alBlock, m_Begin, size() * sizeof(T));
 
 				if (m_Begin != nullptr)
+				{
+					std::memcpy(alBlock, m_Begin, size() * sizeof(T));
+
 					Traits::deallocate(m_Alloc, m_Begin, capacity());
+				}
 
 				m_Begin = alBlock;
 				m_EndMax = m_Begin + alSize;
@@ -177,10 +180,11 @@ namespace ktl
 				T* alBlock = Traits::allocate(m_Alloc, n);
 
 				if (m_Begin != nullptr)
+				{
 					std::memcpy(alBlock, m_Begin, curSize * sizeof(T));
 
-				if (m_Begin != nullptr)
 					Traits::deallocate(m_Alloc, m_Begin, capacity());
+				}
 
 				m_Begin = alBlock;
 				m_End = m_Begin + curSize;
@@ -211,10 +215,13 @@ namespace ktl
 			if (capacity() < n)
 			{
 				T* alBlock = Traits::allocate(m_Alloc, n);
-				std::memcpy(alBlock, m_Begin, size());
 
 				if (m_Begin != nullptr)
+				{
+					std::memcpy(alBlock, m_Begin, size());
+
 					Traits::deallocate(m_Alloc, m_Begin, size());
+				}
 
 				m_Begin = alBlock;
 				m_End = m_Begin + n;
@@ -244,10 +251,13 @@ namespace ktl
 			size_t alSize = curSize + (std::max)(curSize, n);
 
 			T* alBlock = Traits::allocate(m_Alloc, alSize);
-			std::memcpy(alBlock, m_Begin, curSize * sizeof(T));
 
 			if (m_Begin != nullptr)
+			{
+				std::memcpy(alBlock, m_Begin, curSize * sizeof(T));
+
 				Traits::deallocate(m_Alloc, m_Begin, capacity());
+			}
 
 			m_Begin = alBlock;
 			m_End = m_Begin + curSize;
