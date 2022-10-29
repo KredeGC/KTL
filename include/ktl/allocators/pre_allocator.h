@@ -49,14 +49,22 @@ namespace ktl
 
 		void* allocate(size_t n)
 		{
+			std::cout << "1" << std::endl;
+
 			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
+
+			std::cout << "2" << std::endl;
 
 			if (totalSize > Size)
 				return nullptr;
 
+			std::cout << "3" << std::endl;
+
 			if (m_Block->Free == nullptr)
 				return nullptr;
+
+			std::cout << "4" << std::endl;
 
 			footer* parent = nullptr;
 			footer* current = m_Block->Free;
@@ -78,6 +86,8 @@ namespace ktl
 			// Out-of-memory
 			if (current->AvailableSpace < totalSize && !current->Next)
 				return nullptr;
+
+			std::cout << "5" << std::endl;
 
 			char* offset = reinterpret_cast<char*>(current);
 
