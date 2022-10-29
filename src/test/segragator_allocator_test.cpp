@@ -20,10 +20,11 @@ namespace ktl::test
 
         stack<1024> primaryStack;
         stack<1024> fallbackStack;
-        AllocDouble alloc({ primaryStack, fallbackStack });
+        AllocDouble double_alloc({ primaryStack, fallbackStack });
 
-        assert_unordered_values<double>(alloc);
+        assert_unordered_values<double>(double_alloc);
 
-        assert_unordered_values<trivial_t>(static_cast<AllocTrivial>(alloc));
+        AllocTrivial trivial_alloc = static_cast<AllocTrivial>(double_alloc);
+        assert_unordered_values<trivial_t>(trivial_alloc);
     }
 }
