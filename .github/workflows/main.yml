@@ -33,7 +33,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Setup premake
-      uses: abel0b/setup-premake@v2
+      uses: abel0b/setup-premake@v2.1
       with:
         version: "5.0.0-beta1"
     - name: Install GCC

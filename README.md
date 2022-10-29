@@ -39,11 +39,12 @@ All allocators also have a typedef version with a `type_` prefix as a shorthand,
 | Signature | Type | Description |
 | --- | --- |--- |
 | mallocator | Raw | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
-| pre_allocator<br/>\<Size\> | Raw | Uses a preallocated `arena<Size>`, which has to be passed in during construction.<br/>Uses a linked list to determine whether a given chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given. |
+| pre_allocator<br/>\<Size\> | Raw | Uses a linked list to determine whether a given chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given. |
 | stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than pre_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
-| composite_allocator<br/>\<Primary,<nobr/> Fallback\> | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
-| overflow_allocator<br/>\<Allocator,<nobr/> std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
-| type_allocator<br/>\<T,<nobr/> Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators stl compliant, so they can be used with stl containers. |
+| composite_allocator<br/>\<Primary, Fallback\> | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
+| overflow_allocator<br/>\<Allocator, std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
+| segragator_allocator<br/>\<Threshold, Primary, Fallback\> | Composite | Delegates allocation between 2 allocators based on a size threshold. |
+| type_allocator<br/>\<T, Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators stl compliant, so they can be used with stl containers. |
 
 # Usage
 

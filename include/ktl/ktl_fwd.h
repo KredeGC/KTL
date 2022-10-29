@@ -50,6 +50,13 @@ namespace ktl
 	template<typename T, size_t Size>
 	using type_pre_allocator = type_allocator<T, pre_allocator<Size>>;
 
+	// segragator_allocator
+	template<size_t Threshold, typename P, typename F>
+	class segragator_allocator;
+
+	template<typename T, size_t Threshold, typename P, typename F>
+	using type_segragator_allocator = type_allocator<T, segragator_allocator<Threshold, P, F>>;
+
 	// stack_allocator
 	template<size_t Size>
 	class stack_allocator;
