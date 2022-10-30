@@ -12,6 +12,8 @@
 // Naming scheme: test_ref_ptr_[Type]
 // Contains tests that relate directly to the ktl::ref_ptr
 
+// THESE ARE UNSUPPORTED AND DISCONTINUED FOR THE MOST PART, BUT KEPT HERE FOR ARCHIVING
+
 namespace ktl::test
 {
     KTL_ADD_TEST(test_ref_ptr_double)

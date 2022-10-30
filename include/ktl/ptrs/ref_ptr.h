@@ -9,6 +9,10 @@ namespace ktl
 	template<typename T, typename Alloc>
 	class weakref_ptr;
 
+	// An implementation of a shared reference-counted pointer
+	// Major differences from std::shared_ptr include:
+	// - Small control block
+	// - No deleter function, instead the allocator is embedded
 	template<typename T, typename Alloc = std::allocator<T>>
 	class ref_ptr
 	{
