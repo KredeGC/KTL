@@ -68,7 +68,7 @@ namespace ktl
 
 #pragma region Utility
 		template<typename A = Alloc>
-		typename std::enable_if<has_max_size<A>::value, void>::type
+		typename std::enable_if<has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
 			return m_Alloc.max_size() / sizeof(T);

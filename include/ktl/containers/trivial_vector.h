@@ -11,7 +11,8 @@ namespace ktl
 	class trivial_vector
 	{
 	private:
-		static_assert(std::is_trivial<T>(), "Template class needs to be trivial");
+		static_assert(std::is_default_constructible<T>::value, "Template class needs to be default constructible");
+		static_assert(std::is_trivially_copyable<T>::value, "Template class needs to be trivially copyable");
 
 		typedef std::allocator_traits<Alloc> Traits;
 
@@ -20,19 +21,19 @@ namespace ktl
 		typedef const T* const_iterator;
 
 	public:
-		trivial_vector(const Alloc& allocator = Alloc()) noexcept :
+		explicit trivial_vector(const Alloc& allocator = Alloc()) noexcept :
 			m_Alloc(allocator),
 			m_Begin(nullptr),
 			m_End(nullptr),
 			m_EndMax(nullptr) {}
 
-		trivial_vector(size_t n, const Alloc& allocator = Alloc()) :
+		explicit trivial_vector(size_t n, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, n)),
 			m_End(m_Begin + n),
 			m_EndMax(m_End) {}
 
-		trivial_vector(size_t n, const T& value, const Alloc& allocator = Alloc()) :
+		explicit trivial_vector(size_t n, const T& value, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, n)),
 			m_End(m_Begin + n),
@@ -41,7 +42,7 @@ namespace ktl
 			std::uninitialized_fill_n<T*, size_t>(m_Begin, n, value);
 		}
 
-		trivial_vector(std::initializer_list<T> initializer, const Alloc& allocator = Alloc()) :
+		explicit trivial_vector(std::initializer_list<T> initializer, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, initializer.size())),
 			m_End(m_Begin + initializer.size()),
@@ -56,7 +57,7 @@ namespace ktl
 			}
 		}
 
-		trivial_vector(const trivial_vector<T, Alloc>& other) :
+		trivial_vector(const trivial_vector& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
 			m_Begin(Traits::allocate(m_Alloc, other.size())),
 			m_End(m_Begin + other.size()),
@@ -65,7 +66,7 @@ namespace ktl
 			std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
 		}
 
-		trivial_vector(trivial_vector<T, Alloc>&& other) :
+		trivial_vector(trivial_vector&& other) noexcept(std::is_nothrow_move_constructible_v<T>) :
 			m_Alloc(std::move(other)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
@@ -82,7 +83,7 @@ namespace ktl
 				Traits::deallocate(m_Alloc, m_Begin, capacity());
 		}
 
-		trivial_vector& operator=(const trivial_vector<T, Alloc>& other)
+		trivial_vector& operator=(const trivial_vector& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 		{
 			const size_t n = other.size();
 
@@ -103,7 +104,7 @@ namespace ktl
 			return *this;
 		}
 
-		trivial_vector& operator=(trivial_vector<T, Alloc>&& other) noexcept
+		trivial_vector& operator=(trivial_vector&& other) noexcept(std::is_nothrow_move_assignable_v<T>)
 		{
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, capacity());

@@ -13,7 +13,7 @@ namespace ktl
         typedef std::allocator_traits<Alloc> Traits;
 
     public:
-        binary_heap(const Alloc& allocator = Alloc()) noexcept :
+        explicit binary_heap(const Alloc& allocator = Alloc()) noexcept :
             m_Alloc(allocator),
             m_Comp(Comp()),
             m_Data(Traits::allocate(m_Alloc, m_Capacity))
@@ -22,7 +22,7 @@ namespace ktl
                 Traits::construct(m_Alloc, m_Data + i);
         }
 
-        binary_heap(size_t capacity, const Alloc& allocator = Alloc()) noexcept :
+        explicit binary_heap(size_t capacity, const Alloc& allocator = Alloc()) noexcept :
             m_Alloc(allocator),
             m_Comp(Comp()),
             m_Capacity(capacity),

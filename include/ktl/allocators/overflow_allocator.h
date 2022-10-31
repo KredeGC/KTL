@@ -5,9 +5,8 @@
 
 #include <cstring>
 #include <memory>
-#include <type_traits>
-
 #include <ostream>
+#include <type_traits>
 
 namespace ktl
 {

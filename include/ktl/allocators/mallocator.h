@@ -17,6 +17,8 @@ namespace ktl
 
 		mallocator(const mallocator& other) noexcept = default;
 
+		mallocator(mallocator&& other) noexcept = default;
+
 		void* allocate(size_t n)
 		{
 			return aligned_malloc(n, ALIGNMENT);

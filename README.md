@@ -26,6 +26,12 @@ The header files can either be downloaded from the [release page](https://github
 The source and header files inside the `src/` directory are only tests and should not be included into your project.
 
 # Containers
+This library also contains various containers that are STL compliant.
+
+| Signature | Description | Notes |
+| --- | --- | --- |
+| binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` type. |
+| trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or destructors. |
 
 # Allocators
 This library contains 2 different types of allocators:
@@ -45,6 +51,9 @@ All allocators also have a typedef version with a `type_` prefix as a shorthand,
 | overflow_allocator<br/>\<Allocator, std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
 | segragator_allocator<br/>\<Threshold, Primary, Fallback\> | Composite | Delegates allocation between 2 allocators based on a size threshold. |
 | type_allocator<br/>\<T, Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators stl compliant, so they can be used with stl containers. |
+
+NOTES:
+Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like composite_allocator, which upon failure will attempt to use the fallback allocator instead.
 
 # Usage
 
