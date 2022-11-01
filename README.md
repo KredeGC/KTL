@@ -18,7 +18,7 @@
 The interface is currently not in a stable state, so expect changes between updates to cause some disruption, as functions or types may not exist between versions.
 In addition, most allocators presented are not thread-safe.
 For now thread safety is not on the roadmap as it would degrade performance on single-threaded applications.
-The library itself is fairly stable and should be able to be used in a production environment.
+The library itself is fairly stable but should not be expected to be used in a production environment for the time being.
 
 # Installation
 As this is a header-only library, you can simply copy the header files directly into your project.
@@ -26,15 +26,15 @@ The header files can either be downloaded from the [release page](https://github
 The source and header files inside the `src/` directory are only tests and should not be included into your project.
 
 # Containers
-This library also contains various containers that are STL compliant.
+This library contains various containers that are STL compliant.
 
 | Signature | Description | Notes |
 | --- | --- | --- |
-| binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` type. |
-| trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or destructors. |
+| binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` and `binary_max_heap<T, Alloc>` types. |
+| trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
 
 # Allocators
-This library contains 2 different types of allocators:
+This library also contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
@@ -58,3 +58,18 @@ Exceptions are not used with any of the allocators above. This means that upon f
 # Usage
 
 # Building and running tests
+The tests require premake5 as build system.
+Generating project files can be done by running:
+```bash
+// Linux
+premake5 gmake2 --toolset=gcc
+// Windows
+premake5 vs2019 --toolset=msc
+```
+
+Afterwards the tests can be built using the command below:
+```
+premake5 build --config=(release | debug)
+```
+
+The built binary can then be found in `bin/{{config}}-{{platform}}-{{architecture}}`.
