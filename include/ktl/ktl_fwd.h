@@ -12,6 +12,13 @@ namespace ktl
 	template<typename T, typename Alloc>
 	class type_allocator;
 
+	// cascading_allocator
+	template<typename Alloc>
+	class cascading_allocator;
+
+	template<typename T, typename Alloc>
+	using type_cascading_allocator = type_allocator<T, cascading_allocator<Alloc>>;
+
 	// composite_allocator
 	template<typename P, typename F>
 	class composite_allocator;
