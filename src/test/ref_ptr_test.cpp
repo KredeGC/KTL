@@ -16,7 +16,7 @@
 
 namespace ktl::test
 {
-    KTL_ADD_TEST(test_ref_ptr_double)
+    /*KTL_ADD_TEST(test_ref_ptr_double)
     {
         ref_ptr<double> ptr = make_ref<double>(42.0);
 
@@ -66,5 +66,5 @@ namespace ktl::test
 
         KTL_ASSERT(!weak_ptr);
         KTL_ASSERT(weak_ptr.expired());
-    }
+    }*/
 }

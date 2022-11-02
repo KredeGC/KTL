@@ -9,10 +9,6 @@
 
 namespace ktl
 {
-	// Weirdness: std::vector allocates some data in the constructor with a different allocator (std::_ContainerProxy_t or smth)
-	// Question: Why have stateful allocators when copying requires that the state is not altered?
-	// Is this just an msc thing? Other compilers seem to work fine, despite *potentially* being UB
-
 	template<size_t Size>
 	class pre_allocator
 	{

@@ -52,7 +52,7 @@ namespace ktl
 
 			void* p = m_Block->Node->Allocator.allocate(n);
 
-			// If the allocator was unable to allocate it, try without
+			// If the allocator was unable to allocate it, create a new one
 			if (p == nullptr)
 			{
 				node* next = m_Block->Node;
@@ -78,6 +78,7 @@ namespace ktl
 				{
 					next->Allocator.deallocate(p, n);
 
+					// If this allocator holds no allocations, then delete it
 					if (--next->Allocations == 0)
 					{
 						if (prev)
