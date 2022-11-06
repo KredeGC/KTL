@@ -21,7 +21,7 @@ namespace ktl
 		struct node
 		{
 			Alloc Allocator;
-			size_t Allocations = 0;
+			size_type Allocations = 0;
 			node* Next = nullptr;
 		};
 

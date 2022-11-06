@@ -142,13 +142,13 @@ namespace ktl
 	template<size_t Min1, size_t Max1, size_t Batch1, size_t Threshold1, typename A, size_t Min2, size_t Max2, size_t Batch2, size_t Threshold2, typename U>
 	bool operator==(const freelist_allocator<Min1, Min2, Batch1, Threshold1, A>& lhs, const freelist_allocator<Min2, Max2, Batch2, Threshold2, U>& rhs) noexcept
 	{
-		return &lhs == &rhs;
+		return lhs.m_Alloc == rhs.m_Alloc;
 	}
 
 	template<size_t Min1, size_t Max1, size_t Batch1, size_t Threshold1, typename A, size_t Min2, size_t Max2, size_t Batch2, size_t Threshold2, typename U>
 	bool operator!=(const freelist_allocator<Min1, Min2, Batch1, Threshold1, A>& lhs, const freelist_allocator<Min2, Max2, Batch2, Threshold2, U>& rhs) noexcept
 	{
-		return &lhs != &rhs;
+		return lhs.m_Alloc != rhs.m_Alloc;
 	}
 
 	template<typename T, size_t Min, size_t Max, size_t Batch, size_t Threshold, typename A>

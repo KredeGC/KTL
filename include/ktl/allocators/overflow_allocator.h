@@ -143,13 +143,13 @@ namespace ktl
 	template<typename A, std::ostream& S, typename U, std::ostream& V>
 	bool operator==(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
 	{
-		return &lhs == &rhs;
+		return lhs.m_Alloc == rhs.m_Alloc;
 	}
 
 	template<typename A, std::ostream& S, typename U, std::ostream& V>
 	bool operator!=(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
 	{
-		return &lhs != &rhs;
+		return lhs.m_Alloc != rhs.m_Alloc;
 	}
 
 	template<typename T, typename A, std::ostream& Stream>
