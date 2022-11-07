@@ -127,12 +127,9 @@ namespace ktl
 				footerPtr->Next = begin;
 				m_Block->Free = footerPtr;
 
-				if (footerPtr->Next)
-					coalesce(footerPtr);
+				coalesce(footerPtr);
 
-				if (footerPtr->Next)
-					m_Block->Guess = footerPtr->Next;
-				else
+				if (m_Block->Guess == begin)
 					m_Block->Guess = footerPtr;
 			}
 			else
@@ -140,6 +137,9 @@ namespace ktl
 				// Utilize the power of random chance
 				// Guessing is usually better than starting from scratch
 				footer* current = m_Block->Guess < footerPtr ? m_Block->Guess : m_Block->Free;
+
+				//if (m_Block->Guess < footerPtr)
+				//	std::cout << footerPtr - m_Block->Guess << std::endl;
 
 				while (current->Next)
 				{
@@ -159,10 +159,7 @@ namespace ktl
 					coalesce(current);
 				}
 
-				if (current->Next)
-					m_Block->Guess = current->Next;
-				else
-					m_Block->Guess = current;
+				m_Block->Guess = current;
 			}
 		}
 

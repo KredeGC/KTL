@@ -17,7 +17,7 @@ namespace ktl::performance
     KTL_ADD_PERFORMANCE(stack_allocator_init)
     {
         auto block = new stack<16384>;
-        type_stack_allocator<double, 16384> alloc(block);
+        type_stack_allocator<trivial_t, 16384> alloc(block);
 
         profiler::pause();
 
@@ -30,7 +30,7 @@ namespace ktl::performance
 
         {
             auto block = new stack<16384>;
-            type_stack_allocator<double, 16384> alloc(block);
+            type_stack_allocator<trivial_t, 16384> alloc(block);
 
             delete block;
 
@@ -38,18 +38,18 @@ namespace ktl::performance
         }
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_allocate_double)
+    KTL_ADD_PERFORMANCE(stack_allocator_allocate_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_allocation, double);
+        KTL_PERFORMANCE_RUN(perform_allocation, trivial_t);
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_deallocate_ordered_double)
+    KTL_ADD_PERFORMANCE(stack_allocator_deallocate_ordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, double);
+        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, trivial_t);
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_deallocate_unordered_double)
+    KTL_ADD_PERFORMANCE(stack_allocator_deallocate_unordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, double);
+        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, trivial_t);
     }
 }

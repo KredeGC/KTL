@@ -15,7 +15,7 @@ namespace ktl::performance
 {
     KTL_ADD_PERFORMANCE(mallocator_init)
     {
-        type_mallocator<double> alloc;
+        type_mallocator<trivial_t> alloc;
 
         profiler::pause();
     }
@@ -25,24 +25,24 @@ namespace ktl::performance
         profiler::pause();
 
         {
-            type_mallocator<double> alloc;
+            type_mallocator<trivial_t> alloc;
 
             profiler::resume();
         }
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_allocate_double)
+    KTL_ADD_PERFORMANCE(mallocator_allocate_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_allocation, double);
+        KTL_PERFORMANCE_RUN(perform_allocation, trivial_t);
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_deallocate_ordered_double)
+    KTL_ADD_PERFORMANCE(mallocator_deallocate_ordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, double);
+        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, trivial_t);
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_deallocate_unordered_double)
+    KTL_ADD_PERFORMANCE(mallocator_deallocate_unordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, double);
+        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, trivial_t);
     }
 }
