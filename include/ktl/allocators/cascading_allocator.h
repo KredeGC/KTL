@@ -37,6 +37,28 @@ namespace ktl
 		cascading_allocator(const cascading_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
+		cascading_allocator(cascading_allocator&& other) noexcept :
+			m_Block(std::move(other.m_Block))
+		{
+			other.m_Block = nullptr;
+		}
+
+		~cascading_allocator()
+		{
+			if (m_Block.use_count() == 1)
+			{
+				node* next = m_Block->Node;
+				while (next)
+				{
+					node* current = next;
+
+					next = current->Next;
+
+					delete current;
+				}
+			}
+		}
+
 #pragma region Allocation
 		void* allocate(size_type n)
 		{
@@ -78,14 +100,11 @@ namespace ktl
 				{
 					next->Allocator.deallocate(p, n);
 
-					// If this allocator holds no allocations, then delete it
-					if (--next->Allocations == 0)
+					// If this allocator holds no allocations then delete it
+					// Unless it's the main one, in which case keep it
+					if (--next->Allocations == 0 && prev)
 					{
-						if (prev)
-							prev->Next = next->Next;
-						else
-							m_Block->Node = next->Next;
-
+						prev->Next = next->Next;
 						delete next;
 					}
 

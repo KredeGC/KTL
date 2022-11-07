@@ -43,6 +43,12 @@ namespace ktl
 		pre_allocator(const pre_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
+		pre_allocator(pre_allocator&& other) noexcept :
+			m_Block(std::move(other.m_Block))
+		{
+			other.m_Block = nullptr;
+		}
+
 		void* allocate(size_t n)
 		{
 			size_t totalSize = (std::max)(n, sizeof(footer));

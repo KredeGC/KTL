@@ -25,40 +25,6 @@ As this is a header-only library, you can simply copy the header files directly 
 The header files can either be downloaded from the [release page](https://github.com/KredeGC/KTL/releases) or from the `include/` directory on the master branch.
 The source and header files inside the `src/` directory are only tests and should not be included into your project.
 
-# Containers
-This library contains various containers that are STL compliant.
-
-| Signature | Description | Notes |
-| --- | --- | --- |
-| binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` and `binary_max_heap<T, Alloc>` types. |
-| trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
-
-## binary_heap interface
-The methods of the trivial_vector roughly follows the STL vector.
-There are some additional methods added, like a range-based `push_back`.
-
-| Method | Description |
-| --- | --- |
-| `void clear()` | Clear all elements in the heap. |
-| `T pop()` | Removes the root element (lowest or highest, depending on min or max heap) and returns it. |
-| `void insert(const T& value)` | Pushes a new element into the heap by copying. |
-| `void insert(T&& value)` | Pushes a new element into the heap by moving. |
-
-## trivial_vector interface
-The methods of the trivial_vector roughly follows the STL vector.
-There are some additional methods added, like a range-based `push_back`.
-
-| Method | Description |
-| --- | --- |
-| `void clear()` | Clear all elements in the vector. |
-| `void emplace_back(Args&& args)` | Creates a new element and pushes it to the vector. |
-| `void pop_back()` | Removes the last element from the vector. |
-| `void push_back(const T& value)` | Pushes a new value by copying it. |
-| `void push_back(T&& value)` | Pushes a new value by moving it. |
-| `void push_back(const T* begin, const T* end)` | Pushes a range of values from `begin` to `end`. |
-| `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
-| `void resize(size_t size)` | Resizes the vector to the given size. |
-
 # Allocators
 This library also contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
@@ -96,15 +62,89 @@ Some additional methods have also been added.
 | bool owns(void* ptr) | Returns whether or not the given memory at location `ptr` is owned by this allocator.<br/>Not all allocators define this method, such as `mallocator`. |
 | Alloc get_allocator() | Returns the allocator that this allocator wraps around.<br/>Most composite allocators define this method. |
 
-# Usage
+# Containers
+This library contains various containers that are STL compliant.
+
+| Signature | Description | Notes |
+| --- | --- | --- |
+| binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` and `binary_max_heap<T, Alloc>` types. |
+| trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
+
+## binary_heap interface
+The methods of the trivial_vector roughly follows the STL vector.
+There are some additional methods added, like a range-based `push_back`.
+
+| Method | Description |
+| --- | --- |
+| `void clear()` | Clear all elements in the heap. |
+| `T pop()` | Removes the root element (lowest or highest, depending on min or max heap) and returns it. |
+| `void insert(const T& value)` | Pushes a new element into the heap by copying. |
+| `void insert(T&& value)` | Pushes a new element into the heap by moving. |
+
+## trivial_vector interface
+The methods of the trivial_vector roughly follows the STL vector.
+There are some additional methods added, like a range-based `push_back`.
+
+| Method | Description |
+| --- | --- |
+| `void clear()` | Clear all elements in the vector. |
+| `void emplace_back(Args&& args)` | Creates a new element and pushes it to the vector. |
+| `void pop_back()` | Removes the last element from the vector. |
+| `void push_back(const T& value)` | Pushes a new value by copying it. |
+| `void push_back(T&& value)` | Pushes a new value by moving it. |
+| `void push_back(const T* begin, const T* end)` | Pushes a range of values from `begin` to `end`. |
+| `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
+| `void resize(size_t size)` | Resizes the vector to the given size. |
+
+# Examples
+Create an allocator which will attempt to use a pre allocator for allocation, but fall back on malloc when full.
+```cpp
+// Create the allocator from some 16kb buffer and straight malloc
+type_composite_allocator<double, pre_allocator<16384>, mallocator> alloc;
+// Allocate and deallocate 3 doubles
+double* p1 = alloc.allocate(3);
+alloc.deallocate(p1, 3);
+// Allocate and deallocate 4096 doubles, which should be handled by malloc
+double* p2 = alloc.allocate(4096);
+alloc.deallocate(p2, 4096);
+```
+
+Create an allocator that monitors when memory corruption has occurred around any allocations.
+```cpp
+#include <iostream>
+
+// Create the allocator with std::cerr
+type_overflow_allocator<double, mallocator, std::cerr> alloc;
+// Allocate and deallocate 1 double
+double* p = alloc.allocate(1);
+*(p1 - 1) = 32; // Write to the address before what was allocated, which is illegal
+alloc.deallocate(p, 1); // When it deallocates it should give a message in the standard error stream
+```
+
+Create an allocator which will use a cascading pre allocator for anything less than 8kb and malloc for anything above.
+```cpp
+// Create the allocator from a combination of a cascading 8kb pre allocator and malloc
+// Anything smaller than 8kb should use the cascading pre allcoator, while anything larger should use malloc
+type_segragator_allocator<double, 8192, cascading_allocator<pre_allocator<8192>>, mallocator> alloc;
+// Allocate 1024 doubles
+double* p1 = alloc.allocate(1024);
+// Allocate another 1024 doubles, which should force the allocator to create a new pre allocator
+double* p2 = alloc.allocate(1024);
+// Allocate 2048 doubles, which should use malloc instead
+double* p3 = alloc.allocate(2048);
+// Deallocate all of it
+alloc.deallocate(p1, 1024);
+alloc.deallocate(p2, 1024);
+alloc.deallocate(p3, 2048);
+```
 
 # Building and running tests
 The tests require premake5 as build system.
 Generating project files can be done by running:
 ```bash
-// Linux
+# Linux
 premake5 gmake2 --toolset=gcc
-// Windows
+# Windows
 premake5 vs2019 --toolset=msc
 ```
 

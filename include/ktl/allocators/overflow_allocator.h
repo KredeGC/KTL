@@ -77,7 +77,7 @@ namespace ktl
 				// HACK: In reality this should be compared to the reference directly, but that would require more allocation etc...
 				// Instead we just compare them to eachother. If corruption has occurred, it's very unlikely to have corrupted in an identical pattern
 				if (std::memcmp(ptr - OVERFLOW_SIZE, ptr + n, OVERFLOW_SIZE) != 0)
-					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr + OVERFLOW_SIZE) << " has been modified\n";
+					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p) << " has been modified\n";
 
 				size_type size = n + OVERFLOW_SIZE * 2;
 				m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);

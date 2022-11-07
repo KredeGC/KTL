@@ -113,11 +113,13 @@ namespace ktl
 				if (m_Primary.owns(p))
 					return true;
 			}
-			else if constexpr (has_owns<F>::value)
+
+			if constexpr (has_owns<F>::value)
 			{
 				if (m_Fallback.owns(p))
 					return true;
 			}
+
 			return false;
 		}
 #pragma endregion
