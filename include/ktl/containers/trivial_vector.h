@@ -119,6 +119,11 @@ namespace ktl
 			return *this;
 		}
 
+		T& operator[](size_t index) noexcept { return m_Begin[index]; }
+
+		const T& operator[](size_t index) const noexcept { return m_Begin[index]; }
+
+
 		iterator begin() noexcept { return m_Begin; }
 
 		const_iterator begin() const noexcept { return m_Begin; }
@@ -148,49 +153,18 @@ namespace ktl
 		const T* data() const noexcept { return m_Begin; }
 
 
-		T& operator[](size_t index) noexcept { return m_Begin[index]; }
-
-		const T& operator[](size_t index) const noexcept { return m_Begin[index]; }
-
-
 		void resize(size_t n)
 		{
 			if (capacity() < n)
-			{
-				size_t alSize = n;
-				T* alBlock = Traits::allocate(m_Alloc, alSize);
+				set_size(n);
 
-				if (m_Begin != nullptr)
-				{
-					std::memcpy(alBlock, m_Begin, size() * sizeof(T));
-
-					Traits::deallocate(m_Alloc, m_Begin, capacity());
-				}
-
-				m_Begin = alBlock;
-				m_EndMax = m_Begin + alSize;
-			}
 			m_End = m_Begin + n;
 		}
 
 		void reserve(size_t n)
 		{
 			if (capacity() < n)
-			{
-				size_t curSize = size();
-				T* alBlock = Traits::allocate(m_Alloc, n);
-
-				if (m_Begin != nullptr)
-				{
-					std::memcpy(alBlock, m_Begin, curSize * sizeof(T));
-
-					Traits::deallocate(m_Alloc, m_Begin, capacity());
-				}
-
-				m_Begin = alBlock;
-				m_End = m_Begin + curSize;
-				m_EndMax = m_Begin + n;
-			}
+				set_size(n);
 		}
 
 		void push_back(const T& element)
@@ -211,23 +185,10 @@ namespace ktl
 
 		void push_back(const T* first, const T* last)
 		{
-			const size_t n = size_t(last - first) + size();
+			const size_t n = (last - first);
 
-			if (capacity() < n)
-			{
-				T* alBlock = Traits::allocate(m_Alloc, n);
-
-				if (m_Begin != nullptr)
-				{
-					std::memcpy(alBlock, m_Begin, size());
-
-					Traits::deallocate(m_Alloc, m_Begin, size());
-				}
-
-				m_Begin = alBlock;
-				m_End = m_Begin + n;
-				m_EndMax = m_Begin + n;
-			}
+			if (capacity() - size() < n)
+				expand(n);
 
 			std::memcpy(m_End, first, n * sizeof(T));
 		}
@@ -248,10 +209,17 @@ namespace ktl
 	private:
 		void expand(size_t n)
 		{
-			size_t curSize = size();
-			size_t alSize = curSize + (std::max)(curSize, n);
+			size_t curCap = capacity();
+			size_t alSize = curCap + (std::max)(curCap, n);
 
-			T* alBlock = Traits::allocate(m_Alloc, alSize);
+			set_size(alSize);
+		}
+
+		void set_size(size_t n)
+		{
+			size_t curSize = (std::min)(size(), n);
+
+			T* alBlock = Traits::allocate(m_Alloc, n);
 
 			if (m_Begin != nullptr)
 			{
@@ -262,7 +230,7 @@ namespace ktl
 
 			m_Begin = alBlock;
 			m_End = m_Begin + curSize;
-			m_EndMax = m_Begin + alSize;
+			m_EndMax = m_Begin + n;
 		}
 
 	private:

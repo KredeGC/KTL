@@ -33,6 +33,32 @@ This library contains various containers that are STL compliant.
 | binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` and `binary_max_heap<T, Alloc>` types. |
 | trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
 
+## binary_heap interface
+The methods of the trivial_vector roughly follows the STL vector.
+There are some additional methods added, like a range-based `push_back`.
+
+| Method | Description |
+| --- | --- |
+| `void clear()` | Clear all elements in the heap. |
+| `T pop()` | Removes the root element (lowest or highest, depending on min or max heap) and returns it. |
+| `void insert(const T& value)` | Pushes a new element into the heap by copying. |
+| `void insert(T&& value)` | Pushes a new element into the heap by moving. |
+
+## trivial_vector interface
+The methods of the trivial_vector roughly follows the STL vector.
+There are some additional methods added, like a range-based `push_back`.
+
+| Method | Description |
+| --- | --- |
+| `void clear()` | Clear all elements in the vector. |
+| `void emplace_back(Args&& args)` | Creates a new element and pushes it to the vector. |
+| `void pop_back()` | Removes the last element from the vector. |
+| `void push_back(const T& value)` | Pushes a new value by copying it. |
+| `void push_back(T&& value)` | Pushes a new value by moving it. |
+| `void push_back(const T* begin, const T* end)` | Pushes a range of values from `begin` to `end`. |
+| `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
+| `void resize(size_t size)` | Resizes the vector to the given size. |
+
 # Allocators
 This library also contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
@@ -56,11 +82,11 @@ All allocators also have a typedeffed version with a `type_` prefix as a shortha
 NOTES:
 Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like composite_allocator, which upon failure will attempt to use the fallback allocator instead.
 
-# Allocator interface
+## Allocator interface
 The allocators roughly follow the standard for STL allocators, except that they are not typed, so use void* instead.
 Some additional methods have also been added.
 
-| Signature | Description |
+| Method | Description |
 | --- | --- |
 | void* allocate(size_type size) | Attempts to allocate a chunk of memory defined by `size`. |
 | void deallocate(void* ptr, size_type size) | Attempts to deallocate the memory at location `ptr` with the given size, `size`. |
