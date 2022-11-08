@@ -122,14 +122,38 @@ namespace ktl
 		typename std::enable_if<has_construct<void, Alloc, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
 		{
-			m_Block->Node->Allocator.construct(p, std::forward<Args>(args)...);
+            node* next = m_Block->Node;
+			while (next)
+			{
+				if (next->Allocator.owns(p))
+                {
+                    next->Allocator.construct(p, std::forward<Args>(args)...);
+					return;
+                }
+
+				next = next->Next;
+			}
+
+			::new(p) T(std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		typename std::enable_if<has_destroy<Alloc, T*>::value, void>::type
 		destroy(T* p)
 		{
-			m_Block->Node->Allocator.destroy(p);
+			node* next = m_Block->Node;
+			while (next)
+			{
+				if (next->Allocator.owns(p))
+                {
+                    next->Allocator.destroy(p);
+					return;
+                }
+
+				next = next->Next;
+			}
+
+			p->~T();
 		}
 #pragma endregion
 

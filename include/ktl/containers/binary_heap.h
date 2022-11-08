@@ -116,8 +116,6 @@ namespace ktl
             return *this;
         }
 
-        T& operator[](size_t index) noexcept { return m_Begin[index]; }
-
 
         T* data() noexcept { return m_Begin; }
 

@@ -46,6 +46,17 @@ namespace ktl
 			std::allocator_traits<Alloc>::construct(const_cast<Alloc&>(alloc), &m_Block->Data, value);
 		}
 
+		explicit ref_ptr(T&& value, const Alloc& alloc = Alloc()) noexcept
+		{
+			m_Block = static_cast<control_alloc>(alloc).allocate(1);
+
+			m_Block->Allocator = alloc;
+			m_Block->UseCount = 1;
+			m_Block->WeakCount = 1;
+
+			std::allocator_traits<Alloc>::construct(const_cast<Alloc&>(alloc), &m_Block->Data, std::move(value));
+		}
+
 		ref_ptr(const weakref_ptr<T, Alloc>& other) noexcept :
 			m_Block(other.m_Block)
 		{
