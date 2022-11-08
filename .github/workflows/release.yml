@@ -24,6 +24,8 @@ jobs:
       uses: actions/checkout@v3
     - name: Copy LICENSE
       run: cp LICENSE include/ktl/LICENSE
+    - name: Create VERSION.txt
+      run: echo "${{ inputs.tagName }}" > include/ktl/VERSION.txt
     - name: Install zip
       run: |
         sudo apt update
