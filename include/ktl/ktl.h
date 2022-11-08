@@ -9,6 +9,7 @@
 #include "allocators/composite_allocator.h"
 #include "allocators/freelist_allocator.h"
 #include "allocators/mallocator.h"
+#include "allocators/null_allocator.h"
 #include "allocators/overflow_allocator.h"
 #include "allocators/pre_allocator.h"
 #include "allocators/segragator_allocator.h"

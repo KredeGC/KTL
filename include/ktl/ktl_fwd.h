@@ -39,6 +39,9 @@ namespace ktl
 	template<typename T>
 	using type_mallocator = type_allocator<T, mallocator>;
 
+	// null_allocator
+	class null_allocator;
+
 	// overflow_allocator
 	template<typename Alloc, std::ostream& Stream>
 	class overflow_allocator;

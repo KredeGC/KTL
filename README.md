@@ -5,7 +5,8 @@
 ![Linux supported](https://img.shields.io/badge/Linux-Ubuntu-green?style=flat-square)
 ![MacOS untested](https://img.shields.io/badge/MacOS-Untested-red?style=flat-square)
 
-<p>A library containing various composite memory allocators and containers.</p>
+A library containing various composite memory allocators and containers.<br/>
+Mostly based on a [CppCon talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=LIb3L4vKZ7U).
 
 [![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases)
 [![License](https://img.shields.io/github/license/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/blob/master/LICENSE)
