@@ -11,6 +11,17 @@ namespace ktl
 
 		null_allocator(null_allocator&& other) noexcept = default;
 
+		bool operator==(const null_allocator& rhs) const noexcept
+		{
+			return true;
+		}
+
+		bool operator!=(const null_allocator& rhs) const noexcept
+		{
+			return false;
+		}
+
+#pragma region Allocation
 		void* allocate(size_t n)
 		{
 			return nullptr;
@@ -20,20 +31,11 @@ namespace ktl
 		{
 			
 		}
+#pragma endregion
 
 		bool owns(void* p)
 		{
 			return p == nullptr;
-		}
-
-		bool operator==(const null_allocator& rhs) noexcept
-		{
-			return true;
-		}
-
-		bool operator!=(const null_allocator& rhs) noexcept
-		{
-			return false;
 		}
 	};
 }

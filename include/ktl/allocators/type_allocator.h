@@ -99,12 +99,12 @@ namespace ktl
 	template<typename T, typename U, typename Alloc>
 	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs) noexcept
 	{
-		return lhs.m_Alloc == rhs.m_Alloc;
+		return lhs.get_allocator() == rhs.get_allocator();
 	}
 
 	template<typename T, typename U, typename Alloc>
 	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs) noexcept
 	{
-		return lhs.m_Alloc != rhs.m_Alloc;
+		return lhs.get_allocator() != rhs.get_allocator();
 	}
 }

@@ -53,6 +53,16 @@ namespace ktl
 			}
 		}
 
+		bool operator==(const overflow_allocator& rhs) const noexcept
+		{
+			return m_Stats->Allocator == rhs.m_Stats->Allocator;
+		}
+
+		bool operator!=(const overflow_allocator& rhs) const noexcept
+		{
+			return m_Stats->Allocator != rhs.m_Stats->Allocator;
+		}
+
 #pragma region Allocation
 		void* allocate(size_type n)
 		{
@@ -142,18 +152,6 @@ namespace ktl
 	private:
 		std::shared_ptr<stats> m_Stats;
 	};
-
-	template<typename A, std::ostream& S, typename U, std::ostream& V>
-	bool operator==(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
-	{
-		return lhs.m_Stats->Allocator == rhs.m_Stats->Allocator;
-	}
-
-	template<typename A, std::ostream& S, typename U, std::ostream& V>
-	bool operator!=(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
-	{
-		return lhs.m_Stats->Allocator != rhs.m_Stats->Allocator;
-	}
 
 	template<typename T, typename A, std::ostream& Stream>
 	using type_overflow_allocator = type_allocator<T, overflow_allocator<A, Stream>>;

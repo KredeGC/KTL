@@ -28,6 +28,16 @@ namespace ktl
 			m_Primary(other.m_Primary),
 			m_Fallback(other.m_Fallback) {}
 
+		bool operator==(const composite_allocator& rhs) const noexcept
+		{
+			return m_Primary == rhs.m_Primary && m_Fallback == rhs.m_Fallback;
+		}
+
+		bool operator!=(const composite_allocator& rhs) const noexcept
+		{
+			return m_Primary != rhs.m_Primary || m_Fallback != rhs.m_Fallback;
+		}
+
 #pragma region Allocation
 		void* allocate(size_t n)
 		{
@@ -128,18 +138,6 @@ namespace ktl
 		P m_Primary;
 		F m_Fallback;
 	};
-
-	template<typename P, typename F, typename U, typename V>
-	bool operator==(const composite_allocator<P, F>& lhs, const composite_allocator<U, V>& rhs) noexcept
-	{
-		return lhs.m_Primary == rhs.m_Primary && lhs.m_Fallback == rhs.m_Fallback;
-	}
-
-	template<typename P, typename F, typename U, typename V>
-	bool operator!=(const composite_allocator<P, F>& lhs, const composite_allocator<U, V>& rhs) noexcept
-	{
-		return lhs.m_Primary != rhs.m_Primary || lhs.m_Fallback != rhs.m_Fallback;
-	}
 
 	template<typename T, typename P, typename F>
 	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;

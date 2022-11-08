@@ -59,6 +59,16 @@ namespace ktl
 			}
 		}
 
+		bool operator==(const cascading_allocator& rhs) const noexcept
+		{
+			return m_Block == rhs.m_Block;
+		}
+
+		bool operator!=(const cascading_allocator& rhs) const noexcept
+		{
+			return m_Block != rhs.m_Block;
+		}
+
 #pragma region Allocation
 		void* allocate(size_type n)
 		{
@@ -183,18 +193,6 @@ namespace ktl
 	private:
 		std::shared_ptr<block> m_Block;
 	};
-
-	template<typename A, typename U>
-	bool operator==(const cascading_allocator<A>& lhs, const cascading_allocator<U>& rhs) noexcept
-	{
-		return &lhs == &rhs;
-	}
-
-	template<typename A, typename U>
-	bool operator!=(const cascading_allocator<A>& lhs, const cascading_allocator<U>& rhs) noexcept
-	{
-		return &lhs != &rhs;
-	}
 
 	template<typename T, typename Alloc>
 	using type_cascading_allocator = type_allocator<T, cascading_allocator<Alloc>>;

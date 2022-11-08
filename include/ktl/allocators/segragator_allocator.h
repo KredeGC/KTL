@@ -27,6 +27,16 @@ namespace ktl
 			m_Primary(other.m_Primary),
 			m_Fallback(other.m_Fallback) {}
 
+		bool operator==(const segragator_allocator& rhs) const noexcept
+		{
+			return m_Primary == rhs.m_Primary && m_Fallback == rhs.m_Fallback;
+		}
+
+		bool operator!=(const segragator_allocator& rhs) const noexcept
+		{
+			return m_Primary != rhs.m_Primary || m_Fallback != rhs.m_Fallback;
+		}
+
 #pragma region Allocation
 		void* allocate(size_t n)
 		{
@@ -123,18 +133,6 @@ namespace ktl
 		P m_Primary;
 		F m_Fallback;
 	};
-
-	template<size_t T1, typename P, typename F, size_t T2, typename U, typename V>
-	bool operator==(const segragator_allocator<T1, P, F>& lhs, const segragator_allocator<T2, U, V>& rhs) noexcept
-	{
-		return lhs.m_Primary == rhs.m_Primary && lhs.m_Fallback == rhs.m_Fallback;
-	}
-
-	template<size_t T1, typename P, typename F, size_t T2, typename U, typename V>
-	bool operator!=(const segragator_allocator<T1, P, F>& lhs, const segragator_allocator<T2, U, V>& rhs) noexcept
-	{
-		return lhs.m_Primary != rhs.m_Primary || lhs.m_Fallback != rhs.m_Fallback;
-	}
 
 	template<typename T, size_t Threshold, typename P, typename F>
 	using type_segragator_allocator = type_allocator<T, segragator_allocator<Threshold, P, F>>;

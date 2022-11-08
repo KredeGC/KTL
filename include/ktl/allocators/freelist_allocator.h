@@ -54,6 +54,16 @@ namespace ktl
             }
         }
 
+		bool operator==(const freelist_allocator& rhs) const noexcept
+		{
+			return m_Stats->Allocator == rhs.m_Stats->Allocator;
+		}
+
+		bool operator!=(const freelist_allocator& rhs) const noexcept
+		{
+			return m_Stats->Allocator != rhs.m_Stats->Allocator;
+		}
+
 #pragma region Allocation
 		void* allocate(size_type n)
 		{
@@ -128,18 +138,6 @@ namespace ktl
 	private:
         std::shared_ptr<stats> m_Stats;
 	};
-
-	template<size_t Min1, size_t Max1, typename A, size_t Min2, size_t Max2, typename U>
-	bool operator==(const freelist_allocator<Min1, Min2, A>& lhs, const freelist_allocator<Min2, Max2, U>& rhs) noexcept
-	{
-		return lhs.m_Stats->Allocator == rhs.m_Stats->Allocator;
-	}
-
-	template<size_t Min1, size_t Max1, typename A, size_t Min2, size_t Max2, typename U>
-	bool operator!=(const freelist_allocator<Min1, Min2, A>& lhs, const freelist_allocator<Min2, Max2, U>& rhs) noexcept
-	{
-		return lhs.m_Stats->Allocator != rhs.m_Stats->Allocator;
-	}
 
 	template<typename T, size_t Min, size_t Max, typename A>
 	using type_freelist_allocator = type_allocator<T, freelist_allocator<Min, Max, A>>;
