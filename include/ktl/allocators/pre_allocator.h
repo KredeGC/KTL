@@ -117,7 +117,8 @@ namespace ktl
 				if (m_Block->Free == current)
 					m_Block->Free = current->Next;
 
-				m_Block->Guess = current;
+				if (m_Block->Guess == current)
+					m_Block->Guess = current->Next;
 			}
 
 			return current;
