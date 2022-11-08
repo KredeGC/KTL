@@ -27,11 +27,11 @@ namespace ktl
 	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
 
 	// freelist_allocator
-	template<size_t Min, size_t Max, size_t Batch, size_t Threshold, typename Alloc>
+	template<size_t Min, size_t Max, typename Alloc>
 	class freelist_allocator;
 
-	template<typename T, size_t Min, size_t Max, size_t Batch, size_t Threshold, typename A>
-	using type_freelist_allocator = type_allocator<T, freelist_allocator<Min, Max, Batch, Threshold, A>>;
+	template<typename T, size_t Min, size_t Max, typename A>
+	using type_freelist_allocator = type_allocator<T, freelist_allocator<Min, Max, A>>;
 	
 	// mallocator
 	class mallocator;

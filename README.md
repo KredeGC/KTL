@@ -118,8 +118,10 @@ Create an allocator that monitors when memory corruption has occurred around any
 type_overflow_allocator<double, mallocator, std::cerr> alloc;
 // Allocate and deallocate 1 double
 double* p = alloc.allocate(1);
-*(p1 - 1) = 32; // Write to the address before what was allocated, which is illegal
-alloc.deallocate(p, 1); // When it deallocates it should give a message in the standard error stream
+// Write to the address before what was allocated, which is illegal
+*(p - 1) = 32;
+// When it deallocates it should give a message in the standard error stream
+alloc.deallocate(p, 1);
 ```
 
 Create an allocator which will use a cascading pre allocator for anything less than 8kb and malloc for anything above.
@@ -137,6 +139,21 @@ double* p3 = alloc.allocate(2048);
 alloc.deallocate(p1, 1024);
 alloc.deallocate(p2, 1024);
 alloc.deallocate(p3, 2048);
+```
+
+Create an allocator which will reuse earlier allocations in a freelist.
+```cpp
+// Create the allocator from a freelist, backed by malloc
+type_segragator_allocator<double, 16, freelist_allocator<0, 16, mallocator>, mallocator> alloc;
+// Allocate 1 double and deallocate, so that it ends up in the freelist
+double* p1 = alloc.allocate(1);
+alloc.deallocate(p1, 1);
+// Allocate 2 doubles, which should reuse the previous allocation
+double* p2 = alloc.allocate(2);
+alloc.deallocate(p2, 2);
+// Allocate 4 doubles, which should be handled by the backup malloc
+double* p3 = alloc.allocate(4);
+alloc.deallocate(p3, 4);
 ```
 
 # Building and running tests

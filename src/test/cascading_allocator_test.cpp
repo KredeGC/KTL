@@ -18,10 +18,5 @@ namespace ktl::test
     {
         type_cascading_allocator<double, pre_allocator<32>> alloc;
         assert_unordered_values<double>(alloc);
-
-
-        // TODO: More tests with exotic allocator arrangements
-        stack<1024> block;
-        type_segragator_allocator<double, 32, stack_allocator<1024>, cascading_allocator<pre_allocator<1024>>> alloc2({ block });
     }
 }
