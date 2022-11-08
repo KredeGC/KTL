@@ -25,17 +25,21 @@ namespace ktl
 
 		struct stats
 		{
-			size_type Allocs = 0;
-			size_type Constructs = 0;
+			Alloc Allocator;
+			size_type Allocs;
+			size_type Constructs;
+
+			stats(const Alloc& alloc) :
+				Allocator(alloc),
+				Allocs(0),
+				Constructs(0) {}
 		};
 
 	public:
 		overflow_allocator(const Alloc& alloc = Alloc()) noexcept :
-			m_Alloc(alloc),
-			m_Stats(std::make_shared<stats>()) {}
+			m_Stats(std::make_shared<stats>(alloc)) {}
 
 		overflow_allocator(const overflow_allocator& other) noexcept :
-			m_Alloc(other.m_Alloc),
 			m_Stats(other.m_Stats) {}
 
 		~overflow_allocator()
@@ -55,7 +59,7 @@ namespace ktl
 			m_Stats->Allocs += n;
 
 			size_type size = n + OVERFLOW_SIZE * 2;
-			char* ptr = reinterpret_cast<char*>(m_Alloc.allocate(size));
+			char* ptr = reinterpret_cast<char*>(m_Stats->Allocator.allocate(size));
 
 			if (!ptr)
 				return nullptr;
@@ -80,7 +84,7 @@ namespace ktl
 					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p) << " has been modified\n";
 
 				size_type size = n + OVERFLOW_SIZE * 2;
-				m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);
+				m_Stats->Allocator.deallocate(ptr - OVERFLOW_SIZE, size);
 			}
 		}
 #pragma endregion
@@ -92,7 +96,7 @@ namespace ktl
 			m_Stats->Constructs++;
 
 			if constexpr (has_construct<void, Alloc, T*, Args...>::value)
-				m_Alloc.construct(p, std::forward<Args>(args)...);
+				m_Stats->Allocator.construct(p, std::forward<Args>(args)...);
 			else
 				::new(p) T(std::forward<Args>(args)...);
 		}
@@ -103,7 +107,7 @@ namespace ktl
 			m_Stats->Constructs--;
 
 			if constexpr (has_destroy<Alloc, T*>::value)
-				m_Alloc.destroy(p);
+				m_Stats->Allocator.destroy(p);
 			else
 				p->~T();
 		}
@@ -114,42 +118,41 @@ namespace ktl
 		typename std::enable_if<has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
-			return m_Alloc.max_size();
+			return m_Stats->Allocator.max_size();
 		}
 
 		template<typename A = Alloc>
 		typename std::enable_if<has_owns<A>::value, bool>::type
 		owns(void* p)
 		{
-			return m_Alloc.owns(p);
+			return m_Stats->Allocator.owns(p);
 		}
 #pragma endregion
 
 		Alloc& get_allocator()
 		{
-			return m_Alloc;
+			return m_Stats->Allocator;
 		}
 
 		const Alloc& get_allocator() const
 		{
-			return m_Alloc;
+			return m_Stats->Allocator;
 		}
 
 	private:
-		Alloc m_Alloc;
 		std::shared_ptr<stats> m_Stats;
 	};
 
 	template<typename A, std::ostream& S, typename U, std::ostream& V>
 	bool operator==(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
 	{
-		return lhs.m_Alloc == rhs.m_Alloc;
+		return lhs.m_Stats->Allocator == rhs.m_Stats->Allocator;
 	}
 
 	template<typename A, std::ostream& S, typename U, std::ostream& V>
 	bool operator!=(const overflow_allocator<A, S>& lhs, const overflow_allocator<U, V>& rhs) noexcept
 	{
-		return lhs.m_Alloc != rhs.m_Alloc;
+		return lhs.m_Stats->Allocator != rhs.m_Stats->Allocator;
 	}
 
 	template<typename T, typename A, std::ostream& Stream>
