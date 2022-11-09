@@ -21,7 +21,7 @@ namespace ktl
 		typedef const T* const_iterator;
 
 	public:
-		explicit trivial_vector(const Alloc& allocator = Alloc()) noexcept :
+		trivial_vector(const Alloc& allocator = Alloc()) noexcept :
 			m_Alloc(allocator),
 			m_Begin(nullptr),
 			m_End(nullptr),
