@@ -1,26 +1,39 @@
 #pragma once
 #include "assert_utility.h"
+#include "random.h"
 #include "types.h"
 
 namespace ktl::test
 {
-    template<typename Vec, typename T>
-    void assert_vector_push_back(Vec& vec, const T* values, size_t amount)
-    {
-        for (size_t i = 0; i < amount; i++)
-            vec.push_back(values[i]);
+	template<size_t Count, typename Array, typename T>
+	void assert_array_insert(Array& arr, const T* values)
+	{
+        arr.resize(Count);
 
-        for (size_t i = 0; i < amount; i++)
-            KTL_ASSERT(vec[i] == values[i]);
-    }
+        for (size_t i = 0; i < Count; i++)
+            arr[i] = values[i];
 
-    template<typename T, typename Vec>
+        // operator[] access
+        for (size_t i = 0; i < Count; i++)
+            KTL_ASSERT(arr[i] == values[i]);
+
+        // Reverse loops from Size - 1
+        size_t counter = Count;
+        for (auto iter = arr.rbegin(); iter != arr.rend(); iter++)
+            KTL_ASSERT(*iter == values[--counter]);
+
+        // Normal loops from 0
+        for (auto& value : arr)
+            KTL_ASSERT(value == values[counter++]);
+	}
+
+	template<typename T, typename Array>
     typename std::enable_if<std::is_same<T, double>::value, void>::type
-    assert_vector_values(Vec& vector)
+    assert_array_values(Array& arr)
     {
         constexpr size_t size = 8;
 
-        double values[] = {
+        constexpr double values[] = {
             0.0,
             8.0,
             9.0,
@@ -31,12 +44,12 @@ namespace ktl::test
             58.0
         };
 
-        assert_vector_push_back(vector, values, size);
+        assert_array_insert<size>(arr, values);
     }
 
-    template<typename T, typename Vec>
+	template<typename T, typename Array>
     typename std::enable_if<std::is_same<T, trivial_t>::value, void>::type
-    assert_vector_values(Vec& vector)
+    assert_array_values(Array& arr)
     {
         constexpr size_t size = 8;
 
@@ -51,12 +64,12 @@ namespace ktl::test
             { 58.0f, 31.0f }
         };
 
-        assert_vector_push_back(vector, values, size);
+        assert_array_insert<size>(arr, values);
     }
 
-    template<typename T, typename Vec>
+	template<typename T, typename Array>
     typename std::enable_if<std::is_same<T, packed_t>::value, void>::type
-    assert_vector_values(Vec& vector)
+    assert_array_values(Array& arr)
     {
         constexpr size_t size = 8;
 
@@ -74,26 +87,6 @@ namespace ktl::test
             { &forRef1, &forRef1, 982, 'c' }
         };
 
-        assert_vector_push_back(vector, values, size);
-    }
-
-    template<typename T, typename Vec>
-    typename std::enable_if<std::is_same<T, complex_t>::value, void>::type
-    assert_vector_values(Vec& vector)
-    {
-        constexpr size_t size = 8;
-
-        complex_t values[] = {
-            0.0,
-            8.0,
-            9.0,
-            10.0,
-            20.0,
-            28.0,
-            32.0,
-            58.0
-        };
-
-        assert_vector_push_back(vector, values, size);
+        assert_array_insert<size>(arr, values);
     }
 }

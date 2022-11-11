@@ -57,6 +57,16 @@ namespace ktl
 			}
 		}
 
+		explicit trivial_vector(const T* first, const T* last, const Alloc& allocator = Alloc()) :
+			m_Alloc(allocator),
+			m_Begin(Traits::allocate(m_Alloc, size_t(last - first))),
+			m_End(m_Begin + size_t(last - first)),
+			m_EndMax(m_End)
+		{
+			const size_t n = last - first;
+			std::memcpy(m_Begin, first, n * sizeof(T));
+		}
+
 		trivial_vector(const trivial_vector& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
 			m_Begin(Traits::allocate(m_Alloc, other.size())),
