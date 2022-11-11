@@ -6,8 +6,8 @@
 #include "ktl/allocators/cascading_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/pre_allocator.h"
-#include "ktl/allocators/stack_allocator.h"
 #include "ktl/allocators/segragator_allocator.h"
+#include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_cascading_[Alloc]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::cascading_allocator

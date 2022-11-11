@@ -58,12 +58,12 @@ namespace ktl
 			m_Begin(Traits::allocate(m_Alloc, size_t(last - first))),
 			m_End(m_Begin + size_t(last - first))
 		{
-			const size_t n = last - first;
+			size_t n = last - first;
 			std::memcpy(m_Begin, first, n * sizeof(T));
 		}
 
 		trivial_array(const trivial_array& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
-			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
+			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.size())),
 			m_End(m_Begin + other.size())
 		{
@@ -71,7 +71,7 @@ namespace ktl
 		}
 
 		trivial_array(trivial_array&& other) noexcept(std::is_nothrow_move_constructible_v<T>) :
-			m_Alloc(std::move(other)),
+			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End)
 		{
@@ -87,18 +87,16 @@ namespace ktl
 
 		trivial_array& operator=(const trivial_array& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 		{
-			const size_t n = other.size();
+			size_t n = other.size();
 
-			if (n != size())
-			{
-				T* alBlock = Traits::allocate(m_Alloc, n);
+			T* alBlock = Traits::allocate(other.m_Alloc, n);
 
-				if (m_Begin != nullptr)
-					Traits::deallocate(m_Alloc, m_Begin, size());
+			if (m_Begin != nullptr)
+				Traits::deallocate(m_Alloc, m_Begin, size());
 
-				m_Begin = alBlock;
-				m_End = m_Begin + n;
-			}
+			m_Alloc = other.m_Alloc;
+			m_Begin = alBlock;
+			m_End = m_Begin + n;
 
 			std::memcpy(m_Begin, other.m_Begin, n * sizeof(T));
 			return *this;
@@ -109,6 +107,7 @@ namespace ktl
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, size());
 
+			m_Alloc = std::move(other.m_Alloc);
 			m_Begin = other.m_Begin;
 			m_End = other.m_End;
 

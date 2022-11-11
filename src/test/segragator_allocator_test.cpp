@@ -3,9 +3,9 @@
 
 #include "ktl/ktl_fwd.h"
 
-#include "ktl/allocators/segragator_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/pre_allocator.h"
+#include "ktl/allocators/segragator_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_segragator_[Primary]_[Fallback]_[Container]_[Type]

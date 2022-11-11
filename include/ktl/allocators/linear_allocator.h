@@ -19,7 +19,7 @@ namespace ktl
 			char* Free;
 			size_t ObjectCount;
 
-			stack() noexcept :
+			arena() noexcept :
 				Data{},
 				Free(Data),
 				ObjectCount(0) {}
@@ -32,12 +32,12 @@ namespace ktl
 		linear_allocator(const linear_allocator& other) noexcept :
 			m_Block(other.m_Block) {}
 
-		bool operator==(const stack_allocator& rhs) const noexcept
+		bool operator==(const linear_allocator& rhs) const noexcept
 		{
 			return m_Block == rhs.m_Block;
 		}
 
-		bool operator!=(const stack_allocator& rhs) const noexcept
+		bool operator!=(const linear_allocator& rhs) const noexcept
 		{
 			return m_Block != rhs.m_Block;
 		}

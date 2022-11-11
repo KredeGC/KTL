@@ -63,12 +63,12 @@ namespace ktl
 			m_End(m_Begin + size_t(last - first)),
 			m_EndMax(m_End)
 		{
-			const size_t n = last - first;
+			size_t n = last - first;
 			std::memcpy(m_Begin, first, n * sizeof(T));
 		}
 
 		trivial_vector(const trivial_vector& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
-			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
+			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.size())),
 			m_End(m_Begin + other.size()),
 			m_EndMax(m_End)
@@ -77,7 +77,7 @@ namespace ktl
 		}
 
 		trivial_vector(trivial_vector&& other) noexcept(std::is_nothrow_move_constructible_v<T>) :
-			m_Alloc(std::move(other)),
+			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
 			m_EndMax(other.m_EndMax)
@@ -95,20 +95,17 @@ namespace ktl
 
 		trivial_vector& operator=(const trivial_vector& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 		{
-			const size_t n = other.size();
+			size_t n = other.size();
 
-			if (n > capacity())
-			{
-				T* alBlock = Traits::allocate(m_Alloc, n);
+			T* alBlock = Traits::allocate(other.m_Alloc, n);
 
-				if (m_Begin != nullptr)
-					Traits::deallocate(m_Alloc, m_Begin, capacity());
+			if (m_Begin != nullptr)
+				Traits::deallocate(m_Alloc, m_Begin, capacity());
 
-				m_Begin = alBlock;
-				m_EndMax = m_Begin + n;
-			}
-
+			m_Alloc = std::move(other.m_Alloc);
+			m_Begin = alBlock;
 			m_End = m_Begin + n;
+			m_EndMax = m_Begin + n;
 
 			std::memcpy(m_Begin, other.m_Begin, n * sizeof(T));
 			return *this;
@@ -119,6 +116,7 @@ namespace ktl
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, capacity());
 
+			m_Alloc = std::move(other.m_Alloc);
 			m_Begin = other.m_Begin;
 			m_End = other.m_End;
 			m_EndMax = other.m_EndMax;

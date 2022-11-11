@@ -1,4 +1,5 @@
 #include "shared/assert_utility.h"
+#include "shared/construct_utility.h"
 #include "shared/test.h"
 #include "shared/types.h"
 #include "shared/vector_utility.h"
@@ -7,15 +8,20 @@
 
 #include "ktl/containers/trivial_vector.h"
 
-#include "ktl/allocators/stack_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/pre_allocator.h"
+#include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_trivial_vector_[Alloc]_[Type]
 // Contains tests that relate directly to the ktl::trivial_vector
 
 namespace ktl::test
 {
+    KTL_ADD_TEST(test_trivial_vector_construct)
+    {
+        assert_construct_container<trivial_vector<double>>();
+    }
+
     KTL_ADD_TEST(test_trivial_vector_pre_double)
     {
         trivial_vector<double, type_pre_allocator<double, 4096>> vec;
