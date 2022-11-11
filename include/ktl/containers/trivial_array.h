@@ -91,7 +91,7 @@ namespace ktl
 
 			if (n != size())
 			{
-				t* alBlock = Traits::allocate(m_Alloc, n);
+				T* alBlock = Traits::allocate(m_Alloc, n);
 
 				if (m_Begin != nullptr)
 					Traits::deallocate(m_Alloc, m_Begin, size());
