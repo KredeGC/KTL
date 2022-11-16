@@ -4,6 +4,7 @@
 #include "../utility/meta_template.h"
 #include "type_allocator.h"
 
+#include <atomic>
 #include <memory>
 #include <type_traits>
 
