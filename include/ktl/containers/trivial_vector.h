@@ -102,7 +102,7 @@ namespace ktl
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, capacity());
 
-			m_Alloc = std::move(other.m_Alloc);
+			m_Alloc = other.m_Alloc;
 			m_Begin = alBlock;
 			m_End = m_Begin + n;
 			m_EndMax = m_Begin + n;

@@ -47,6 +47,7 @@ namespace ktl
 		cascading_allocator(const cascading_allocator& other) noexcept :
 			m_Block(other.m_Block)
 		{
+			KTL_ASSERT(other.m_Block);
 			m_Block->UseCount++;
 		}
 

@@ -23,11 +23,11 @@ The library itself is fairly stable but should not be expected to be used in a p
 
 # Installation
 As this is a header-only library, you can simply copy the header files directly into your project.
-The header files can either be downloaded from the [release page](https://github.com/KredeGC/KTL/releases) or from the `include/` directory on the master branch.
+The header files can either be downloaded from the [release page](https://github.com/KredeGC/KTL/releases) or from the [`include/`](https://github.com/KredeGC/KTL/tree/master/include/ktl) directory on the master branch.
 The source and header files inside the `src/` directory are only tests and should not be included into your project.
 
 # Allocators
-This library also contains 2 different types of allocators:
+This library contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
@@ -64,16 +64,17 @@ Some additional methods have also been added.
 | Alloc get_allocator() | Returns the allocator that this allocator wraps around.<br/>Most composite allocators define this method. |
 
 # Containers
-This library contains various containers that are STL compliant.
+This library also contains various containers that are STL compliant.
 
 | Signature | Description | Notes |
 | --- | --- | --- |
 | binary_heap<br/>\<T, Comp, Alloc\> | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` and `binary_max_heap<T, Alloc>` types. |
+| trivial_array<br/>\<T, Alloc\> | An array wrapper class, similar to `std::array`, but uses dynamic allocation and is optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
 | trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
 
 ## binary_heap interface
-The methods of the trivial_vector roughly follows the STL vector.
-There are some additional methods added, like a range-based `push_back`.
+The methods of the binary_heap roughly follows the STL container standard.
+As this is a binary heap many operations are not available.
 
 | Method | Description |
 | --- | --- |

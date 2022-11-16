@@ -25,11 +25,7 @@ namespace ktl
             m_Comp(comp),
             m_Size(0),
             m_Capacity(capacity),
-            m_Begin(Traits::allocate(m_Alloc, capacity))
-        {
-            for (size_t i = 0; i < m_Capacity; i++)
-                Traits::construct(m_Alloc, m_Begin + i);
-        }
+            m_Begin(Traits::allocate(m_Alloc, capacity)) {}
 
         binary_heap(const binary_heap& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
             m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
@@ -46,7 +42,7 @@ namespace ktl
             m_Alloc(std::move(other)),
             m_Comp(other.m_Comp),
             m_Size(other.m_Size),
-            m_Capacity(other.m_Size),
+            m_Capacity(other.m_Capacity),
             m_Begin(std::move(other.m_Begin))
         {
             other.m_Capacity = 0;
@@ -59,7 +55,7 @@ namespace ktl
             // Deconstruct elements
             if (m_Begin)
             {
-                for (size_t i = 0; i < m_Capacity; i++)
+                for (size_t i = 0; i < m_Size; i++)
                     Traits::destroy(m_Alloc, m_Begin + i);
 
                 Traits::deallocate(m_Alloc, m_Begin, m_Capacity);
@@ -70,25 +66,21 @@ namespace ktl
         {
             if (m_Begin)
             {
-                for (size_t i = 0; i < m_Capacity; i++)
+                for (size_t i = 0; i < m_Size; i++)
                     Traits::destroy(m_Alloc, m_Begin + i);
 
                 Traits::deallocate(m_Alloc, m_Begin, m_Capacity);
             }
 
+            m_Alloc = other.m_Alloc;
             m_Comp = other.m_Comp;
             m_Size = other.m_Size;
             m_Capacity = other.m_Size;
-            m_Begin = Traits::allocate(m_Alloc, other.m_Size);
+            m_Begin = Traits::allocate(m_Alloc, m_Capacity);
 
-            // Construct elements
-            {
-                for (size_t i = 0; i < m_Size; i++)
-                    Traits::construct(m_Alloc, m_Begin + i);
-
-                for (size_t i = 0; i < m_Size; i++)
-                    m_Begin[i] = other.m_Begin[i];
-            }
+            // Copy construct elements
+            for (size_t i = 0; i < m_Size; i++)
+                Traits::construct(m_Alloc, m_Begin + i, other.m_Begin[i]);
 
             return *this;
         }
@@ -98,16 +90,17 @@ namespace ktl
             // Deconstruct elements
             if (m_Begin)
             {
-                for (size_t i = 0; i < m_Capacity; i++)
+                for (size_t i = 0; i < m_Size; i++)
                     Traits::destroy(m_Alloc, m_Begin + i);
 
                 Traits::deallocate(m_Alloc, m_Begin, m_Capacity);
             }
 
+            m_Alloc = std::move(other.m_Alloc);
             m_Comp = other.m_Comp;
             m_Size = other.m_Size;
-            m_Capacity = other.m_Size;
-            m_Begin = std::move(other.m_Begin);
+            m_Capacity = other.m_Capacity;
+            m_Begin = other.m_Begin;
 
             other.m_Capacity = 0;
             other.m_Size = 0;
@@ -133,14 +126,21 @@ namespace ktl
             if (m_Size == m_Capacity)
                 expand(1);
 
+            const size_t lastElement = m_Size;
             size_t hole = m_Size++;
             while (hole != 0 && m_Comp(value, m_Begin[parent(hole)]))
             {
-                m_Begin[hole] = std::move(m_Begin[parent(hole)]);
+                if (hole == lastElement)
+                    Traits::construct(m_Alloc, m_Begin + hole, std::move(m_Begin[parent(hole)]));
+                else
+                    m_Begin[hole] = std::move(m_Begin[parent(hole)]);
                 hole = parent(hole);
             }
 
-            m_Begin[hole] = value;
+            if (hole == lastElement)
+                Traits::construct(m_Alloc, m_Begin + hole, value);
+            else
+                m_Begin[hole] = value;
         }
 
         void insert(T&& value)
@@ -148,14 +148,21 @@ namespace ktl
             if (m_Size == m_Capacity)
                 expand(1);
 
+            const size_t lastElement = m_Size;
             size_t hole = m_Size++;
             while (hole != 0 && m_Comp(value, m_Begin[parent(hole)]))
             {
-                m_Begin[hole] = std::move(m_Begin[parent(hole)]);
+                if (hole == lastElement)
+                    Traits::construct(m_Alloc, m_Begin + hole, std::move(m_Begin[parent(hole)]));
+                else
+                    m_Begin[hole] = std::move(m_Begin[parent(hole)]);
                 hole = parent(hole);
             }
 
-            m_Begin[hole] = std::move(value);
+            if (hole == lastElement)
+                Traits::construct(m_Alloc, m_Begin + hole, std::move(value));
+            else
+                m_Begin[hole] = std::move(value);
         }
 
         T pop()
@@ -164,7 +171,8 @@ namespace ktl
 
             if (m_Size > 0)
             {
-                m_Begin[0] = m_Begin[--m_Size];
+                m_Begin[0] = std::move(m_Begin[--m_Size]);
+                Traits::destroy(m_Alloc, m_Begin + m_Size);
                 heapify(0);
             }
 
@@ -179,18 +187,14 @@ namespace ktl
             size_t newCapacity = m_Size + (std::max)(m_Size, n);
             T* newData = Traits::allocate(m_Alloc, newCapacity);
 
-            // Construct elements
-            for (size_t i = 0; i < newCapacity; i++)
-                Traits::construct(m_Alloc, newData + i);
-
             if (m_Begin)
             {
-                // Move elements from old array
+                // Move construct elements
                 for (size_t i = 0; i < m_Size; i++)
-                    newData[i] = std::move(m_Begin[i]);
+                    Traits::construct(m_Alloc, newData + i, std::move(m_Begin[i]));
 
                 // Deconstruct elements
-                for (size_t i = 0; i < m_Capacity; i++)
+                for (size_t i = 0; i < m_Size; i++)
                     Traits::destroy(m_Alloc, m_Begin + i);
 
                 // Deallocate old array
