@@ -15,16 +15,16 @@ namespace ktl::test
 
         // operator[] access
         for (size_t i = 0; i < Count; i++)
-            KTL_ASSERT(arr[i] == values[i]);
+            KTL_TEST_ASSERT(arr[i] == values[i]);
 
         // Reverse loops from Size - 1
         size_t counter = Count;
         for (auto iter = arr.rbegin(); iter != arr.rend(); iter++)
-            KTL_ASSERT(*iter == values[--counter]);
+            KTL_TEST_ASSERT(*iter == values[--counter]);
 
         // Normal loops from 0
         for (auto& value : arr)
-            KTL_ASSERT(value == values[counter++]);
+            KTL_TEST_ASSERT(value == values[counter++]);
 	}
 
 	template<typename T, typename Array>

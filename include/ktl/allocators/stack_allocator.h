@@ -1,8 +1,7 @@
 #pragma once
 
-#include "type_allocator.h"
-
 #include "../utility/alignment_utility.h"
+#include "type_allocator.h"
 
 #include <memory>
 #include <type_traits>

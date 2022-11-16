@@ -4,6 +4,7 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/allocators/freelist_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 

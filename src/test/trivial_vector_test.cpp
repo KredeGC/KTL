@@ -6,6 +6,7 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/containers/trivial_vector.h"
 
 #include "ktl/allocators/mallocator.h"

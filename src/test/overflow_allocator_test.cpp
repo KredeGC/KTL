@@ -4,11 +4,13 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/containers/binary_heap.h"
 #include "ktl/allocators/overflow_allocator.h"
 #include "ktl/allocators/pre_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
+#include <iostream>
 #include <sstream>
 
 // Naming scheme: test_overflow_[Alloc]_[Container]_[Type]
@@ -31,7 +33,7 @@ namespace ktl::test
 
         std::cerr << stringBuffer.str();
 
-        KTL_ASSERT(stringBuffer.str().empty());
+        KTL_TEST_ASSERT(stringBuffer.str().empty());
     }
 
     KTL_ADD_TEST(test_overflow_stack_unordered_double)

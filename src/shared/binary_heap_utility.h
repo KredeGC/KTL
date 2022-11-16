@@ -19,7 +19,7 @@ namespace ktl::test
             heap.insert(random_copy[i]);
 
         for (size_t i = 0; i < amount; i++)
-            KTL_ASSERT(heap.pop() == values[i]);
+            KTL_TEST_ASSERT(heap.pop() == values[i]);
 
         delete[] random_copy;
     }

@@ -127,7 +127,7 @@ namespace ktl
 			m_Block = nullptr;
 		}
 
-		size_t use_count() const noexcept { return m_Block ? m_Block->UseCount : 0; }
+		size_t use_count() const noexcept { return m_Block ? m_Block->UseCount.load() : 0; }
 
 		explicit operator bool() const noexcept { return m_Block && m_Block->UseCount > 0; }
 
@@ -155,4 +155,11 @@ namespace ktl
 	private:
 		control_block* m_Block;
 	};
+
+	template<typename T, typename Alloc = std::allocator<T>, typename ... Args>
+	ref_ptr<T, Alloc> make_ref(const Alloc& alloc = Alloc(), Args&&... args)
+	{
+		T data(std::forward<Args>(args)...);
+		return ref_ptr<T, Alloc>(std::move(data));
+	}
 }

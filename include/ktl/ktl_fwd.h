@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <ostream>
 
 namespace ktl
 {
@@ -32,6 +32,13 @@ namespace ktl
 
 	template<typename T, size_t Min, size_t Max, typename A>
 	using type_freelist_allocator = type_allocator<T, freelist_allocator<Min, Max, A>>;
+
+	// linear_allocator
+	template<size_t Size>
+	class linear_allocator;
+
+	template<typename T, size_t Size>
+	using type_linear_allocator = type_allocator<T, linear_allocator<Size>>;
 	
 	// mallocator
 	class mallocator;

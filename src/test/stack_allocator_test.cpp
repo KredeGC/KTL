@@ -5,6 +5,7 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/allocators/stack_allocator.h"
 
 #include <vector>

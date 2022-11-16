@@ -4,6 +4,7 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/allocators/stack_allocator.h"
 
 #include "ktl/ptrs/ref_ptr.h"
@@ -18,7 +19,7 @@ namespace ktl::test
     {
         ref_ptr<double> ptr(42.0);
 
-        KTL_ASSERT(*ptr == 42.0);
+        KTL_TEST_ASSERT(*ptr == 42.0);
     }
 
     KTL_ADD_TEST(test_ref_ptr_copy_stack_double)
@@ -31,8 +32,8 @@ namespace ktl::test
         ref_ptr<double, alloc_t> ptr1(42.0, alloc);
         ref_ptr<double, alloc_t> ptr2(ptr1);
 
-        KTL_ASSERT(*ptr1 == 42.0);
-        KTL_ASSERT(*ptr2 == 42.0);
+        KTL_TEST_ASSERT(*ptr1 == 42.0);
+        KTL_TEST_ASSERT(*ptr2 == 42.0);
     }
 
     KTL_ADD_TEST(test_ref_ptr_copy_stack_complex)
@@ -45,8 +46,8 @@ namespace ktl::test
         ref_ptr<complex_t, alloc_t> ptr1(42.0, alloc);
         ref_ptr<complex_t, alloc_t> ptr2(ptr1);
 
-        KTL_ASSERT(*ptr1 == 42.0);
-        KTL_ASSERT(*ptr2 == 42.0);
+        KTL_TEST_ASSERT(*ptr1 == 42.0);
+        KTL_TEST_ASSERT(*ptr2 == 42.0);
     }
 
     KTL_ADD_TEST(test_ref_ptr_move_stack_complex)
@@ -59,8 +60,8 @@ namespace ktl::test
         ref_ptr<complex_t, alloc_t> ptr1(42.0, alloc);
         ref_ptr<complex_t, alloc_t> ptr2(std::move(ptr1));
 
-        KTL_ASSERT(!ptr1);
-        KTL_ASSERT(*ptr2 == 42.0);
+        KTL_TEST_ASSERT(!ptr1);
+        KTL_TEST_ASSERT(*ptr2 == 42.0);
     }
 
     KTL_ADD_TEST(test_weakref_ptr_stack_complex)
@@ -74,11 +75,11 @@ namespace ktl::test
 
         weakref_ptr<complex_t, alloc_t> weak_ptr(ptr);
 
-        KTL_ASSERT(*ptr == 42.0);
+        KTL_TEST_ASSERT(*ptr == 42.0);
 
         ptr.reset();
 
-        KTL_ASSERT(!weak_ptr);
-        KTL_ASSERT(weak_ptr.expired());
+        KTL_TEST_ASSERT(!weak_ptr);
+        KTL_TEST_ASSERT(weak_ptr.expired());
     }
 }

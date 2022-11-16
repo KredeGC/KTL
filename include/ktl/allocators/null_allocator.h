@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utility/assert_utility.h"
+
 namespace ktl
 {
 	class null_allocator
@@ -29,13 +31,15 @@ namespace ktl
 
 		void deallocate(void* p, size_t n) noexcept
 		{
-			
+			KTL_ASSERT(p == nullptr);
 		}
 #pragma endregion
 
+#pragma region Utility
 		bool owns(void* p)
 		{
 			return p == nullptr;
 		}
+#pragma endregion
 	};
 }

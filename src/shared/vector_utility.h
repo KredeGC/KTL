@@ -11,7 +11,7 @@ namespace ktl::test
             vec.push_back(values[i]);
 
         for (size_t i = 0; i < amount; i++)
-            KTL_ASSERT(vec[i] == values[i]);
+            KTL_TEST_ASSERT(vec[i] == values[i]);
     }
 
     template<typename T, typename Vec>

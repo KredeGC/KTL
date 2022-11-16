@@ -1,12 +1,8 @@
 #pragma once
 
-#include "type_allocator.h"
-
 #include "../utility/alignment_malloc.h"
 #include "../utility/alignment_utility.h"
-
-#include <memory>
-#include <type_traits>
+#include "type_allocator.h"
 
 namespace ktl
 {

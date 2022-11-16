@@ -5,6 +5,7 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/allocators/mallocator.h"
 
 #include <vector>

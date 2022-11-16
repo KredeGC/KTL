@@ -4,6 +4,7 @@
 
 #include "ktl/ktl_fwd.h"
 
+#define KTL_DEBUG_ASSERT
 #include "ktl/allocators/cascading_allocator.h"
 #include "ktl/allocators/composite_allocator.h"
 #include "ktl/allocators/freelist_allocator.h"
@@ -41,7 +42,7 @@ namespace ktl::test
         double* p2 = alloc.allocate(4096);
         alloc.deallocate(p2, 4096);
 
-        KTL_ASSERT(p1 != p2);
+        KTL_TEST_ASSERT(p1 != p2);
     }
 
     KTL_ADD_TEST(test_exotic_allocator_2)
@@ -59,7 +60,7 @@ namespace ktl::test
             alloc.deallocate(p, 1);
         }
 
-        KTL_ASSERT(!stringBuffer.str().empty());
+        KTL_TEST_ASSERT(!stringBuffer.str().empty());
     }
 
     KTL_ADD_TEST(test_exotic_allocator_3)
@@ -78,8 +79,8 @@ namespace ktl::test
         alloc.deallocate(p2, 1024);
         alloc.deallocate(p3, 2048);
 
-        KTL_ASSERT(p1 != p2);
-        KTL_ASSERT(p2 != p3);
+        KTL_TEST_ASSERT(p1 != p2);
+        KTL_TEST_ASSERT(p2 != p3);
     }
 
     KTL_ADD_TEST(test_exotic_allocator_4)
@@ -96,7 +97,7 @@ namespace ktl::test
         double* p3 = alloc.allocate(4);
         alloc.deallocate(p3, 4);
 
-        KTL_ASSERT(p1 == p2);
-        KTL_ASSERT(p2 != p3);
+        KTL_TEST_ASSERT(p1 == p2);
+        KTL_TEST_ASSERT(p2 != p3);
     }
 }
