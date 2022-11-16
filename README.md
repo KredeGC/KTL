@@ -73,9 +73,6 @@ This library also contains various containers that are STL compliant.
 | trivial_vector<br/>\<T, Alloc\> | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
 
 ## binary_heap interface
-The methods of the binary_heap roughly follows the STL container standard.
-As this is a binary heap many operations are not available.
-
 | Method | Description |
 | --- | --- |
 | `void clear()` | Clear all elements in the heap. |
@@ -83,10 +80,13 @@ As this is a binary heap many operations are not available.
 | `void insert(const T& value)` | Pushes a new element into the heap by copying. |
 | `void insert(T&& value)` | Pushes a new element into the heap by moving. |
 
-## trivial_vector interface
-The methods of the trivial_vector roughly follows the STL vector.
-There are some additional methods added, like a range-based `push_back`.
+## trivial_array interface
+| Method | Description |
+| --- | --- |
+| `void assign(const T* first, const T* last)` | Assigns the given values from `first` to `last`. It also resizes if the size doesn't match. |
+| `void resize(size_t size)` | Resizes the array to the given size. |
 
+## trivial_vector interface
 | Method | Description |
 | --- | --- |
 | `void clear()` | Clear all elements in the vector. |
@@ -94,7 +94,7 @@ There are some additional methods added, like a range-based `push_back`.
 | `void pop_back()` | Removes the last element from the vector. |
 | `void push_back(const T& value)` | Pushes a new value by copying it. |
 | `void push_back(T&& value)` | Pushes a new value by moving it. |
-| `void push_back(const T* begin, const T* end)` | Pushes a range of values from `begin` to `end`. |
+| `void push_back(const T* first, const T* last)` | Pushes a range of values from `first` to `last`. |
 | `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
 | `void resize(size_t size)` | Resizes the vector to the given size. |
 

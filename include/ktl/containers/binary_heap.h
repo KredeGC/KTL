@@ -179,7 +179,13 @@ namespace ktl
             return root;
         }
 
-        void clear() { m_Size = 0; }
+        void clear()
+        {
+            for (size_t i = 0; i < m_Size; i++)
+                Traits::destroy(m_Alloc, m_Begin + i);
+
+            m_Size = 0;
+        }
 
     private:
         void expand(size_t n)
