@@ -73,26 +73,31 @@ namespace ktl
 
 		~overflow_allocator()
 		{
-			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-			{
-				if (m_Stats->Allocs != 0 || m_Stats->Constructs != 0)
-					Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n" << m_Stats->Allocs << " Allocations\n" << m_Stats->Constructs << " Constructions\n";
+			if (m_Stats)
+				decrement();
+		}
 
-				if constexpr (!has_max_size<Alloc>::value)
-				{
-					Alloc alloc = std::move(m_Stats->Allocator);
+		overflow_allocator& operator=(const overflow_allocator& rhs) noexcept
+		{
+			if (m_Stats)
+				decrement();
 
-					if constexpr (has_destroy<Alloc, stats*>::value)
-						alloc.destroy(m_Stats);
-					else
-						m_Stats->~stats();
-					alloc.deallocate(m_Stats, sizeof(stats));
-				}
-				else
-				{
-					delete m_Stats;
-				}
-			}
+			m_Stats = rhs.m_Stats;
+			m_Stats->UseCount++;
+
+			return *this;
+		}
+
+		overflow_allocator& operator=(overflow_allocator&& rhs) noexcept
+		{
+			if (m_Stats)
+				decrement();
+
+			m_Stats = rhs.m_Stats;
+
+			rhs.m_Stats = nullptr;
+
+			return *this;
 		}
 
 		bool operator==(const overflow_allocator& rhs) const noexcept
@@ -191,6 +196,30 @@ namespace ktl
 		}
 
 	private:
+		void decrement()
+		{
+			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+			{
+				if (m_Stats->Allocs != 0 || m_Stats->Constructs != 0)
+					Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n" << m_Stats->Allocs << " Allocations\n" << m_Stats->Constructs << " Constructions\n";
+
+				if constexpr (!has_max_size<Alloc>::value)
+				{
+					Alloc alloc = std::move(m_Stats->Allocator);
+
+					if constexpr (has_destroy<Alloc, stats*>::value)
+						alloc.destroy(m_Stats);
+					else
+						m_Stats->~stats();
+					alloc.deallocate(m_Stats, sizeof(stats));
+				}
+				else
+				{
+					delete m_Stats;
+				}
+			}
+		}
+
 		stats* m_Stats;
 	};
 

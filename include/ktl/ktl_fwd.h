@@ -19,12 +19,12 @@ namespace ktl
 	template<typename T, typename Alloc>
 	using type_cascading_allocator = type_allocator<T, cascading_allocator<Alloc>>;
 
-	// composite_allocator
+	// fallback_allocator
 	template<typename P, typename F>
-	class composite_allocator;
+	class fallback_allocator;
 
 	template<typename T, typename P, typename F>
-	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
+	using type_fallback_allocator = type_allocator<T, fallback_allocator<P, F>>;
 
 	// freelist_allocator
 	template<size_t Min, size_t Max, typename Alloc>

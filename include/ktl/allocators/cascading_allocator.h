@@ -60,23 +60,31 @@ namespace ktl
 
 		~cascading_allocator()
 		{
-			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-			{
-				node* next = m_Block->Node;
-				while (next)
-				{
-					// Assert that we only have a single allocator left
-					// Otherwise someone forgot to deallocate memory
-					// This isn't a hard-error though
-					KTL_ASSERT(next == m_Block->Node);
+			if (m_Block)
+				decrement();
+		}
 
-					node* current = next;
+		cascading_allocator& operator=(const cascading_allocator& rhs) noexcept
+		{
+			if (m_Block)
+				decrement();
 
-					next = current->Next;
+			m_Block = rhs.m_Block;
+			m_Block->UseCount++;
 
-					delete current;
-				}
-			}
+			return *this;
+		}
+
+		cascading_allocator& operator=(cascading_allocator&& rhs) noexcept
+		{
+			if (m_Block)
+				decrement();
+
+			m_Block = rhs.m_Block;
+
+			rhs.m_Block = nullptr;
+
+			return *this;
 		}
 
 		bool operator==(const cascading_allocator& rhs) const noexcept
@@ -211,6 +219,27 @@ namespace ktl
 #pragma endregion
 
 	private:
+		void decrement()
+		{
+			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+			{
+				node* next = m_Block->Node;
+				while (next)
+				{
+					// Assert that we only have a single allocator left
+					// Otherwise someone forgot to deallocate memory
+					// This isn't a hard-error though
+					KTL_ASSERT(next == m_Block->Node);
+
+					node* current = next;
+
+					next = current->Next;
+
+					delete current;
+				}
+			}
+		}
+
 		block* m_Block;
 	};
 

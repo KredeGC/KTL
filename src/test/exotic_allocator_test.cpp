@@ -6,7 +6,7 @@
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/cascading_allocator.h"
-#include "ktl/allocators/composite_allocator.h"
+#include "ktl/allocators/fallback_allocator.h"
 #include "ktl/allocators/freelist_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/overflow_allocator.h"
@@ -34,7 +34,7 @@ namespace ktl::test
     KTL_ADD_TEST(test_exotic_allocator_1)
     {
         // Create the allocator from some 16kb buffer and straight malloc
-        type_composite_allocator<double, pre_allocator<16384>, mallocator> alloc;
+        type_fallback_allocator<double, pre_allocator<16384>, mallocator> alloc;
         // Allocate and deallocate 3 doubles
         double* p1 = alloc.allocate(3);
         alloc.deallocate(p1, 3);

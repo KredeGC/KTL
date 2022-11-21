@@ -10,7 +10,7 @@
 namespace ktl
 {
 	template<typename P, typename F>
-	class composite_allocator
+	class fallback_allocator
 	{
 	private:
 		static_assert(has_value_type<P>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
@@ -20,20 +20,24 @@ namespace ktl
 	public:
 		typedef typename get_size_type<P>::type size_type;
 
-		composite_allocator(const P& primary = P(), const F& fallback = F()) noexcept :
+		fallback_allocator(const P& primary = P(), const F& fallback = F()) noexcept :
 			m_Primary(primary),
 			m_Fallback(fallback) {}
 
-		composite_allocator(const composite_allocator& other) noexcept :
-			m_Primary(other.m_Primary),
-			m_Fallback(other.m_Fallback) {}
+		fallback_allocator(const fallback_allocator& other) noexcept = default;
 
-		bool operator==(const composite_allocator& rhs) const noexcept
+		fallback_allocator(fallback_allocator&& other) noexcept = default;
+
+		fallback_allocator& operator=(const fallback_allocator& rhs) noexcept = default;
+
+		fallback_allocator& operator=(fallback_allocator&& rhs) noexcept = default;
+
+		bool operator==(const fallback_allocator& rhs) const noexcept
 		{
 			return m_Primary == rhs.m_Primary && m_Fallback == rhs.m_Fallback;
 		}
 
-		bool operator!=(const composite_allocator& rhs) const noexcept
+		bool operator!=(const fallback_allocator& rhs) const noexcept
 		{
 			return m_Primary != rhs.m_Primary || m_Fallback != rhs.m_Fallback;
 		}
@@ -116,19 +120,14 @@ namespace ktl
 			return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 		}
 
-		bool owns(void* p)
+		template<typename Primary = P, typename Fallback = F>
+		typename std::enable_if<has_owns<Primary>::value && has_owns<Fallback>::value, bool>::type
+		owns(void* p)
 		{
-			if constexpr (has_owns<P>::value)
-			{
-				if (m_Primary.owns(p))
-					return true;
-			}
-
-			if constexpr (has_owns<F>::value)
-			{
-				if (m_Fallback.owns(p))
-					return true;
-			}
+			if (m_Primary.owns(p))
+				return true;
+			else if (m_Fallback.owns(p))
+				return true;
 
 			return false;
 		}
@@ -140,5 +139,5 @@ namespace ktl
 	};
 
 	template<typename T, typename P, typename F>
-	using type_composite_allocator = type_allocator<T, composite_allocator<P, F>>;
+	using type_fallback_allocator = type_allocator<T, fallback_allocator<P, F>>;
 }

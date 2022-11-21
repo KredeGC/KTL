@@ -23,9 +23,13 @@ namespace ktl
 			m_Primary(primary),
 			m_Fallback(fallback) {}
 
-		segragator_allocator(const segragator_allocator& other) noexcept :
-			m_Primary(other.m_Primary),
-			m_Fallback(other.m_Fallback) {}
+		segragator_allocator(const segragator_allocator& other) noexcept = default;
+
+		segragator_allocator(segragator_allocator&& other) noexcept = default;
+
+		segragator_allocator& operator=(const segragator_allocator& rhs) noexcept = default;
+
+		segragator_allocator& operator=(segragator_allocator&& rhs) noexcept = default;
 
 		bool operator==(const segragator_allocator& rhs) const noexcept
 		{
@@ -110,20 +114,13 @@ namespace ktl
 		}
 
 		template<typename Primary = P, typename Fallback = F>
-		typename std::enable_if<has_owns<Primary>::value || has_owns<Fallback>::value, bool>::type
+		typename std::enable_if<has_owns<Primary>::value && has_owns<Fallback>::value, bool>::type
 		owns(void* p)
 		{
-			if constexpr (has_owns<Primary>::value)
-			{
-				if (m_Primary.owns(p))
-					return true;
-			}
-			
-			if constexpr (has_owns<Fallback>::value)
-			{
-				if (m_Fallback.owns(p))
-					return true;
-			}
+			if (m_Primary.owns(p))
+				return true;
+			else if (m_Fallback.owns(p))
+				return true;
 
 			return false;
 		}

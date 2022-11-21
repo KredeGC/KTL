@@ -71,32 +71,32 @@ namespace ktl
 
         ~freelist_allocator()
         {
-			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-			{
-				link* next = m_Stats->Free;
-				while (next)
-				{
-					link* prev = next;
-					next = next->Next;
-					m_Stats->Allocator.deallocate(prev, Max);
-				}
-
-				if constexpr (sizeof(stats) > Min && sizeof(stats) <= Max)
-				{
-					Alloc alloc = std::move(m_Stats->Allocator);
-
-					if constexpr (has_destroy<Alloc, stats*>::value)
-						alloc.destroy(m_Stats);
-					else
-						m_Stats->~stats();
-					alloc.deallocate(m_Stats, sizeof(stats));
-				}
-				else
-				{
-					delete m_Stats;
-				}
-			}
+			if (m_Stats)
+				decrement();
         }
+
+		freelist_allocator& operator=(const freelist_allocator& rhs)
+		{
+			if (m_Stats)
+				decrement();
+
+			m_Stats = rhs.m_Stats;
+			m_Stats->UseCount++;
+
+			return *this;
+		}
+
+		freelist_allocator& operator=(freelist_allocator&& rhs)
+		{
+			if (m_Stats)
+				decrement();
+
+			m_Stats = rhs.m_Stats;
+
+			rhs.m_Stats = nullptr;
+
+			return *this;
+		}
 
 		bool operator==(const freelist_allocator& rhs) const noexcept
 		{
@@ -180,6 +180,35 @@ namespace ktl
 		}
 
 	private:
+		void decrement()
+		{
+			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+			{
+				link* next = m_Stats->Free;
+				while (next)
+				{
+					link* prev = next;
+					next = next->Next;
+					m_Stats->Allocator.deallocate(prev, Max);
+				}
+
+				if constexpr (sizeof(stats) > Min && sizeof(stats) <= Max)
+				{
+					Alloc alloc = std::move(m_Stats->Allocator);
+
+					if constexpr (has_destroy<Alloc, stats*>::value)
+						alloc.destroy(m_Stats);
+					else
+						m_Stats->~stats();
+					alloc.deallocate(m_Stats, sizeof(stats));
+				}
+				else
+				{
+					delete m_Stats;
+				}
+			}
+		}
+
         stats* m_Stats;
 	};
 

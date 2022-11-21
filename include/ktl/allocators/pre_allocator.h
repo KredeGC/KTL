@@ -60,8 +60,31 @@ namespace ktl
 
 		~pre_allocator()
 		{
-			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-				delete m_Block;
+			if (m_Block)
+				decrement();
+		}
+
+		pre_allocator& operator=(const pre_allocator& rhs) noexcept
+		{
+			if (m_Block)
+				decrement();
+
+			m_Block = rhs.m_Block;
+			m_Block->UseCount++;
+
+			return *this;
+		}
+
+		pre_allocator& operator=(pre_allocator&& rhs) noexcept
+		{
+			if (m_Block)
+				decrement();
+
+			m_Block = rhs.m_Block;
+
+			rhs.m_Block = nullptr;
+
+			return *this;
 		}
 
 		bool operator==(const pre_allocator& rhs) const noexcept
@@ -224,6 +247,12 @@ namespace ktl
 					header->Next = header->Next->Next;
 				}
 			}
+		}
+
+		void decrement()
+		{
+			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+				delete m_Block;
 		}
 
 		arena* m_Block;

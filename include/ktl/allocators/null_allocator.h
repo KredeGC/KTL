@@ -13,6 +13,10 @@ namespace ktl
 
 		null_allocator(null_allocator&& other) noexcept = default;
 
+		null_allocator& operator=(const null_allocator& rhs) noexcept = default;
+
+		null_allocator& operator=(null_allocator&& rhs) noexcept = default;
+
 		bool operator==(const null_allocator& rhs) const noexcept
 		{
 			return true;
