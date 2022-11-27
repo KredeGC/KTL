@@ -16,7 +16,7 @@ namespace ktl
 	class overflow_allocator
 	{
 	private:
-		static_assert(has_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 
 	public:
 		typedef typename get_size_type<Alloc>::type size_type;
@@ -136,8 +136,11 @@ namespace ktl
 				char* ptr = reinterpret_cast<char*>(p);
 
 				// Check against corruption
-				if (std::memcmp(ptr - OVERFLOW_SIZE, &OVERFLOW_TEST, OVERFLOW_SIZE) != 0 || std::memcmp(ptr + n, &OVERFLOW_TEST, OVERFLOW_SIZE) != 0)
-					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(p) << " has been modified\n";
+				if (std::memcmp(ptr + n, &OVERFLOW_TEST, OVERFLOW_SIZE) != 0)
+					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr + n) << " has been modified\n";
+
+				if (std::memcmp(ptr - OVERFLOW_SIZE, &OVERFLOW_TEST, OVERFLOW_SIZE) != 0)
+					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr - OVERFLOW_SIZE) << " has been modified\n";
 
 				size_type size = n + OVERFLOW_SIZE * 2;
 				m_Stats->Allocator.deallocate(ptr - OVERFLOW_SIZE, size);

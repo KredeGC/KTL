@@ -35,10 +35,10 @@ namespace ktl::performance
 		inline static double* s_Duration;
 		inline static bool s_Paused;
 
-		inline constexpr static size_t MAX_TESTS = 1024;
+		inline constexpr static size_t MAX_BENCHMARKS = 1024;
 
-		inline static void (*s_ProfileFunctions[MAX_TESTS])();
-		inline static std::string s_ProfileNames[MAX_TESTS];
+		inline static void (*s_ProfileFunctions[MAX_BENCHMARKS])();
+		inline static std::string s_ProfileNames[MAX_BENCHMARKS];
 		inline static size_t s_ProfileCounter;
 
 	public:

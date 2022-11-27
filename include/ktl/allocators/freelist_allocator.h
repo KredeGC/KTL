@@ -15,7 +15,7 @@ namespace ktl
 	class freelist_allocator
 	{
 	private:
-		static_assert(has_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 
 	public:
 		typedef typename get_size_type<Alloc>::type size_type;

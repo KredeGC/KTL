@@ -6,10 +6,10 @@ namespace ktl
 {
 	// has value_type
 	template<typename Alloc, typename = void>
-	struct has_value_type : std::true_type {};
+	struct has_no_value_type : std::true_type {};
 
 	template<typename Alloc>
-	struct has_value_type<Alloc, std::void_t<typename Alloc::value_type>> : std::false_type {};
+	struct has_no_value_type<Alloc, std::void_t<typename Alloc::value_type>> : std::false_type {};
 
 	// get size_type
 	template <class Alloc, class = void>
