@@ -160,17 +160,54 @@ namespace ktl
 
 		~unordered_map()
 		{
-			if (m_Begin)
-			{
-				for (pair* block = m_Begin; block != m_End; block++)
-				{
-					// Only destroy alive and occupied slots
-					if ((block->Flags & FLAG_OCCUPIED) != 0)
-						Traits::destroy(m_Alloc, block);
-				}
+			release();
+		}
 
-				Traits::deallocate(m_Alloc, m_Begin, capacity());
+		unordered_map& operator=(const unordered_map& rhs) noexcept
+		{
+			release();
+
+			m_Alloc = rhs.m_Alloc;
+			m_Begin = Traits::allocate(m_Alloc, rhs.capacity());
+			m_End = m_Begin + rhs.capacity();
+			m_Count = rhs.m_Count;
+
+			std::memset(m_Begin, 0, rhs.capacity() * sizeof(pair));
+
+			for (size_t i = 0; i < rhs.capacity(); i++)
+			{
+				pair* block = rhs.m_Begin + i;
+
+				// Only copy occupied slots
+				if ((block->Flags & FLAG_OCCUPIED) != 0)
+				{
+					pair* dest = m_Begin + i;
+
+					// Copy construct if not dead
+					if ((block->Flags & FLAG_DEAD) == 0)
+						Traits::construct(m_Alloc, dest, *block);
+
+					dest->Flags = block->Flags;
+				}
 			}
+
+			return *this;
+		}
+
+		unordered_map& operator=(unordered_map&& rhs) noexcept
+		{
+			release();
+
+			m_Alloc = std::move(rhs.m_Alloc);
+			m_Begin = rhs.m_Begin;
+			m_End = rhs.m_End;
+			m_Count = rhs.m_Count;
+
+			rhs.m_Begin = nullptr;
+			rhs.m_End = nullptr;
+			rhs.m_Count = 0;
+
+			return *this;
 		}
 
 		V& operator[](const K& index) noexcept
@@ -293,6 +330,21 @@ namespace ktl
 		}
 
 	private:
+		void release()
+		{
+			if (m_Begin)
+			{
+				for (pair* block = m_Begin; block != m_End; block++)
+				{
+					// Only destroy alive and occupied slots
+					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+						Traits::destroy(m_Alloc, block);
+				}
+
+				Traits::deallocate(m_Alloc, m_Begin, capacity());
+			}
+		}
+
 		void expand(size_t n)
 		{
 			if (m_Count >= capacity() / 2)

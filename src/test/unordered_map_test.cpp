@@ -16,6 +16,48 @@
 
 namespace ktl::test
 {
+    KTL_ADD_TEST(test_unordered_map_constructors)
+    {
+        ktl::unordered_map<std::string, size_t> map;
+
+        constexpr size_t values[] = {
+            42,
+            41,
+            168000
+        };
+
+        map["1"] = values[0];
+        map["2"] = values[1];
+        map["3"] = values[2];
+
+        // Compile copy and move constructors and assignment operators
+        ktl::unordered_map<std::string, size_t> copycmap(map);
+
+        KTL_TEST_ASSERT(copycmap["1"] == values[0]);
+        KTL_TEST_ASSERT(copycmap["2"] == values[1]);
+        KTL_TEST_ASSERT(copycmap["3"] == values[2]);
+
+        ktl::unordered_map<std::string, size_t> movecmap(std::move(map));
+
+        KTL_TEST_ASSERT(movecmap["1"] == values[0]);
+        KTL_TEST_ASSERT(movecmap["2"] == values[1]);
+        KTL_TEST_ASSERT(movecmap["3"] == values[2]);
+
+        ktl::unordered_map<std::string, size_t> copyamap;
+        copyamap = copycmap;
+
+        KTL_TEST_ASSERT(copyamap["1"] == values[0]);
+        KTL_TEST_ASSERT(copyamap["2"] == values[1]);
+        KTL_TEST_ASSERT(copyamap["3"] == values[2]);
+
+        ktl::unordered_map<std::string, size_t> moveamap;
+        moveamap = std::move(copycmap);
+
+        KTL_TEST_ASSERT(moveamap["1"] == values[0]);
+        KTL_TEST_ASSERT(moveamap["2"] == values[1]);
+        KTL_TEST_ASSERT(moveamap["3"] == values[2]);
+    }
+
 #pragma region std::allocator
     KTL_ADD_TEST(test_unordered_map_index_erase)
     {
