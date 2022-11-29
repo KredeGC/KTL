@@ -319,13 +319,18 @@ namespace ktl
 
 		void clear() noexcept
 		{
+            m_Count = 0;
+            
 			if (m_Begin)
 			{
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
-					if (block->Occupied)
+			        // If occupied and not dead
+			        if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 						Traits::destroy(m_Alloc, block);
 				}
+                
+                std::memset(m_Begin, 0, capacity() * sizeof(pair));
 			}
 		}
 
@@ -372,11 +377,10 @@ namespace ktl
 					{
 						// Find an empty slot in the new allocation
 						pair* dest = find_empty(block->Key, alBlock, n);
-
-						// Move each element by memcpy
-						// This might not actually be any faster than a move constructor, but it does mean that I won't need to destruct it
-						// In addition, this might break some obscure type K or V, if it relies on move semantics
-						std::memcpy(dest, block, sizeof(pair));
+                        
+                        Traits::construct(m_Alloc, dest, std::move(*block));
+                        
+                        Traits::destroy(m_Alloc, block);
 					}
 				}
 
