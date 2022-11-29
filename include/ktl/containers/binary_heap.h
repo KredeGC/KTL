@@ -1,12 +1,14 @@
 #pragma once
 
+#include "binary_heap_fwd.h"
+
 #include <cstddef>
 #include <memory>
 #include <utility>
 
 namespace ktl
 {
-    template<typename T, typename Comp, typename Alloc = std::allocator<T>>
+    template<typename T, typename Comp, typename Alloc>
     class binary_heap
     {
     private:
@@ -270,10 +272,4 @@ namespace ktl
         T* m_Begin;
         Comp m_Comp;
     };
-
-    template<typename T, typename Alloc = std::allocator<T>>
-    using binary_min_heap = binary_heap<T, std::less<T>, Alloc>;
-
-    template<typename T, typename Alloc = std::allocator<T>>
-    using binary_max_heap = binary_heap<T, std::greater<T>, Alloc>;
 }

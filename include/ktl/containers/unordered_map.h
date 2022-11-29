@@ -1,5 +1,7 @@
 #pragma once
 
+#include "unordered_map_fwd.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -10,7 +12,7 @@
 namespace ktl
 {
 	// Insert-only hash map with open addressing
-	template<typename K, typename V, typename Hash = std::hash<K>, typename Equals = std::equal_to<K>, typename Alloc = std::allocator<V>>
+	template<typename K, typename V, typename Hash, typename Equals, typename Alloc>
 	class unordered_map
 	{
 	private:
@@ -370,10 +372,10 @@ namespace ktl
 
 			if (m_Begin != nullptr)
 			{
-				// Rehash every occupied slot into the new allocated block
+				// Rehash every occupied and alive slot into the new allocated block
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
-					if ((block->Flags & FLAG_OCCUPIED) != 0)
+					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 					{
 						// Find an empty slot in the new allocation
 						pair* dest = find_empty(block->Key, alBlock, n);

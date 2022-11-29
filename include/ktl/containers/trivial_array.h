@@ -1,5 +1,7 @@
 #pragma once
 
+#include "trivial_array_fwd.h"
+
 #include <cstring>
 #include <iterator>
 #include <memory>
@@ -7,7 +9,7 @@
 
 namespace ktl
 {
-	template<typename T, typename Alloc = std::allocator<T>>
+	template<typename T, typename Alloc>
 	class trivial_array
 	{
 	private:

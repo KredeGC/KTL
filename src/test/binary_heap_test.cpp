@@ -3,7 +3,7 @@
 #include "shared/test.h"
 #include "shared/types.h"
 
-#include "ktl/ktl_fwd.h"
+#include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/containers/binary_heap.h"

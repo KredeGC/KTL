@@ -3,7 +3,7 @@
 #include "shared/types.h"
 #include "shared/vector_utility.h"
 
-#include "ktl/ktl_fwd.h"
+#include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/linear_allocator.h"
