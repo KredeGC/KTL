@@ -2,8 +2,6 @@
 #include "shared/test.h"
 #include "shared/types.h"
 
-#include "ktl/ktl_fwd.h"
-
 #include "ktl/allocators/stack_allocator.h"
 
 #define KTL_PERFORMANCE_RUN(perform, type) profiler::pause(); { \

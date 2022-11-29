@@ -1,8 +1,6 @@
 #include "shared/profiler.h"
 #include "shared/types.h"
 
-#include "ktl/ktl_fwd.h"
-
 #include "ktl/allocators/pre_allocator.h"
 
 #define KTL_PERFORMANCE_RUN(perform, type, amount) profiler::pause(); { \

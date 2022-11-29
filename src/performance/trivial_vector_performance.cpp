@@ -2,8 +2,6 @@
 #include "shared/types.h"
 #include "shared/vector_utility.h"
 
-#include "ktl/ktl_fwd.h"
-
 #include "ktl/containers/trivial_vector.h"
 
 #include "ktl/allocators/mallocator.h"

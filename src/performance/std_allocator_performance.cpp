@@ -2,8 +2,6 @@
 #include "shared/types.h"
 #include "shared/vector_utility.h"
 
-#include "ktl/ktl_fwd.h"
-
 #include <memory>
 #include <type_traits>
 
