@@ -51,5 +51,19 @@ namespace ktl::test
 
         for (size_t i = 0; i < size; i++)
             KTL_TEST_ASSERT(values[i] == pointArray[i]);
+
+        // Copy assignment operator
+        Container copyAssignmentArray;
+        copyAssignmentArray = baseArray;
+
+        for (size_t i = 0; i < size; i++)
+            KTL_TEST_ASSERT(values[i] == copyAssignmentArray[i]);
+
+        // Move assignment operator
+        Container moveAssignmentArray;
+        moveAssignmentArray = std::move(copyAssignmentArray);
+
+        for (size_t i = 0; i < size; i++)
+            KTL_TEST_ASSERT(values[i] == moveAssignmentArray[i]);
 	}
 }

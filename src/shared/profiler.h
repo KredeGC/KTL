@@ -15,13 +15,13 @@ namespace ktl::performance
 	class profiler;
 }
 
-#define KTL_ADD_PERFORMANCE3(func_ptr, line) void func_ptr(); \
+#define KTL_ADD_BENCHMARK3(func_ptr, line) void func_ptr(); \
 	static int profile_##line = (::ktl::performance::profiler::add_benchmark(#func_ptr, func_ptr), 0); \
 	void func_ptr()
 
-#define KTL_ADD_PERFORMANCE2(func_ptr, line) KTL_ADD_PERFORMANCE3(func_ptr, line)
+#define KTL_ADD_BENCHMARK2(func_ptr, line) KTL_ADD_BENCHMARK3(func_ptr, line)
 
-#define KTL_ADD_PERFORMANCE(func_ptr) KTL_ADD_PERFORMANCE2(func_ptr, __LINE__)
+#define KTL_ADD_BENCHMARK(func_ptr) KTL_ADD_BENCHMARK2(func_ptr, __LINE__)
 
 namespace ktl::performance
 {

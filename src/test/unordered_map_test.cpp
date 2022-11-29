@@ -18,7 +18,8 @@ namespace ktl::test
 {
     KTL_ADD_TEST(test_unordered_map_constructors)
     {
-        ktl::unordered_map<std::string, size_t> map;
+        // Size constructor
+        ktl::unordered_map<std::string, size_t> map(1);
 
         constexpr size_t values[] = {
             42,
@@ -30,28 +31,31 @@ namespace ktl::test
         map["2"] = values[1];
         map["3"] = values[2];
 
-        // Compile copy and move constructors and assignment operators
+        // Copy constructor
         ktl::unordered_map<std::string, size_t> copycmap(map);
 
         KTL_TEST_ASSERT(copycmap["1"] == values[0]);
         KTL_TEST_ASSERT(copycmap["2"] == values[1]);
         KTL_TEST_ASSERT(copycmap["3"] == values[2]);
 
-        ktl::unordered_map<std::string, size_t> movecmap(std::move(map));
+        // Move constructor
+        ktl::unordered_map<std::string, size_t> movecmap(std::move(copycmap));
 
         KTL_TEST_ASSERT(movecmap["1"] == values[0]);
         KTL_TEST_ASSERT(movecmap["2"] == values[1]);
         KTL_TEST_ASSERT(movecmap["3"] == values[2]);
 
+        // Copy assignment operator
         ktl::unordered_map<std::string, size_t> copyamap;
-        copyamap = copycmap;
+        copyamap = map;
 
         KTL_TEST_ASSERT(copyamap["1"] == values[0]);
         KTL_TEST_ASSERT(copyamap["2"] == values[1]);
         KTL_TEST_ASSERT(copyamap["3"] == values[2]);
 
+        // Move assignment operator
         ktl::unordered_map<std::string, size_t> moveamap;
-        moveamap = std::move(copycmap);
+        moveamap = std::move(copyamap);
 
         KTL_TEST_ASSERT(moveamap["1"] == values[0]);
         KTL_TEST_ASSERT(moveamap["2"] == values[1]);

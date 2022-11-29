@@ -97,14 +97,15 @@ namespace ktl
 
 		trivial_vector& operator=(const trivial_vector& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
 		{
-			size_t n = other.size();
-
-			T* alBlock = Traits::allocate(other.m_Alloc, n);
-
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, capacity());
 
 			m_Alloc = other.m_Alloc;
+
+			size_t n = other.size();
+
+			T* alBlock = Traits::allocate(m_Alloc, n);
+
 			m_Begin = alBlock;
 			m_End = m_Begin + n;
 			m_EndMax = m_Begin + n;

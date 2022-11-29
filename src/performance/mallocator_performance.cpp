@@ -4,21 +4,28 @@
 
 #include "ktl/allocators/mallocator.h"
 
-#define KTL_PERFORMANCE_RUN(perform, type) profiler::pause(); { \
-    type_mallocator<type> alloc; \
-    profiler::resume(); \
-    perform<type, 1000>(alloc); }
-
 namespace ktl::performance
 {
-    KTL_ADD_PERFORMANCE(mallocator_init)
+    typedef type_mallocator<trivial_t> AllocType;
+
+    template<typename T, typename Func>
+    void run_benchmark(Func func)
+    {
+        profiler::pause();
+
+        AllocType alloc;
+
+        func(alloc);
+    }
+
+    KTL_ADD_BENCHMARK(mallocator_init)
     {
         type_mallocator<trivial_t> alloc;
 
         profiler::pause();
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_uninit)
+    KTL_ADD_BENCHMARK(mallocator_uninit)
     {
         profiler::pause();
 
@@ -29,18 +36,18 @@ namespace ktl::performance
         }
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_allocate_trivial)
+    KTL_ADD_BENCHMARK(mallocator_allocate_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_allocation, trivial_t);
+        run_benchmark<trivial_t>(perform_allocation<trivial_t, 1000, AllocType>);
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_deallocate_ordered_trivial)
+    KTL_ADD_BENCHMARK(mallocator_deallocate_ordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, trivial_t);
+        run_benchmark<trivial_t>(perform_ordered_deallocation<trivial_t, 1000, AllocType>);
     }
 
-    KTL_ADD_PERFORMANCE(mallocator_deallocate_unordered_trivial)
+    KTL_ADD_BENCHMARK(mallocator_deallocate_unordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, trivial_t);
+        run_benchmark<trivial_t>(perform_unordered_deallocation<trivial_t, 1000, AllocType>);
     }
 }

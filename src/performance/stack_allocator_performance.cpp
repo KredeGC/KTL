@@ -4,15 +4,24 @@
 
 #include "ktl/allocators/stack_allocator.h"
 
-#define KTL_PERFORMANCE_RUN(perform, type) profiler::pause(); { \
-    auto block = new stack<sizeof(type) * 1000>; \
-    type_stack_allocator<type, sizeof(type) * 1000> alloc(block); \
-    profiler::resume(); \
-    perform<type, 1000>(alloc); }
-
 namespace ktl::performance
 {
-    KTL_ADD_PERFORMANCE(stack_allocator_init)
+    typedef type_stack_allocator<trivial_t, sizeof(trivial_t) * 1000> AllocType;
+
+    template<typename T, typename Func>
+    void run_benchmark(Func func)
+    {
+        profiler::pause();
+
+        auto block = new stack<sizeof(T) * 1000>;
+        AllocType alloc(block);
+
+        func(alloc);
+
+        delete block;
+    }
+
+    KTL_ADD_BENCHMARK(stack_allocator_init)
     {
         auto block = new stack<16384>;
         type_stack_allocator<trivial_t, 16384> alloc(block);
@@ -22,7 +31,7 @@ namespace ktl::performance
         delete block;
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_uninit)
+    KTL_ADD_BENCHMARK(stack_allocator_uninit)
     {
         profiler::pause();
 
@@ -36,18 +45,18 @@ namespace ktl::performance
         }
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_allocate_trivial)
+    KTL_ADD_BENCHMARK(stack_allocator_allocate_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_allocation, trivial_t);
+        run_benchmark<trivial_t>(perform_allocation<trivial_t, 1000, AllocType>);
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_deallocate_ordered_trivial)
+    KTL_ADD_BENCHMARK(stack_allocator_deallocate_ordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_ordered_deallocation, trivial_t);
+        run_benchmark<trivial_t>(perform_ordered_deallocation<trivial_t, 1000, AllocType>);
     }
 
-    KTL_ADD_PERFORMANCE(stack_allocator_deallocate_unordered_trivial)
+    KTL_ADD_BENCHMARK(stack_allocator_deallocate_unordered_trivial)
     {
-        KTL_PERFORMANCE_RUN(perform_unordered_deallocation, trivial_t);
+        run_benchmark<trivial_t>(perform_unordered_deallocation<trivial_t, 1000, AllocType>);
     }
 }
