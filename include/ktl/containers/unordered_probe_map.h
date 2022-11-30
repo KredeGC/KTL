@@ -395,7 +395,8 @@ namespace ktl
 		{
 			if (m_Count >= capacity() / 2)
 			{
-				size_t alSize = (std::max)(capacity(), 1ULL) * 2;
+				size_t curSize = capacity();
+				size_t alSize = (curSize > 0 ? curSize : 1) * 2;
 
 				set_size(alSize);
 			}
