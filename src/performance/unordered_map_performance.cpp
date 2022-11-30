@@ -10,7 +10,7 @@
 
 namespace ktl::performance
 {
-    template<typename Alloc>
+    /*template<typename Alloc>
     void run_benchmark(const Alloc& alloc)
     {
         ktl::unordered_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
@@ -21,13 +21,20 @@ namespace ktl::performance
             map.insert(std::to_string(i), { 42.0, 58.0 });
 
         profiler::pause();
-    }
+    }*/
 
     KTL_ADD_BENCHMARK(probe_unordered_map_insert_std_allocator)
     {
         profiler::pause();
 
-        run_benchmark(std::allocator<std::pair<const std::string, trivial_t>>());
+        ktl::unordered_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, std::allocator<std::pair<const std::string, trivial_t>>> map;
+
+        profiler::resume();
+
+        for (size_t i = 0; i < 2000; i++)
+            map.insert(std::to_string(i), { 42.0, 58.0 });
+
+        profiler::pause();
     }
 
     /*KTL_ADD_BENCHMARK(probe_unordered_map_insert_mallocator)

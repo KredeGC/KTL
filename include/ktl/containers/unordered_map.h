@@ -122,14 +122,17 @@ namespace ktl
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
-			m_Count(0) {}
+			m_Count(0),
+			m_Mask(0) {}
 
 		explicit unordered_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(Traits::allocate(m_Alloc, size)),
 			m_End(m_Begin + size),
-			m_Count(0)
+			m_Count(0),
+			m_Mask(size - 1)
 		{
+			// TODO: Assert that size is a power of 2
 			std::memset(m_Begin, 0, size * sizeof(pair));
 		}
 
@@ -137,7 +140,8 @@ namespace ktl
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<PairAlloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.capacity())),
 			m_End(m_Begin + other.capacity()),
-			m_Count(other.m_Count)
+			m_Count(other.m_Count),
+			m_Mask(other.m_Mask)
 		{
 			std::memset(m_Begin, 0, other.capacity() * sizeof(pair));
 
@@ -163,7 +167,8 @@ namespace ktl
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
-			m_Count(other.m_Count)
+			m_Count(other.m_Count),
+			m_Mask(other.m_Mask)
 		{
 			other.m_Begin = nullptr;
 			other.m_End = nullptr;
@@ -183,6 +188,7 @@ namespace ktl
 			m_Begin = Traits::allocate(m_Alloc, rhs.capacity());
 			m_End = m_Begin + rhs.capacity();
 			m_Count = rhs.m_Count;
+			m_Mask = rhs.m_Mask;
 
 			std::memset(m_Begin, 0, rhs.capacity() * sizeof(pair));
 
@@ -214,6 +220,7 @@ namespace ktl
 			m_Begin = rhs.m_Begin;
 			m_End = rhs.m_End;
 			m_Count = rhs.m_Count;
+			m_Mask = rhs.m_Mask;
 
 			rhs.m_Begin = nullptr;
 			rhs.m_End = nullptr;
@@ -227,7 +234,7 @@ namespace ktl
 			expand(1);
 
 			bool create;
-			pair* block = get_pair(index, m_Begin, capacity(), create);
+			pair* block = get_pair(index, m_Begin, m_Mask, create);
 
 			if (create)
 			{
@@ -263,7 +270,7 @@ namespace ktl
 			expand(1);
 
 			bool create;
-			pair* block = get_pair(index, m_Begin, capacity(), create);
+			pair* block = get_pair(index, m_Begin, m_Mask, create);
 
 			if (create)
 			{
@@ -281,7 +288,7 @@ namespace ktl
 			expand(1);
 
 			bool create;
-			pair* block = get_pair(index, m_Begin, capacity(), create);
+			pair* block = get_pair(index, m_Begin, m_Mask, create);
 
 			if (create)
 			{
@@ -299,7 +306,7 @@ namespace ktl
 			expand(1);
 
 			bool create;
-			pair* block = get_pair(index, m_Begin, capacity(), create);
+			pair* block = get_pair(index, m_Begin, m_Mask, create);
 
 			if (create)
 			{
@@ -315,7 +322,7 @@ namespace ktl
 		void erase(const K& index) noexcept
 		{
 			bool create;
-			pair* block = get_pair(index, m_Begin, capacity(), create);
+			pair* block = get_pair(index, m_Begin, m_Mask, create);
 
 			if (!create)
 			{
@@ -344,7 +351,7 @@ namespace ktl
 				return iterator(nullptr, nullptr);
 
 			bool create;
-			pair* block = get_pair(index, m_Begin, capacity(), create);
+			pair* block = get_pair(index, m_Begin, m_Mask, create);
 			if (!create)
 				return iterator(block, m_End);
 
@@ -388,8 +395,7 @@ namespace ktl
 		{
 			if (m_Count >= capacity() / 2)
 			{
-				size_t curSize = capacity();
-				size_t alSize = curSize * 2 + n;
+				size_t alSize = (std::max)(capacity(), 1ULL) * 2;
 
 				set_size(alSize);
 			}
@@ -397,6 +403,8 @@ namespace ktl
 
 		void set_size(size_t n)
 		{
+			m_Mask = n - 1;
+
 			size_t curSize = (std::min)(capacity(), n);
 
 			pair* alBlock = Traits::allocate(m_Alloc, n);
@@ -410,7 +418,7 @@ namespace ktl
 					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 					{
 						// Find an empty slot in the new allocation
-						pair* dest = find_empty(block->Key, alBlock, n);
+						pair* dest = find_empty(block->Key, alBlock, m_Mask);
                         
                         Traits::construct(m_Alloc, dest, std::move(*block));
                         
@@ -425,7 +433,7 @@ namespace ktl
 			m_End = m_Begin + n;
 		}
 
-		pair* find_empty(const K& index, pair* begin, size_t size)
+		pair* find_empty(const K& index, pair* begin, size_t mask)
 		{
 			size_t h = Hash()(index);
 
@@ -434,7 +442,7 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offet(h, counter, size);
+				block = begin + hash_collision_offet(h, counter, mask);
 				counter++;
 
 				// If occupied and not dead, continue
@@ -443,7 +451,7 @@ namespace ktl
 			return block;
 		}
 
-		pair* get_pair(const K& index, pair* begin, size_t size, bool& create)
+		pair* get_pair(const K& index, pair* begin, size_t mask, bool& create)
 		{
 			size_t h = Hash()(index);
 
@@ -453,14 +461,14 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offet(h, counter, size);
+				block = begin + hash_collision_offet(h, counter, mask);
 				counter++;
 
 				// Increment while occupied & not dead & key mismatch & end not reached
-			} while ((block->Flags & FLAG_OCCUPIED) != 0
+			} while (block != m_End
+				&& (block->Flags & FLAG_OCCUPIED) != 0
 				&& (block->Flags & FLAG_DEAD) == 0
-				&& (!Equals()(block->Key, index))
-				&& block != m_End);
+				&& (!Equals()(block->Key, index)));
 
 			// If this slot is free or dead, create it
 			if ((block->Flags & FLAG_OCCUPIED) == 0 || (block->Flags & FLAG_DEAD) != 0)
@@ -481,7 +489,7 @@ namespace ktl
 			//key = key ^ (key >> 28);
 			//key = key + (key << 31);
 
-			return (key + counter) % size;
+			return (key + counter) & size;
 		}
 
 	private:
@@ -489,5 +497,6 @@ namespace ktl
 		pair* m_Begin;
 		pair* m_End;
 		size_t m_Count;
+		size_t m_Mask;
 	};
 }
