@@ -30,7 +30,7 @@ namespace ktl::performance
         run_benchmark(std::allocator<std::pair<const std::string, trivial_t>>());
     }
 
-    KTL_ADD_BENCHMARK(std_unordered_map_insert_mallocator)
+    /*KTL_ADD_BENCHMARK(std_unordered_map_insert_mallocator)
     {
         profiler::pause();
 
@@ -54,5 +54,5 @@ namespace ktl::performance
         run_benchmark(alloc);
 
         delete block;
-    }
+    }*/
 }
