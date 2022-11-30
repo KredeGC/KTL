@@ -15,7 +15,7 @@
 // Naming scheme: test_binary_heap_[Alloc]_[Type]
 // Contains tests that use the ktl::binary_heap container, both min and max
 
-namespace ktl::test
+namespace ktl::test::binary_heap
 {
 #pragma region std::allocator
     KTL_ADD_TEST(test_binary_heap_std_double)

@@ -9,12 +9,12 @@
 #include "ktl/allocators/pre_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
-namespace ktl::performance
+namespace ktl::performance::trivial_vector
 {
     template<typename Alloc>
     void run_benchmark(const Alloc& alloc)
     {
-        trivial_vector<trivial_t, Alloc> vec(alloc);
+        ktl::trivial_vector<trivial_t, Alloc> vec(alloc);
 
         profiler::resume();
 

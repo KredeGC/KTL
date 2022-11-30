@@ -1,8 +1,5 @@
 #include "shared/test.h"
 
-#include "ktl/ktl_alloc_fwd.h"
-#include "ktl/ktl_container_fwd.h"
-
 #include <iostream>
 
 #if defined(_WIN32) // Windows

@@ -12,7 +12,7 @@
 // Naming scheme: test_segragator_[Primary]_[Fallback]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::segragator_allocator
 
-namespace ktl::test
+namespace ktl::test::segragator_allocator
 {
     KTL_ADD_TEST(test_segragator_stack_stack_unordered_double)
     {

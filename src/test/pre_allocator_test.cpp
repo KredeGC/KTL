@@ -13,7 +13,7 @@
 // Naming scheme: test_pre_allocator_[Type]
 // Contains tests that relate directly to the ktl::pre_allocator
 
-namespace ktl::test
+namespace ktl::test::pre_allocator
 {
     KTL_ADD_TEST(test_pre_allocator_unordered_double)
     {

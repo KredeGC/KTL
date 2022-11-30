@@ -1,6 +1,6 @@
 #pragma once
 
-#include "unordered_map_fwd.h"
+#include "unordered_probe_map_fwd.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -13,7 +13,7 @@ namespace ktl
 {
 	// Insert-only hash map with open addressing
 	template<typename K, typename V, typename Hash, typename Equals, typename Alloc>
-	class unordered_map
+	class unordered_probe_map
 	{
 	private:
 		static constexpr uint8_t FLAG_OCCUPIED = 0x01;
@@ -49,7 +49,7 @@ namespace ktl
 		class iter
 		{
 		private:
-			friend class unordered_map;
+			friend class unordered_probe_map;
 
 		public:
 			using iterator_category = std::forward_iterator_tag;
@@ -118,14 +118,14 @@ namespace ktl
 		typedef std::allocator_traits<PairAlloc> Traits;
 
 	public:
-		unordered_map(const PairAlloc& alloc = PairAlloc()) :
+		unordered_probe_map(const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
 			m_Count(0),
 			m_Mask(0) {}
 
-		explicit unordered_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
+		explicit unordered_probe_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(Traits::allocate(m_Alloc, size)),
 			m_End(m_Begin + size),
@@ -136,7 +136,7 @@ namespace ktl
 			std::memset(m_Begin, 0, size * sizeof(pair));
 		}
 
-		unordered_map(const unordered_map& other) noexcept :
+		unordered_probe_map(const unordered_probe_map& other) noexcept :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<PairAlloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.capacity())),
 			m_End(m_Begin + other.capacity()),
@@ -163,7 +163,7 @@ namespace ktl
 			}
 		}
 
-		unordered_map(unordered_map&& other) noexcept :
+		unordered_probe_map(unordered_probe_map&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
@@ -175,12 +175,12 @@ namespace ktl
 			other.m_Count = 0;
 		}
 
-		~unordered_map()
+		~unordered_probe_map()
 		{
 			release();
 		}
 
-		unordered_map& operator=(const unordered_map& rhs) noexcept
+		unordered_probe_map& operator=(const unordered_probe_map& rhs) noexcept
 		{
 			release();
 
@@ -212,7 +212,7 @@ namespace ktl
 			return *this;
 		}
 
-		unordered_map& operator=(unordered_map&& rhs) noexcept
+		unordered_probe_map& operator=(unordered_probe_map&& rhs) noexcept
 		{
 			release();
 

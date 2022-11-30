@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace ktl::performance
+namespace ktl::performance::std_vector
 {
     template<typename Alloc>
     void run_benchmark(const Alloc& alloc)

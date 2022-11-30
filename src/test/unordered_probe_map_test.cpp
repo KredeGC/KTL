@@ -5,21 +5,21 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/containers/unordered_map.h"
+#include "ktl/containers/unordered_probe_map.h"
 
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/pre_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
-// Naming scheme: test_unordered_map_[Alloc]_[Type]
-// Contains tests that use the ktl::unordered_map container
+// Naming scheme: test_unordered_probe_map_[Alloc]_[Type]
+// Contains tests that use the ktl::unordered_probe_map container
 
-namespace ktl::test
+namespace ktl::test::unordered_probe_map
 {
-    KTL_ADD_TEST(test_unordered_map_constructors)
+    KTL_ADD_TEST(test_unordered_probe_map_constructors)
     {
         // Size constructor
-        ktl::unordered_map<std::string, size_t> map(1);
+        ktl::unordered_probe_map<std::string, size_t> map(1);
 
         constexpr size_t values[] = {
             42,
@@ -32,21 +32,21 @@ namespace ktl::test
         map["3"] = values[2];
 
         // Copy constructor
-        ktl::unordered_map<std::string, size_t> copycmap(map);
+        ktl::unordered_probe_map<std::string, size_t> copycmap(map);
 
         KTL_TEST_ASSERT(copycmap["1"] == values[0]);
         KTL_TEST_ASSERT(copycmap["2"] == values[1]);
         KTL_TEST_ASSERT(copycmap["3"] == values[2]);
 
         // Move constructor
-        ktl::unordered_map<std::string, size_t> movecmap(std::move(copycmap));
+        ktl::unordered_probe_map<std::string, size_t> movecmap(std::move(copycmap));
 
         KTL_TEST_ASSERT(movecmap["1"] == values[0]);
         KTL_TEST_ASSERT(movecmap["2"] == values[1]);
         KTL_TEST_ASSERT(movecmap["3"] == values[2]);
 
         // Copy assignment operator
-        ktl::unordered_map<std::string, size_t> copyamap;
+        ktl::unordered_probe_map<std::string, size_t> copyamap;
         copyamap = map;
 
         KTL_TEST_ASSERT(copyamap["1"] == values[0]);
@@ -54,7 +54,7 @@ namespace ktl::test
         KTL_TEST_ASSERT(copyamap["3"] == values[2]);
 
         // Move assignment operator
-        ktl::unordered_map<std::string, size_t> moveamap;
+        ktl::unordered_probe_map<std::string, size_t> moveamap;
         moveamap = std::move(copyamap);
 
         KTL_TEST_ASSERT(moveamap["1"] == values[0]);
@@ -63,9 +63,9 @@ namespace ktl::test
     }
 
 #pragma region std::allocator
-    KTL_ADD_TEST(test_unordered_map_index_erase)
+    KTL_ADD_TEST(test_unordered_probe_map_index_erase)
     {
-        ktl::unordered_map<size_t, std::string> map;
+        ktl::unordered_probe_map<size_t, std::string> map;
 
         std::string value1 = "Hello world!";
         std::string value2 = "Soomethingg elsse";
@@ -94,9 +94,9 @@ namespace ktl::test
         KTL_TEST_ASSERT(map[12] == value3);
     }
 
-    KTL_ADD_TEST(test_unordered_map_find_erase)
+    KTL_ADD_TEST(test_unordered_probe_map_find_erase)
     {
-        ktl::unordered_map<size_t, std::string> map;
+        ktl::unordered_probe_map<size_t, std::string> map;
 
         std::string values[] = {
             "Hello world!",
@@ -129,9 +129,9 @@ namespace ktl::test
         }
     }
 
-    KTL_ADD_TEST(test_unordered_map_iterator)
+    KTL_ADD_TEST(test_unordered_probe_map_iterator)
     {
-        ktl::unordered_map<size_t, std::string> map;
+        ktl::unordered_probe_map<size_t, std::string> map;
 
         std::string values[] = {
             "Hello world!",

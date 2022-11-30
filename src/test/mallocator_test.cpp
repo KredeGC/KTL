@@ -13,7 +13,7 @@
 // Naming scheme: test_mallocator_[Container]_[Type]
 // Contains tests that relate directly to the ktl::mallocator
 
-namespace ktl::test
+namespace ktl::test::mallocator
 {
     KTL_ADD_TEST(test_mallocator_unordered_double)
     {

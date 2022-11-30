@@ -13,7 +13,7 @@
 // Naming scheme: test_cascading_[Alloc]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::cascading_allocator
 
-namespace ktl::test
+namespace ktl::test::cascading_allocator
 {
     KTL_ADD_TEST(test_cascading_pre_unordered_double)
     {

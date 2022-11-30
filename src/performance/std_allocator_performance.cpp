@@ -5,7 +5,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace ktl::performance
+namespace ktl::performance::std_allocator
 {
     typedef std::allocator<trivial_t> AllocType;
 

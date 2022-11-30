@@ -11,7 +11,7 @@
 // Naming scheme: test_freelist_allocator_[Type]
 // Contains tests that relate directly to the ktl::freelist_allocator
 
-namespace ktl::test
+namespace ktl::test::freelist_allocator
 {
     KTL_ADD_TEST(test_freelist_allocator_unordered_double)
     {

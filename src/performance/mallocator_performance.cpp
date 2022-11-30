@@ -4,7 +4,7 @@
 
 #include "ktl/allocators/mallocator.h"
 
-namespace ktl::performance
+namespace ktl::performance::mallocator
 {
     typedef type_mallocator<trivial_t> AllocType;
 

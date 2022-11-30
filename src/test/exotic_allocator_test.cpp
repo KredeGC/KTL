@@ -19,7 +19,7 @@
 // Naming scheme: test_exotic_allocator_[ID]
 // Contains tests of all sorts for exotic composable allocators
 
-namespace ktl::test
+namespace ktl::test::exotic_allocator
 {
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);

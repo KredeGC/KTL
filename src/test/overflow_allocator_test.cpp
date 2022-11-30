@@ -16,7 +16,7 @@
 // Naming scheme: test_overflow_[Alloc]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::overflow_allocator
 
-namespace ktl::test
+namespace ktl::test::overflow_allocator
 {
     static std::stringbuf stringBuffer;
     static std::ostream stringOut(&stringBuffer);

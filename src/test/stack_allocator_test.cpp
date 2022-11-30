@@ -13,7 +13,7 @@
 // Naming scheme: test_stack_allocator_[Type]
 // Contains tests that relate directly to the ktl::stack_allocator
 
-namespace ktl::test
+namespace ktl::test::stack_allocator
 {
     KTL_ADD_TEST(test_stack_allocator_unordered_double)
     {

@@ -3,7 +3,7 @@
 
 #include "ktl/allocators/pre_allocator.h"
 
-namespace ktl::performance
+namespace ktl::performance::pre_allocator
 {
     template<size_t Size>
     using AllocType = type_pre_allocator<trivial_t, sizeof(trivial_t) * Size>;

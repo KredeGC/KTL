@@ -8,36 +8,29 @@
 
 #include <unordered_map>
 
-namespace ktl::performance
+namespace ktl::performance::std_unordered_map
 {
-    /*template<typename Alloc>
+    template<typename Alloc>
     void run_benchmark(const Alloc& alloc)
     {
         std::unordered_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
 
         profiler::resume();
 
-        for (size_t i = 0; i < 600; i++)
-            map.insert({ std::to_string(i), { 42.0, 58.0 } });
-
-        profiler::pause();
-    }*/
-
-    KTL_ADD_BENCHMARK(std_unordered_map_insert_std_allocator)
-    {
-        profiler::pause();
-
-        std::unordered_map<std::string, trivial_t> map;
-
-        profiler::resume();
-
-        for (size_t i = 0; i < 2000; i++)
+        for (size_t i = 0; i < 1000; i++)
             map.insert({ std::to_string(i), { 42.0, 58.0 } });
 
         profiler::pause();
     }
 
-    /*KTL_ADD_BENCHMARK(std_unordered_map_insert_mallocator)
+    KTL_ADD_BENCHMARK(std_unordered_map_insert_std_allocator)
+    {
+        profiler::pause();
+
+        run_benchmark(std::allocator<std::pair<const std::string, trivial_t>>());
+    }
+
+    KTL_ADD_BENCHMARK(std_unordered_map_insert_mallocator)
     {
         profiler::pause();
 
@@ -48,18 +41,18 @@ namespace ktl::performance
     {
         profiler::pause();
 
-        run_benchmark(type_pre_allocator<std::pair<const std::string, trivial_t>, 65536>());
+        run_benchmark(type_pre_allocator<std::pair<const std::string, trivial_t>, 262144>());
     }
 
     KTL_ADD_BENCHMARK(std_unordered_map_insert_stack_allocator)
     {
         profiler::pause();
 
-        auto block = new stack<65536>;
-        type_stack_allocator<std::pair<const std::string, trivial_t>, 65536> alloc(block);
+        auto block = new stack<262144>;
+        type_stack_allocator<std::pair<const std::string, trivial_t>, 262144> alloc(block);
 
         run_benchmark(alloc);
 
         delete block;
-    }*/
+    }
 }

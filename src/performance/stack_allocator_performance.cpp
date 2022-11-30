@@ -4,7 +4,7 @@
 
 #include "ktl/allocators/stack_allocator.h"
 
-namespace ktl::performance
+namespace ktl::performance::stack_allocator
 {
     typedef type_stack_allocator<trivial_t, sizeof(trivial_t) * 1000> AllocType;
 

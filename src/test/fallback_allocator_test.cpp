@@ -12,7 +12,7 @@
 // Naming scheme: test_fallback_[Primary]_[Fallback]_[Container]_[Type]
 // Contains tests that relate directly to the ktl::fallback_allocator
 
-namespace ktl::test
+namespace ktl::test::fallback_allocator
 {
     KTL_ADD_TEST(test_fallback_stack_stack_unordered_double)
     {

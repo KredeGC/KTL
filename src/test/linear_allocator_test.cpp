@@ -13,7 +13,7 @@
 // Naming scheme: test_linear_allocator_[Type]
 // Contains tests that relate directly to the ktl::linear_allocator
 
-namespace ktl::test
+namespace ktl::test::linear_allocator
 {
     KTL_ADD_TEST(test_linear_allocator_unordered_double)
     {
