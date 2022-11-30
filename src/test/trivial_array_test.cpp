@@ -39,15 +39,21 @@ namespace ktl::test::trivial_array
 
     KTL_ADD_TEST(test_trivial_array_stack_double)
     {
+        using Alloc = ktl::type_stack_allocator<double, 4096>;
+
         stack<4096> block;
-        ktl::trivial_array<double, type_stack_allocator<double, 4096>> arr({ block });
+        Alloc alloc(ktl::stack_allocator<4096>{ block });
+        ktl::trivial_array<double, Alloc> arr(alloc);
         assert_array_values<double>(arr);
     }
 
     KTL_ADD_TEST(test_trivial_array_stack_trivial)
     {
+        using Alloc = ktl::type_stack_allocator<trivial_t, 4096>;
+
         stack<4096> block;
-        ktl::trivial_array<trivial_t, type_stack_allocator<trivial_t, 4096>> arr({ block });
+        Alloc alloc(ktl::stack_allocator<4096>{ block });
+        ktl::trivial_array<trivial_t, Alloc> arr(alloc);
         assert_array_values<trivial_t>(arr);
     }
 }

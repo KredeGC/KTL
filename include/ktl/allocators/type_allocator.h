@@ -28,8 +28,14 @@ namespace ktl
 			typedef type_allocator<U, Alloc> other;
 		};
 
-		type_allocator(const Alloc& alloc = Alloc()) noexcept :
+		type_allocator() noexcept :
+			m_Alloc(Alloc()) {}
+
+		explicit type_allocator(const Alloc& alloc) noexcept :
 			m_Alloc(alloc) {}
+
+		explicit type_allocator(Alloc&& alloc) noexcept :
+			m_Alloc(std::move(alloc)) {}
 
 		type_allocator(const type_allocator& other) noexcept :
 			m_Alloc(other.m_Alloc) {}

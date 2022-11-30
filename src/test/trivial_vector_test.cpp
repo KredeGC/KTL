@@ -37,15 +37,21 @@ namespace ktl::test::trivial_vector
 
     KTL_ADD_TEST(test_trivial_vector_stack_double)
     {
+        using Alloc = ktl::type_stack_allocator<double, 4096>;
+
         stack<4096> block;
-        ktl::trivial_vector<double, type_stack_allocator<double, 4096>> vec({ block });
+        Alloc alloc(ktl::stack_allocator<4096>{ block });
+        ktl::trivial_vector<double, Alloc> vec(alloc);
         assert_vector_values<double>(vec);
     }
 
     KTL_ADD_TEST(test_trivial_vector_stack_trivial)
     {
+        using Alloc = ktl::type_stack_allocator<trivial_t, 4096>;
+
         stack<4096> block;
-        ktl::trivial_vector<trivial_t, type_stack_allocator<trivial_t, 4096>> vec({ block });
+        Alloc alloc(ktl::stack_allocator<4096>{ block });
+        ktl::trivial_vector<trivial_t, Alloc> vec(alloc);
         assert_vector_values<trivial_t>(vec);
     }
 }

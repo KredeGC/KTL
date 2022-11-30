@@ -49,7 +49,7 @@ namespace ktl::performance::unordered_probe_map
         profiler::pause();
 
         auto block = new stack<262144>;
-        type_stack_allocator<std::pair<const std::string, trivial_t>, 262144> alloc({ block });
+        type_stack_allocator<std::pair<const std::string, trivial_t>, 262144> alloc(ktl::stack_allocator<262144>{ block });
 
         run_benchmark(alloc);
 
