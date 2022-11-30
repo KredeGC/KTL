@@ -34,6 +34,16 @@ namespace ktl
 				Key(key),
 				Value(value),
 				Flags(FLAG_OCCUPIED) {}
+
+			explicit pair(const K& key, V&& value) noexcept :
+				Key(key),
+				Value(std::move(value)),
+				Flags(FLAG_OCCUPIED) {}
+
+			explicit pair(K&& key, V&& value) noexcept :
+				Key(std::move(key)),
+				Value(std::move(value)),
+				Flags(FLAG_OCCUPIED) {}
 		};
 
 		class iter
@@ -216,9 +226,10 @@ namespace ktl
 		{
 			expand(1);
 
-			pair* block;
+			bool create;
+			pair* block = get_pair(index, m_Begin, capacity(), create);
 
-			if (get_pair(index, m_Begin, capacity(), &block))
+			if (create)
 			{
 				Traits::construct(m_Alloc, block, index);
 				m_Count++;
@@ -251,9 +262,10 @@ namespace ktl
 		{
 			expand(1);
 
-			pair* block;
+			bool create;
+			pair* block = get_pair(index, m_Begin, capacity(), create);
 
-			if (get_pair(index, m_Begin, capacity(), &block))
+			if (create)
 			{
 				Traits::construct(m_Alloc, block, index, value);
 				m_Count++;
@@ -268,9 +280,10 @@ namespace ktl
 		{
 			expand(1);
 
-			pair* block;
+			bool create;
+			pair* block = get_pair(index, m_Begin, capacity(), create);
 
-			if (get_pair(index, m_Begin, capacity(), &block))
+			if (create)
 			{
 				Traits::construct(m_Alloc, block, index, std::move(value));
 				m_Count++;
@@ -281,11 +294,30 @@ namespace ktl
 			}
 		}
 
+		void insert(K&& index, V&& value) noexcept
+		{
+			expand(1);
+
+			bool create;
+			pair* block = get_pair(index, m_Begin, capacity(), create);
+
+			if (create)
+			{
+				Traits::construct(m_Alloc, block, std::move(index), std::move(value));
+				m_Count++;
+			}
+			else
+			{
+				block->Value = std::move(value);
+			}
+		}
+
 		void erase(const K& index) noexcept
 		{
-			pair* block;
+			bool create;
+			pair* block = get_pair(index, m_Begin, capacity(), create);
 
-			if (!get_pair(index, m_Begin, capacity(), &block))
+			if (!create)
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -311,9 +343,9 @@ namespace ktl
 			if (m_Begin == nullptr)
 				return iterator(nullptr, nullptr);
 
-			pair* block;
-
-			if (!get_pair(index, m_Begin, capacity(), &block))
+			bool create;
+			pair* block = get_pair(index, m_Begin, capacity(), create);
+			if (!create)
 				return iterator(block, m_End);
 
 			return iterator(m_End, m_End);
@@ -395,49 +427,61 @@ namespace ktl
 
 		pair* find_empty(const K& index, pair* begin, size_t size)
 		{
-			size_t h = Hash()(index) % size;
+			size_t h = Hash()(index);
 
-			pair* block = begin + h;
-
+			pair* block;
 			size_t counter = 0;
-			// If occupied and not dead, continue
-			while ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+
+			do
 			{
-				counter++;
 				block = begin + hash_collision_offet(h, counter, size);
-			}
+				counter++;
+
+				// If occupied and not dead, continue
+			} while ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
 
 			return block;
 		}
 
-		bool get_pair(const K& index, pair* begin, size_t size, pair** block)
+		pair* get_pair(const K& index, pair* begin, size_t size, bool& create)
 		{
-			size_t h = Hash()(index) % size;
+			size_t h = Hash()(index);
 
+			create = false;
+			pair* block;
 			size_t counter = 0;
+
 			do
 			{
-				*block = begin + hash_collision_offet(h, counter, size);
-
-				// If this slot is free or dead, return it
-				if (((*block)->Flags & FLAG_OCCUPIED) == 0 || ((*block)->Flags & FLAG_DEAD) != 0)
-					return true;
-
+				block = begin + hash_collision_offet(h, counter, size);
 				counter++;
 
 				// Increment while occupied & not dead & key mismatch & end not reached
-			} while (((*block)->Flags & FLAG_OCCUPIED) != 0
-				&& ((*block)->Flags & FLAG_DEAD) == 0
-				&& (!Equals()((*block)->Key, index))
-				&& *block != m_End);
+			} while ((block->Flags & FLAG_OCCUPIED) != 0
+				&& (block->Flags & FLAG_DEAD) == 0
+				&& (!Equals()(block->Key, index))
+				&& block != m_End);
+
+			// If this slot is free or dead, create it
+			if ((block->Flags & FLAG_OCCUPIED) == 0 || (block->Flags & FLAG_DEAD) != 0)
+				create = true;
 
 			// Return when a matching key was found
-			return false;
+			return block;
 		}
 
-		static constexpr size_t hash_collision_offet(size_t h, size_t counter, size_t size)
+		static constexpr size_t hash_collision_offet(size_t key, size_t counter, size_t size)
 		{
-			return (h + counter * counter) % size;
+			// mix 64 bits
+			//key = (~key) + (key << 21); // key = (key << 21) - key - 1;
+			//key = key ^ (key >> 24);
+			//key = (key + (key << 3)) + (key << 8); // key * 265
+			//key = key ^ (key >> 14);
+			//key = (key + (key << 2)) + (key << 4); // key * 21
+			//key = key ^ (key >> 28);
+			//key = key + (key << 31);
+
+			return (key + counter) % size;
 		}
 
 	private:

@@ -52,7 +52,7 @@ namespace ktl::performance
 			std::cout << "  ->Min:    " << minDuration << "us" << std::endl;
 			std::cout << "  ->Max:    " << maxDuration << "us" << std::endl;
 			std::cout << "  ->Mean:   " << avgDuration << "us" << std::endl;
-			std::cout << "  ->Median: " << run_times[49] << "us" << std::endl;
+			std::cout << "  ->Median: " << run_times[profiler::RUN_COUNT / 2 - 1] << "us" << std::endl;
 
 			run_times.clear();
 		}
