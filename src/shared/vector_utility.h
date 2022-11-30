@@ -10,6 +10,8 @@ namespace ktl::test
         for (size_t i = 0; i < amount; i++)
             vec.push_back(values[i]);
 
+        KTL_TEST_ASSERT(vec.size() == amount);
+
         for (size_t i = 0; i < amount; i++)
             KTL_TEST_ASSERT(vec[i] == values[i]);
     }

@@ -4,6 +4,41 @@
 
 namespace ktl::test
 {
+    template<typename Container, typename InitFunc, typename TestFunc>
+    void assert_construct_container_base(InitFunc init, TestFunc func)
+    {
+        // Default constructor
+        Container baseContainer;
+        init(baseContainer);
+
+        // Copy constructor
+        Container copyContainer(baseContainer);
+
+        func(baseContainer, copyContainer);
+
+        // Move constructor
+        Container moveContainer(std::move(copyContainer));
+
+        KTL_TEST_ASSERT(copyContainer.empty());
+
+        func(baseContainer, moveContainer);
+
+        // Copy assignment operator
+        Container copyAssignmentContainer;
+        copyAssignmentContainer = baseContainer;
+
+        func(baseContainer, copyAssignmentContainer);
+
+        // Move assignment operator
+        Container moveAssignmentContainer;
+        moveAssignmentContainer = std::move(copyAssignmentContainer);
+
+        KTL_TEST_ASSERT(copyAssignmentContainer.empty());
+
+        func(baseContainer, moveAssignmentContainer);
+    }
+
+
     template<typename Container>
 	void assert_construct_container()
 	{

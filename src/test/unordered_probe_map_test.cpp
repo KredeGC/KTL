@@ -1,6 +1,8 @@
 #include "shared/assert_utility.h"
+#include "shared/construct_utility.h"
 #include "shared/test.h"
 #include "shared/types.h"
+#include "shared/unordered_map_utility.h"
 
 #include "ktl/ktl_alloc_fwd.h"
 
@@ -18,148 +20,60 @@ namespace ktl::test::unordered_probe_map
 {
     KTL_ADD_TEST(test_unordered_probe_map_constructors)
     {
-        // Size constructor
-        ktl::unordered_probe_map<std::string, size_t> map(1);
+        using Map = ktl::unordered_probe_map<std::string, double>;
 
-        constexpr size_t values[] = {
-            42,
-            41,
-            168000
+        constexpr size_t size = 4;
+
+        std::string keys[] = {
+            "Test1",
+            "Something",
+            "A very long string to ensure no small-string optimization",
+            "A bit longer string"
         };
 
-        map["1"] = values[0];
-        map["2"] = values[1];
-        map["3"] = values[2];
+        double values[] = {
+            4.0,
+            8.0,
+            -1.0,
+            10.0
+        };
 
-        // Copy constructor
-        ktl::unordered_probe_map<std::string, size_t> copycmap(map);
-
-        KTL_TEST_ASSERT(copycmap["1"] == values[0]);
-        KTL_TEST_ASSERT(copycmap["2"] == values[1]);
-        KTL_TEST_ASSERT(copycmap["3"] == values[2]);
-
-        // Move constructor
-        ktl::unordered_probe_map<std::string, size_t> movecmap(std::move(copycmap));
-
-        KTL_TEST_ASSERT(movecmap["1"] == values[0]);
-        KTL_TEST_ASSERT(movecmap["2"] == values[1]);
-        KTL_TEST_ASSERT(movecmap["3"] == values[2]);
-
-        // Copy assignment operator
-        ktl::unordered_probe_map<std::string, size_t> copyamap;
-        copyamap = map;
-
-        KTL_TEST_ASSERT(copyamap["1"] == values[0]);
-        KTL_TEST_ASSERT(copyamap["2"] == values[1]);
-        KTL_TEST_ASSERT(copyamap["3"] == values[2]);
-
-        // Move assignment operator
-        ktl::unordered_probe_map<std::string, size_t> moveamap;
-        moveamap = std::move(copyamap);
-
-        KTL_TEST_ASSERT(moveamap["1"] == values[0]);
-        KTL_TEST_ASSERT(moveamap["2"] == values[1]);
-        KTL_TEST_ASSERT(moveamap["3"] == values[2]);
+        assert_construct_container_base<Map>(
+            [&](Map& map)
+        {
+            for (size_t i = 0; i < size; i++)
+                map.insert(keys[i], values[i]);
+        },
+            [&](Map& lhs, Map& rhs)
+        {
+            for (size_t i = 0; i < size; i++)
+                KTL_TEST_ASSERT(lhs[keys[i]] == rhs[keys[i]]);
+        });
     }
 
 #pragma region std::allocator
-    KTL_ADD_TEST(test_unordered_probe_map_index_erase)
+    KTL_ADD_TEST(test_unordered_probe_map_std_double)
     {
-        ktl::unordered_probe_map<size_t, std::string> map;
-
-        std::string value1 = "Hello world!";
-        std::string value2 = "Soomethingg elsse";
-        std::string value3 = "Just for good measure";
-
-        // 0 and 12 hashes to the same at a size of 5
-        map[0] = value1;
-        map[11] = value2;
-        map[12] = value3;
-
-        KTL_TEST_ASSERT(map.capacity() >= 3);
-        KTL_TEST_ASSERT(map.size() == 3);
-
-        KTL_TEST_ASSERT(map[0] == value1);
-        KTL_TEST_ASSERT(map[11] == value2);
-        KTL_TEST_ASSERT(map[12] == value3);
-
-        map.erase(0);
-
-        KTL_TEST_ASSERT(map.size() == 2);
-
-        map.insert(0, "");
-
-        KTL_TEST_ASSERT(map[0] == "");
-        KTL_TEST_ASSERT(map[11] == value2);
-        KTL_TEST_ASSERT(map[12] == value3);
+        ktl::unordered_probe_map<std::string, double> map;
+        assert_unordered_map_values<double>(map);
     }
 
-    KTL_ADD_TEST(test_unordered_probe_map_find_erase)
+    KTL_ADD_TEST(test_unordered_probe_map_std_trivial)
     {
-        ktl::unordered_probe_map<size_t, std::string> map;
-
-        std::string values[] = {
-            "Hello world!",
-            "Soomethingg elsse",
-            "Just for good measure"
-        };
-
-        map.insert(0, values[0]);
-        map.insert(11, values[1]);
-        map.insert(12, values[2]);
-
-        KTL_TEST_ASSERT(map.size() == 3);
-
-        KTL_TEST_ASSERT(map[0] == values[0]);
-        KTL_TEST_ASSERT(map[11] == values[1]);
-        KTL_TEST_ASSERT(map[12] == values[2]);
-
-        auto iter = map.find(0);
-
-        if (iter != map.end())
-        {
-            map.erase(iter);
-
-            KTL_TEST_ASSERT(map.size() == 2);
-            KTL_TEST_ASSERT(map.find(0) == map.end());
-        }
-        else
-        {
-            KTL_TEST_ASSERT_FALSE();
-        }
+        ktl::unordered_probe_map<std::string, trivial_t> map;
+        assert_unordered_map_values<trivial_t>(map);
     }
 
-    KTL_ADD_TEST(test_unordered_probe_map_iterator)
+    KTL_ADD_TEST(test_unordered_probe_map_std_packed)
     {
-        ktl::unordered_probe_map<size_t, std::string> map;
+        ktl::unordered_probe_map<std::string, packed_t> map;
+        assert_unordered_map_values<packed_t>(map);
+    }
 
-        std::string values[] = {
-            "Hello world!",
-            "Soomethingg elsse",
-            "Just for good measure"
-        };
-
-        map.insert(0, values[0]);
-        map.insert(11, values[1]);
-        map.insert(12, values[2]);
-
-        KTL_TEST_ASSERT(map.size() == 3);
-
-        for (auto& [key, value] : map)
-        {
-            bool exists = false;
-            for (size_t i = 0; i < 3; i++)
-            {
-                if (value == values[i])
-                {
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (!exists)
-                KTL_TEST_ASSERT_FALSE();
-        }
+    KTL_ADD_TEST(test_unordered_probe_map_std_complex)
+    {
+        ktl::unordered_probe_map<std::string, complex_t> map;
+        assert_unordered_map_values<complex_t>(map);
     }
 #pragma endregion
 }
