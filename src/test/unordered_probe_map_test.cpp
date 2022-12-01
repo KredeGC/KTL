@@ -51,6 +51,45 @@ namespace ktl::test::unordered_probe_map
         });
     }
 
+    KTL_ADD_TEST(test_unordered_probe_map_collide_tombstone)
+    {
+        // Construct a map with a known size
+        ktl::unordered_probe_map<size_t, double> map(8);
+
+        double values[] = {
+            42.0,
+            58.55,
+            -1.1
+        };
+
+        map[2] = values[0]; // 2 % 8 hashes to 7
+        map[10] = values[1]; // 10 % 8 also hashes to 7
+        map[0] = values[2]; // This doesn't collide
+
+        // Since 2 and 10 collide, we expect 2 to be at slot 7 and 10 to wrap around at slot 0
+        KTL_TEST_ASSERT(map[2] == values[0]);
+        KTL_TEST_ASSERT(map[10] == values[1]);
+        KTL_TEST_ASSERT(map[0] == values[2]);
+
+        // Erasing 2 places a tombstone, which cannot be reused, unless using insert()
+        auto iter = map.find(2);
+        map.erase(2);
+
+        KTL_TEST_ASSERT(map.find(2) == map.end());
+        KTL_TEST_ASSERT(map[10] == values[1]);
+        KTL_TEST_ASSERT(map[0] == values[2]);
+
+        // Insert the old element again, overriding the tombstone
+        map.insert(2, values[0]);
+
+        // If it override it, the iterators should point to the same object
+        KTL_TEST_ASSERT(map.find(2) == iter);
+
+        KTL_TEST_ASSERT(map[2] == values[0]);
+        KTL_TEST_ASSERT(map[10] == values[1]);
+        KTL_TEST_ASSERT(map[0] == values[2]);
+    }
+
 #pragma region std::allocator
     KTL_ADD_TEST(test_unordered_probe_map_std_double)
     {

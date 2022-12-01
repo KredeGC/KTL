@@ -18,7 +18,7 @@ namespace ktl::performance::unordered_probe_map
         profiler::resume();
 
         for (size_t i = 0; i < 1000; i++)
-            map.insert(std::to_string(i), { 42.0, 58.0 });
+            map.insert(std::to_string(i), trivial_t{ 42.0, 58.0 });
 
         profiler::pause();
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/assert_utility.h"
 #include "unordered_probe_map_fwd.h"
 
 #include <algorithm>
@@ -132,7 +133,8 @@ namespace ktl
 			m_Count(0),
 			m_Mask(size - 1)
 		{
-			// TODO: Assert that size is a power of 2
+			// Assert that size is a power of 2
+			KTL_ASSERT((size & (size - 1)) == 0);
 			std::memset(m_Begin, 0, size * sizeof(pair));
 		}
 
@@ -233,10 +235,9 @@ namespace ktl
 		{
 			expand(1);
 
-			bool create;
-			pair* block = get_pair(index, m_Begin, m_Mask, create);
+			pair* block = get_pair(index, m_Begin, m_Mask);
 
-			if (create)
+			if ((block->Flags & FLAG_OCCUPIED) == 0 || (block->Flags & FLAG_DEAD) != 0)
 			{
 				Traits::construct(m_Alloc, block, index);
 				m_Count++;
@@ -265,66 +266,29 @@ namespace ktl
 		bool empty() const noexcept { return m_Count == 0; }
 
 
-		void insert(const K& index, const V& value) noexcept
+		template<typename Key, typename Value>
+		iterator insert(Key&& index, Value&& value) noexcept
 		{
 			expand(1);
 
-			bool create;
-			pair* block = get_pair(index, m_Begin, m_Mask, create);
+			// Disallow inserting the same key twice
+			// Lookup is more expensive, so only call in debug
+			KTL_ASSERT(find(std::forward<Key>(index)) == end());
 
-			if (create)
-			{
-				Traits::construct(m_Alloc, block, index, value);
-				m_Count++;
-			}
-			else
-			{
-				block->Value = value;
-			}
-		}
+			pair* block = find_empty(std::forward<Key>(index), m_Begin, m_Mask);
 
-		void insert(const K& index, V&& value) noexcept
-		{
-			expand(1);
+			Traits::construct(m_Alloc, block, std::forward<Key>(index), std::forward<Value>(value));
+			m_Count++;
 
-			bool create;
-			pair* block = get_pair(index, m_Begin, m_Mask, create);
-
-			if (create)
-			{
-				Traits::construct(m_Alloc, block, index, std::move(value));
-				m_Count++;
-			}
-			else
-			{
-				block->Value = std::move(value);
-			}
-		}
-
-		void insert(K&& index, V&& value) noexcept
-		{
-			expand(1);
-
-			bool create;
-			pair* block = get_pair(index, m_Begin, m_Mask, create);
-
-			if (create)
-			{
-				Traits::construct(m_Alloc, block, std::move(index), std::move(value));
-				m_Count++;
-			}
-			else
-			{
-				block->Value = std::move(value);
-			}
+			return iterator(block, m_End);
 		}
 
 		void erase(const K& index) noexcept
 		{
-			bool create;
-			pair* block = get_pair(index, m_Begin, m_Mask, create);
+			pair* block = get_pair(index, m_Begin, m_Mask);
 
-			if (!create)
+			// If occupied and not dead
+			if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -343,6 +307,9 @@ namespace ktl
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
 				m_Count--;
 			}
+
+			iter.m_Current = nullptr;
+			iter.m_End = nullptr;
 		}
 
 		iterator find(const K& index)
@@ -350,9 +317,10 @@ namespace ktl
 			if (m_Begin == nullptr)
 				return iterator(nullptr, nullptr);
 
-			bool create;
-			pair* block = get_pair(index, m_Begin, m_Mask, create);
-			if (!create)
+			pair* block = get_pair(index, m_Begin, m_Mask);
+
+			// If occupied and not dead
+			if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 				return iterator(block, m_End);
 
 			return iterator(m_End, m_End);
@@ -447,16 +415,16 @@ namespace ktl
 				counter++;
 
 				// If occupied and not dead, continue
+				// Since we are looking for empty slots, we can reuse dead ones
 			} while ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
 
 			return block;
 		}
 
-		pair* get_pair(const K& index, pair* begin, size_t mask, bool& create)
+		pair* get_pair(const K& index, pair* begin, size_t mask)
 		{
 			size_t h = Hash()(index);
 
-			create = false;
 			pair* block;
 			size_t counter = 0;
 
@@ -465,15 +433,9 @@ namespace ktl
 				block = begin + hash_collision_offet(h, counter, mask);
 				counter++;
 
-				// Increment while occupied & not dead & key mismatch & end not reached
-			} while (block != m_End
-				&& (block->Flags & FLAG_OCCUPIED) != 0
-				&& (block->Flags & FLAG_DEAD) == 0
-				&& (!Equals()(block->Key, index)));
-
-			// If this slot is free or dead, create it
-			if ((block->Flags & FLAG_OCCUPIED) == 0 || (block->Flags & FLAG_DEAD) != 0)
-				create = true;
+				// Increment while occupied & key mismatch
+				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
+			} while ((block->Flags & FLAG_OCCUPIED) != 0 && (!Equals()(block->Key, index)));
 
 			// Return when a matching key was found
 			return block;
@@ -481,15 +443,7 @@ namespace ktl
 
 		static constexpr size_t hash_collision_offet(size_t key, size_t counter, size_t size)
 		{
-			// mix 64 bits
-			//key = (~key) + (key << 21); // key = (key << 21) - key - 1;
-			//key = key ^ (key >> 24);
-			//key = (key + (key << 3)) + (key << 8); // key * 265
-			//key = key ^ (key >> 14);
-			//key = (key + (key << 2)) + (key << 4); // key * 21
-			//key = key ^ (key >> 28);
-			//key = key + (key << 31);
-
+			// Linear probing for best cache locality
 			return (key + counter) & size;
 		}
 

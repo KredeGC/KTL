@@ -11,9 +11,21 @@ namespace ktl::test
             vec.push_back(values[i]);
 
         KTL_TEST_ASSERT(vec.size() == amount);
+        KTL_TEST_ASSERT(vec.capacity() >= amount);
 
+        // Assert operator[]
         for (size_t i = 0; i < amount; i++)
             KTL_TEST_ASSERT(vec[i] == values[i]);
+
+        // Assert iterators
+        size_t counter = 0;
+        for (auto& element : vec)
+            KTL_TEST_ASSERT(element == values[counter++]);
+
+        // Assert clear
+        vec.clear();
+
+        KTL_TEST_ASSERT(vec.size() == 0);
     }
 
     template<typename T, typename Vec>
