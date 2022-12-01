@@ -233,7 +233,7 @@ namespace ktl
 
 		V& operator[](const K& index) noexcept
 		{
-			expand(1);
+			expand();
 
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
@@ -269,7 +269,7 @@ namespace ktl
 		template<typename Key, typename Value>
 		iterator insert(Key&& index, Value&& value) noexcept
 		{
-			expand(1);
+			expand();
 
 			// Disallow inserting the same key twice
 			// Lookup is more expensive, so only call in debug
@@ -359,7 +359,7 @@ namespace ktl
 			}
 		}
 
-		void expand(size_t n)
+		void expand()
 		{
 			if (m_Count >= capacity() / 2)
 			{
