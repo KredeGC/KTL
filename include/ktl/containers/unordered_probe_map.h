@@ -265,6 +265,8 @@ namespace ktl
 
 		bool empty() const noexcept { return m_Count == 0; }
 
+		float load_factor() const noexcept { return static_cast<float>(m_Count) / static_cast<float>(capacity()); }
+
 
 		template<typename Key, typename Value>
 		iterator insert(Key&& index, Value&& value) noexcept
@@ -312,7 +314,7 @@ namespace ktl
 			iter.m_End = nullptr;
 		}
 
-		iterator find(const K& index)
+		iterator find(const K& index) const noexcept
 		{
 			if (m_Begin == nullptr)
 				return iterator(nullptr, nullptr);
@@ -344,7 +346,7 @@ namespace ktl
 		}
 
 	private:
-		void release()
+		void release() noexcept
 		{
 			if (m_Begin)
 			{
@@ -359,7 +361,7 @@ namespace ktl
 			}
 		}
 
-		void expand()
+		void expand() noexcept
 		{
 			if (m_Count >= capacity() / 2)
 			{
@@ -370,7 +372,7 @@ namespace ktl
 			}
 		}
 
-		void set_size(size_t n)
+		void set_size(size_t n) noexcept
 		{
 			m_Mask = n - 1;
 
@@ -402,7 +404,7 @@ namespace ktl
 			m_End = m_Begin + n;
 		}
 
-		pair* find_empty(const K& index, pair* begin, size_t mask)
+		pair* find_empty(const K& index, pair* begin, size_t mask) const noexcept
 		{
 			size_t h = Hash()(index);
 
@@ -421,7 +423,7 @@ namespace ktl
 			return block;
 		}
 
-		pair* get_pair(const K& index, pair* begin, size_t mask)
+		pair* get_pair(const K& index, pair* begin, size_t mask) const noexcept
 		{
 			size_t h = Hash()(index);
 
@@ -441,7 +443,7 @@ namespace ktl
 			return block;
 		}
 
-		static constexpr size_t hash_collision_offet(size_t key, size_t counter, size_t size)
+		static constexpr size_t hash_collision_offet(size_t key, size_t counter, size_t size) noexcept
 		{
 			// Linear probing for best cache locality
 			return (key + counter) & size;

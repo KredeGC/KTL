@@ -143,7 +143,7 @@ namespace ktl
 
 		size_t size() const noexcept { return m_End - m_Begin; }
 
-		bool empty() const noexcept { return m_Begin == nullptr; }
+		bool empty() const noexcept { return m_Begin == m_End; }
 
 
 		T* data() noexcept { return m_Begin; }
