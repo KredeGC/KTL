@@ -54,7 +54,7 @@ namespace ktl::test::unordered_probe_map
     KTL_ADD_TEST(test_unordered_probe_map_collide_tombstone)
     {
         // Construct a map with a known size
-        ktl::unordered_probe_map<size_t, double> map(8);
+        ktl::unordered_probe_map<size_t, double> map(3); // This will result in a capacity of 8
 
         double values[] = {
             42.0,

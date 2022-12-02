@@ -64,7 +64,7 @@ namespace ktl
 				m_Current(current),
 				m_End(end)
 			{
-				while (m_Current != m_End && (m_Current->Flags & FLAG_OCCUPIED) == 0)
+				while (m_Current != m_End && ((m_Current->Flags & FLAG_OCCUPIED) == 0 || (m_Current->Flags & FLAG_DEAD) != 0))
 					m_Current++;
 			}
 
@@ -74,7 +74,7 @@ namespace ktl
 				{
 					m_Current++;
 
-				} while (m_Current != m_End && (m_Current->Flags & FLAG_OCCUPIED) == 0);
+				} while (m_Current != m_End && ((m_Current->Flags & FLAG_OCCUPIED) == 0 || (m_Current->Flags & FLAG_DEAD) != 0));
 
 				return *this;
 			}
@@ -128,13 +128,24 @@ namespace ktl
 
 		explicit unordered_probe_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
-			m_Begin(Traits::allocate(m_Alloc, size)),
-			m_End(m_Begin + size),
+			m_Begin(nullptr),
+			m_End(nullptr),
 			m_Count(0),
-			m_Mask(size - 1)
+			m_Mask(0)
 		{
-			// Assert that size is a power of 2
-			KTL_ASSERT((size & (size - 1)) == 0);
+			size--;
+			size |= size >> 1;
+			size |= size >> 2;
+			size |= size >> 4;
+			size |= size >> 8;
+			size |= size >> 16;
+			size |= size >> 32;
+			size += size + 2;
+
+			m_Begin = Traits::allocate(m_Alloc, size);
+			m_End = m_Begin + size;
+			m_Mask = size - 1;
+
 			std::memset(m_Begin, 0, size * sizeof(pair));
 		}
 
@@ -268,6 +279,28 @@ namespace ktl
 		float load_factor() const noexcept { return static_cast<float>(m_Count) / static_cast<float>(capacity()); }
 
 
+		void reserve(size_t n)
+		{
+			n--;
+			n |= n >> 1;
+			n |= n >> 2;
+			n |= n >> 4;
+			n |= n >> 8;
+			n |= n >> 16;
+			n |= n >> 32;
+			n += n + 2;
+
+			if (capacity() < n)
+				set_size(n);
+		}
+
+		V& at(const K& index) const
+		{
+			pair* block = get_pair(index, m_Begin, m_Mask);
+
+			return block->Value;
+		}
+
 		template<typename Key, typename Value>
 		iterator insert(Key&& index, Value&& value) noexcept
 		{
@@ -298,7 +331,7 @@ namespace ktl
 			}
 		}
 
-		void erase(iterator& iter) noexcept
+		iterator erase(const_iterator& iter) noexcept
 		{
 			pair* block = iter.m_Current;
 
@@ -310,8 +343,7 @@ namespace ktl
 				m_Count--;
 			}
 
-			iter.m_Current = nullptr;
-			iter.m_End = nullptr;
+			return iterator(block, m_End);
 		}
 
 		iterator find(const K& index) const noexcept
@@ -413,10 +445,10 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offet(h, counter, mask);
+				block = begin + hash_collision_offset(h, counter, mask);
 				counter++;
 
-				// If occupied and not dead, continue
+				// Increment while occupied and not dead, continue
 				// Since we are looking for empty slots, we can reuse dead ones
 			} while ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
 
@@ -432,10 +464,10 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offet(h, counter, mask);
+				block = begin + hash_collision_offset(h, counter, mask);
 				counter++;
 
-				// Increment while occupied & key mismatch
+				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
 			} while ((block->Flags & FLAG_OCCUPIED) != 0 && (!Equals()(block->Key, index)));
 
@@ -443,7 +475,7 @@ namespace ktl
 			return block;
 		}
 
-		static constexpr size_t hash_collision_offet(size_t key, size_t counter, size_t size) noexcept
+		static constexpr size_t hash_collision_offset(size_t key, size_t counter, size_t size) noexcept
 		{
 			// Linear probing for best cache locality
 			return (key + counter) & size;
