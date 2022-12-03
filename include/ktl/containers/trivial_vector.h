@@ -163,6 +163,8 @@ namespace ktl
 
 		const T* data() const noexcept { return m_Begin; }
 
+		T& at(size_t index) const noexcept { return m_Begin[index]; }
+
 
 		void resize(size_t n)
 		{
@@ -213,7 +215,7 @@ namespace ktl
 			m_End++;
 		}
 
-		void pop_back() { m_End--; }
+		T pop_back() { return m_Begin[--m_End]; }
 
 		void clear() { m_End = m_Begin; }
 

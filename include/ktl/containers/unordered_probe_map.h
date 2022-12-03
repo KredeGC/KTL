@@ -133,20 +133,13 @@ namespace ktl
 			m_Count(0),
 			m_Mask(0)
 		{
-			size--;
-			size |= size >> 1;
-			size |= size >> 2;
-			size |= size >> 4;
-			size |= size >> 8;
-			size |= size >> 16;
-			size |= size >> 32;
-			size += size + 2;
+			size_t n = size_pow2(size);
 
-			m_Begin = Traits::allocate(m_Alloc, size);
-			m_End = m_Begin + size;
-			m_Mask = size - 1;
+			m_Begin = Traits::allocate(m_Alloc, n);
+			m_End = m_Begin + n;
+			m_Mask = n - 1;
 
-			std::memset(m_Begin, 0, size * sizeof(pair));
+			std::memset(m_Begin, 0, n * sizeof(pair));
 		}
 
 		unordered_probe_map(const unordered_probe_map& other) noexcept :
@@ -279,16 +272,9 @@ namespace ktl
 		float load_factor() const noexcept { return static_cast<float>(m_Count) / static_cast<float>(capacity()); }
 
 
-		void reserve(size_t n)
+		void reserve(size_t size)
 		{
-			n--;
-			n |= n >> 1;
-			n |= n >> 2;
-			n |= n >> 4;
-			n |= n >> 8;
-			n |= n >> 16;
-			n |= n >> 32;
-			n += n + 2;
+			size_t n = size_pow2(size);
 
 			if (capacity() < n)
 				set_size(n);
@@ -297,6 +283,9 @@ namespace ktl
 		V& at(const K& index) const
 		{
 			pair* block = get_pair(index, m_Begin, m_Mask);
+
+			// Assert that the value exists
+			KTL_ASSERT((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
 
 			return block->Value;
 		}
@@ -473,6 +462,20 @@ namespace ktl
 
 			// Return when a matching key was found
 			return block;
+		}
+
+		static constexpr size_t size_pow2(size_t n) noexcept
+		{
+			n--;
+			n |= n >> 1;
+			n |= n >> 2;
+			n |= n >> 4;
+			n |= n >> 8;
+			n |= n >> 16;
+			n |= n >> 32;
+			n += n + 2;
+
+			return n;
 		}
 
 		static constexpr size_t hash_collision_offset(size_t key, size_t counter, size_t size) noexcept
