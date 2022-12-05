@@ -30,20 +30,6 @@ namespace ktl::performance::std_vector
         run_benchmark(std::allocator<trivial_t>());
     }
 
-    KTL_ADD_BENCHMARK(std_vector_push_mallocator_trivial)
-    {
-        profiler::pause();
-
-        run_benchmark(type_mallocator<trivial_t>());
-    }
-
-    KTL_ADD_BENCHMARK(std_vector_push_pre_allocator_trivial)
-    {
-        profiler::pause();
-
-        run_benchmark(type_pre_allocator<trivial_t, 65536>());
-    }
-
     KTL_ADD_BENCHMARK(std_vector_push_stack_allocator_trivial)
     {
         profiler::pause();

@@ -46,8 +46,8 @@ namespace ktl::test::unordered_multimap
         },
             [&](Map& lhs, Map& rhs)
         {
-            /*for (size_t i = 0; i < size; i++)
-                KTL_TEST_ASSERT(lhs[keys[i]] == rhs[keys[i]]);*/
+            for (size_t i = 0; i < size; i++)
+                KTL_TEST_ASSERT(lhs.find(keys[i])->second == rhs.find(keys[i])->second);
         });
     }
 

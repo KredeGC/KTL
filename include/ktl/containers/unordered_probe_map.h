@@ -457,6 +457,7 @@ namespace ktl
 
 			pair* block;
 			size_t counter = 0;
+			size_t cap = capacity();
 
 			do
 			{
@@ -464,10 +465,10 @@ namespace ktl
 
 				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
-			} while (counter < capacity() && (block->Flags & FLAG_OCCUPIED) != 0 && ((block->Flags & FLAG_DEAD) != 0 || !Equals()(block->Key, index)));
+			} while (counter < cap && (block->Flags & FLAG_OCCUPIED) != 0 && ((block->Flags & FLAG_DEAD) != 0 || !Equals()(block->Key, index)));
 
 			// If nothing matches return end
-			if (counter == capacity())
+			if (counter == cap)
 				return m_End;
 
 			// Return when a matching key was found
