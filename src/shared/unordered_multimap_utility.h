@@ -5,7 +5,7 @@
 namespace ktl::test
 {
     template<typename Map, typename K, typename V>
-    void assert_unordered_map_insert(Map& map, const K* keys, const V* values, size_t amount)
+    void assert_unordered_multimap_insert(Map& map, const K* keys, const V* values, size_t amount)
     {
         for (size_t i = 0; i < amount; i++)
             map.insert(keys[i], values[i]);
@@ -13,9 +13,22 @@ namespace ktl::test
         KTL_TEST_ASSERT(map.size() == amount);
         KTL_TEST_ASSERT(map.capacity() >= amount);
 
-        // Assert operator[]
+        // Assert find
         for (size_t i = 0; i < amount; i++)
-            KTL_TEST_ASSERT(map[keys[i]] == values[i]);
+        {
+            bool exists = false;
+            for (auto iter = map.find(keys[i]); iter; ++iter)
+            {
+                if (iter->first == keys[i] && iter->second == values[i])
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists)
+                KTL_TEST_ASSERT_FALSE();
+        }
 
         // Assert iterators
         for (auto& [key, value] : map)
@@ -39,12 +52,11 @@ namespace ktl::test
         {
             auto iter = map.find(keys[i]);
 
-            if (iter != map.end())
+            if (iter)
             {
                 map.erase(iter);
 
                 KTL_TEST_ASSERT(map.size() == (amount - i - 1));
-                KTL_TEST_ASSERT(map.find(keys[i]) == map.end());
             }
             else
             {
@@ -61,19 +73,19 @@ namespace ktl::test
 
     template<typename T, typename Map>
     typename std::enable_if<std::is_same<T, double>::value, void>::type
-    assert_unordered_map_values(Map& map)
+    assert_unordered_multimap_values(Map& map)
     {
         constexpr size_t size = 8;
 
         std::string keys[] = {
             "Test1",
-            "Something",
+            "Test1",
             "A very long string to ensure no small-string optimization",
             "Otherwise yes",
             "15 byte for GCC",
-            "A bit longer string",
+            "A very long string to ensure no small-string optimization",
             "More to it",
-            "!!?+)(=)&/"
+            "15 byte for GCC"
         };
 
         double values[] = {
@@ -87,24 +99,24 @@ namespace ktl::test
             58.0
         };
 
-        assert_unordered_map_insert(map, keys, values, size);
+        assert_unordered_multimap_insert(map, keys, values, size);
     }
 
     template<typename T, typename Map>
     typename std::enable_if<std::is_same<T, trivial_t>::value, void>::type
-    assert_unordered_map_values(Map& map)
+    assert_unordered_multimap_values(Map& map)
     {
         constexpr size_t size = 8;
 
         std::string keys[] = {
             "Test1",
-            "Something",
+            "Test1",
             "A very long string to ensure no small-string optimization",
             "Otherwise yes",
             "15 byte for GCC",
-            "A bit longer string",
+            "A very long string to ensure no small-string optimization",
             "More to it",
-            "!!?+)(=)&/"
+            "15 byte for GCC"
         };
 
         trivial_t values[] = {
@@ -118,24 +130,24 @@ namespace ktl::test
             { 58.0f, 31.0f }
         };
 
-        assert_unordered_map_insert(map, keys, values, size);
+        assert_unordered_multimap_insert(map, keys, values, size);
     }
 
     template<typename T, typename Map>
     typename std::enable_if<std::is_same<T, packed_t>::value, void>::type
-    assert_unordered_map_values(Map& map)
+    assert_unordered_multimap_values(Map& map)
     {
         constexpr size_t size = 8;
 
         std::string keys[] = {
             "Test1",
-            "Something",
+            "Test1",
             "A very long string to ensure no small-string optimization",
             "Otherwise yes",
             "15 byte for GCC",
-            "A bit longer string",
+            "A very long string to ensure no small-string optimization",
             "More to it",
-            "!!?+)(=)&/"
+            "15 byte for GCC"
         };
 
         int forRef1 = 42;
@@ -152,24 +164,24 @@ namespace ktl::test
             { &forRef1, &forRef2, 40000, 'a' }
         };
 
-        assert_unordered_map_insert(map, keys, values, size);
+        assert_unordered_multimap_insert(map, keys, values, size);
     }
 
     template<typename T, typename Map>
     typename std::enable_if<std::is_same<T, complex_t>::value, void>::type
-    assert_unordered_map_values(Map& map)
+    assert_unordered_multimap_values(Map& map)
     {
         constexpr size_t size = 8;
 
         std::string keys[] = {
             "Test1",
-            "Something",
+            "Test1",
             "A very long string to ensure no small-string optimization",
             "Otherwise yes",
             "15 byte for GCC",
-            "A bit longer string",
+            "A very long string to ensure no small-string optimization",
             "More to it",
-            "!!?+)(=)&/"
+            "15 byte for GCC"
         };
 
         complex_t values[size] = {
@@ -183,6 +195,6 @@ namespace ktl::test
             58.0
         };
 
-        assert_unordered_map_insert(map, keys, values, size);
+        assert_unordered_multimap_insert(map, keys, values, size);
     }
 }

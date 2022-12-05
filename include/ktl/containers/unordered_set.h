@@ -270,7 +270,7 @@ namespace ktl
 			return iterator(block, m_End);
 		}
 
-		void erase(const T& index) noexcept
+		size_t erase(const T& index) noexcept
 		{
 			if (m_Begin == nullptr)
 				return 0;

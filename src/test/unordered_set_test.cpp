@@ -15,7 +15,7 @@
 // Naming scheme: test_unordered_set_[Alloc]_[Type]
 // Contains tests that use the ktl::unordered_set container
 
-namespace ktl::test::unordered_probe_set
+namespace ktl::test::unordered_set
 {
     KTL_ADD_TEST(test_unordered_set_constructors)
     {

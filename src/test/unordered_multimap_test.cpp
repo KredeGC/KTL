@@ -2,7 +2,7 @@
 #include "shared/construct_utility.h"
 #include "shared/test.h"
 #include "shared/types.h"
-#include "shared/unordered_map_utility.h"
+#include "shared/unordered_multimap_utility.h"
 
 #include "ktl/ktl_alloc_fwd.h"
 
@@ -16,7 +16,7 @@
 // Naming scheme: test_unordered_multimap_[Alloc]_[Type]
 // Contains tests that use the ktl::unordered_multimap container
 
-namespace ktl::test::unordered_probe_map
+namespace ktl::test::unordered_multimap
 {
     KTL_ADD_TEST(test_unordered_multimap_constructors)
     {
@@ -89,34 +89,34 @@ namespace ktl::test::unordered_probe_map
         // If it overrides it, the iterators should point to the same object
         KTL_TEST_ASSERT(map.find(2) == iter);
 
-        KTL_TEST_ASSERT(map.find(2)->second == values[0]);
+        KTL_TEST_ASSERT(iter->second == values[0]);
         KTL_TEST_ASSERT(map.find(10)->second == values[1]);
         KTL_TEST_ASSERT((++iter)->second == values[2]);
     }
 
 #pragma region std::allocator
-    //KTL_ADD_TEST(test_unordered_probe_map_std_double)
-    //{
-    //    ktl::unordered_probe_map<std::string, double> map;
-    //    assert_unordered_map_values<double>(map);
-    //}
+    KTL_ADD_TEST(test_unordered_multimap_std_double)
+    {
+        ktl::unordered_multimap<std::string, double> map;
+        assert_unordered_multimap_values<double>(map);
+    }
 
-    //KTL_ADD_TEST(test_unordered_probe_map_std_trivial)
-    //{
-    //    ktl::unordered_probe_map<std::string, trivial_t> map;
-    //    assert_unordered_map_values<trivial_t>(map);
-    //}
+    KTL_ADD_TEST(test_unordered_multimap_std_trivial)
+    {
+        ktl::unordered_multimap<std::string, trivial_t> map;
+        assert_unordered_multimap_values<trivial_t>(map);
+    }
 
-    //KTL_ADD_TEST(test_unordered_probe_map_std_packed)
-    //{
-    //    ktl::unordered_probe_map<std::string, packed_t> map;
-    //    assert_unordered_map_values<packed_t>(map);
-    //}
+    KTL_ADD_TEST(test_unordered_multimap_std_packed)
+    {
+        ktl::unordered_multimap<std::string, packed_t> map;
+        assert_unordered_multimap_values<packed_t>(map);
+    }
 
-    //KTL_ADD_TEST(test_unordered_probe_map_std_complex)
-    //{
-    //    ktl::unordered_probe_map<std::string, complex_t> map;
-    //    assert_unordered_map_values<complex_t>(map);
-    //}
+    KTL_ADD_TEST(test_unordered_multimap_std_complex)
+    {
+        ktl::unordered_multimap<std::string, complex_t> map;
+        assert_unordered_multimap_values<complex_t>(map);
+    }
 #pragma endregion
 }
