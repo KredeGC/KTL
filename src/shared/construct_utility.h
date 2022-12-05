@@ -14,20 +14,20 @@ namespace ktl::test
         // Copy constructor
         Container copyContainer(baseContainer);
 
-        func(baseContainer, copyContainer);
+        func(copyContainer, baseContainer);
 
         // Move constructor
         Container moveContainer(std::move(copyContainer));
 
         KTL_TEST_ASSERT(copyContainer.empty());
 
-        func(baseContainer, moveContainer);
+        func(moveContainer, baseContainer);
 
         // Copy assignment operator
         Container copyAssignmentContainer;
         copyAssignmentContainer = baseContainer;
 
-        func(baseContainer, copyAssignmentContainer);
+        func(copyAssignmentContainer, baseContainer);
 
         // Move assignment operator
         Container moveAssignmentContainer;
@@ -35,7 +35,7 @@ namespace ktl::test
 
         KTL_TEST_ASSERT(copyAssignmentContainer.empty());
 
-        func(baseContainer, moveAssignmentContainer);
+        func(moveAssignmentContainer, baseContainer);
     }
 
 

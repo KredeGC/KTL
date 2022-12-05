@@ -2,7 +2,7 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/hashing_utility.h"
-#include "unordered_probe_map_fwd.h"
+#include "unordered_multimap_fwd.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -14,7 +14,7 @@
 namespace ktl
 {
 	template<typename K, typename V, typename Hash, typename Equals, typename Alloc>
-	class unordered_probe_map
+	class unordered_multimap
 	{
 	private:
 		static constexpr uint8_t FLAG_OCCUPIED = 0x01;
@@ -50,7 +50,7 @@ namespace ktl
 		class iter
 		{
 		private:
-			friend class unordered_probe_map;
+			friend class unordered_multimap;
 
 		public:
 			using iterator_category = std::forward_iterator_tag;
@@ -111,6 +111,82 @@ namespace ktl
 			pair* m_End;
 		};
 
+		class key_iter
+		{
+		private:
+			friend class unordered_multimap;
+
+		public:
+			using iterator_category = std::forward_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = std::pair<K, V>;
+			using pointer = std::pair<K, V>*;
+			using reference = std::pair<K, V>&;
+
+		public:
+			explicit key_iter(pair* current, pair* begin, size_t mask) :
+				m_Key(current->Key),
+				m_Begin(begin),
+				m_Current(current),
+				m_Counter(0),
+				m_SizeMask(mask) {}
+
+			key_iter& operator++()
+			{
+				size_t h = Hash()(m_Key);
+
+				do
+				{
+					m_Current = m_Begin + hash_collision_offset(h, ++m_Counter, m_SizeMask);
+
+					// Probe while dead or key mismatch
+				} while (m_Counter <= m_SizeMask && (m_Current->Flags & FLAG_OCCUPIED) != 0 && ((m_Current->Flags & FLAG_DEAD) != 0 || !Equals()(m_Current->Key, m_Key)));
+
+				// If we've tried every combination or the next element is unoccupied
+				if (m_Counter > m_SizeMask || (m_Current->Flags & FLAG_OCCUPIED) == 0)
+					m_Current = nullptr;
+
+				return *this;
+			}
+
+			key_iter operator++(int)
+			{
+				key_iter value(*this);
+				operator++();
+				return value;
+			}
+
+			bool operator==(const key_iter& rhs) const noexcept
+			{
+				return m_Current == rhs.m_Current;
+			}
+
+			bool operator!=(const key_iter& rhs) const noexcept
+			{
+				return !operator==(rhs);
+			}
+
+			reference operator*() const noexcept
+			{
+				return *reinterpret_cast<std::pair<K, V>*>(m_Current);
+			}
+
+			pointer operator->() const noexcept
+			{
+				return reinterpret_cast<std::pair<K, V>*>(m_Current);
+			}
+
+			explicit operator bool() const noexcept { return m_Current; }
+
+		private:
+			K m_Key;
+			pair* m_Begin;
+			pair* m_Current;
+
+			size_t m_Counter;
+			size_t m_SizeMask;
+		};
+
 		typedef typename std::allocator_traits<Alloc>::template rebind_alloc<pair> PairAlloc;
 
 		typedef std::allocator_traits<PairAlloc> Traits;
@@ -119,15 +195,18 @@ namespace ktl
 		typedef iter iterator;
 		typedef const iter const_iterator;
 
+		typedef key_iter key_iterator;
+		typedef const key_iter const_key_iterator;
+
 	public:
-		unordered_probe_map(const PairAlloc& alloc = PairAlloc()) :
+		unordered_multimap(const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
 			m_Count(0),
 			m_Mask(0) {}
 
-		explicit unordered_probe_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
+		explicit unordered_multimap(size_t size, const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
@@ -143,7 +222,7 @@ namespace ktl
 			std::memset(m_Begin, 0, n * sizeof(pair));
 		}
 
-		unordered_probe_map(const unordered_probe_map& other) noexcept :
+		unordered_multimap(const unordered_multimap& other) noexcept :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<PairAlloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.capacity())),
 			m_End(m_Begin + other.capacity()),
@@ -170,7 +249,7 @@ namespace ktl
 			}
 		}
 
-		unordered_probe_map(unordered_probe_map&& other) noexcept :
+		unordered_multimap(unordered_multimap&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
@@ -182,12 +261,12 @@ namespace ktl
 			other.m_Count = 0;
 		}
 
-		~unordered_probe_map()
+		~unordered_multimap()
 		{
 			release();
 		}
 
-		unordered_probe_map& operator=(const unordered_probe_map& rhs) noexcept
+		unordered_multimap& operator=(const unordered_multimap& rhs) noexcept
 		{
 			release();
 
@@ -219,7 +298,7 @@ namespace ktl
 			return *this;
 		}
 
-		unordered_probe_map& operator=(unordered_probe_map&& rhs) noexcept
+		unordered_multimap& operator=(unordered_multimap&& rhs) noexcept
 		{
 			release();
 
@@ -234,21 +313,6 @@ namespace ktl
 			rhs.m_Count = 0;
 
 			return *this;
-		}
-
-		V& operator[](const K& index) noexcept
-		{
-			expand();
-
-			pair* block = get_pair(index, m_Begin, m_Mask);
-
-			if (block != m_End && (block->Flags & FLAG_OCCUPIED) == 0 || (block->Flags & FLAG_DEAD) != 0)
-			{
-				Traits::construct(m_Alloc, block, index);
-				m_Count++;
-			}
-
-			return block->Value;
 		}
 
 		iterator begin() noexcept { return iterator(m_Begin, m_End); }
@@ -296,10 +360,6 @@ namespace ktl
 		{
 			expand();
 
-			// Disallow inserting the same key twice
-			// Lookup is more expensive, so only call in debug
-			KTL_ASSERT(find(std::forward<Key>(index)) == end());
-
 			pair* block = find_empty(std::forward<Key>(index), m_Begin, m_Mask);
 
 			Traits::construct(m_Alloc, block, std::forward<Key>(index), std::forward<Value>(value));
@@ -343,34 +403,49 @@ namespace ktl
 			return iterator(block, m_End);
 		}
 
-		iterator find(const K& index) const noexcept
+		key_iterator erase(const_key_iterator& iter) noexcept
+		{
+			pair* block = iter.m_Current;
+
+			// If occupied and not dead
+			if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+			{
+				Traits::destroy(m_Alloc, block);
+				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
+				m_Count--;
+			}
+
+			return key_iterator(block, m_Begin, m_Mask);
+		}
+
+		key_iterator find(const K& index) const noexcept
 		{
 			if (m_Begin == nullptr)
-				return iterator(nullptr, nullptr);
+				return key_iterator(nullptr, nullptr, 0);
 
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
 			if (block != m_End && (block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
-				return iterator(block, m_End);
+				return key_iterator(block, m_Begin, m_Mask);
 
-			return iterator(m_End, m_End);
+			return key_iterator(nullptr, m_Begin, m_Mask);
 		}
 
 		void clear() noexcept
 		{
-            m_Count = 0;
-            
+			m_Count = 0;
+
 			if (m_Begin)
 			{
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
-			        // If occupied and not dead
-			        if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+					// If occupied and not dead
+					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 						Traits::destroy(m_Alloc, block);
 				}
-                
-                std::memset(m_Begin, 0, capacity() * sizeof(pair));
+
+				std::memset(m_Begin, 0, capacity() * sizeof(pair));
 			}
 		}
 
@@ -419,10 +494,10 @@ namespace ktl
 					{
 						// Find an empty slot in the new allocation
 						pair* dest = find_empty(block->Key, alBlock, m_Mask);
-                        
-                        Traits::construct(m_Alloc, dest, std::move(*block));
-                        
-                        Traits::destroy(m_Alloc, block);
+
+						Traits::construct(m_Alloc, dest, std::move(*block));
+
+						Traits::destroy(m_Alloc, block);
 					}
 				}
 

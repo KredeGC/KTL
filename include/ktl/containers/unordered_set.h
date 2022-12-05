@@ -2,7 +2,7 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/hashing_utility.h"
-#include "unordered_probe_map_fwd.h"
+#include "unordered_set_fwd.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -13,54 +13,41 @@
 
 namespace ktl
 {
-	template<typename K, typename V, typename Hash, typename Equals, typename Alloc>
-	class unordered_probe_map
+	template<typename T, typename Hash, typename Equals, typename Alloc>
+	class unordered_set
 	{
 	private:
 		static constexpr uint8_t FLAG_OCCUPIED = 0x01;
 		static constexpr uint8_t FLAG_DEAD = 0x02;
 
-		struct pair
+		struct node
 		{
-			K Key;
-			V Value;
+			T Value;
 			uint8_t Flags;
 
-			explicit pair(const K& key) noexcept :
-				Key(key),
-				Value{},
+			explicit node(const T& key) noexcept :
+				Value(key),
 				Flags(FLAG_OCCUPIED) {}
 
-			explicit pair(const K& key, const V& value) noexcept :
-				Key(key),
-				Value(value),
-				Flags(FLAG_OCCUPIED) {}
-
-			explicit pair(const K& key, V&& value) noexcept :
-				Key(key),
-				Value(std::move(value)),
-				Flags(FLAG_OCCUPIED) {}
-
-			explicit pair(K&& key, V&& value) noexcept :
-				Key(std::move(key)),
-				Value(std::move(value)),
+			explicit node(T&& key) noexcept :
+				Value(std::move(key)),
 				Flags(FLAG_OCCUPIED) {}
 		};
 
 		class iter
 		{
 		private:
-			friend class unordered_probe_map;
+			friend class unordered_set;
 
 		public:
 			using iterator_category = std::forward_iterator_tag;
 			using difference_type = std::ptrdiff_t;
-			using value_type = std::pair<K, V>;
-			using pointer = std::pair<K, V>*;
-			using reference = std::pair<K, V>&;
+			using value_type = T;
+			using pointer = T*;
+			using reference = T&;
 
 		public:
-			explicit iter(pair* current, pair* end) :
+			explicit iter(node* current, node* end) :
 				m_Current(current),
 				m_End(end)
 			{
@@ -98,20 +85,20 @@ namespace ktl
 
 			reference operator*() const noexcept
 			{
-				return *reinterpret_cast<std::pair<K, V>*>(m_Current);
+				return m_Current->Value;
 			}
 
 			pointer operator->() const noexcept
 			{
-				return reinterpret_cast<std::pair<K, V>*>(m_Current);
+				return &m_Current->Value;
 			}
 
 		private:
-			pair* m_Current;
-			pair* m_End;
+			node* m_Current;
+			node* m_End;
 		};
 
-		typedef typename std::allocator_traits<Alloc>::template rebind_alloc<pair> PairAlloc;
+		typedef typename std::allocator_traits<Alloc>::template rebind_alloc<node> PairAlloc;
 
 		typedef std::allocator_traits<PairAlloc> Traits;
 
@@ -120,14 +107,14 @@ namespace ktl
 		typedef const iter const_iterator;
 
 	public:
-		unordered_probe_map(const PairAlloc& alloc = PairAlloc()) :
+		unordered_set(const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
 			m_Count(0),
 			m_Mask(0) {}
 
-		explicit unordered_probe_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
+		explicit unordered_set(size_t size, const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
@@ -140,26 +127,26 @@ namespace ktl
 			m_End = m_Begin + n;
 			m_Mask = n - 1;
 
-			std::memset(m_Begin, 0, n * sizeof(pair));
+			std::memset(m_Begin, 0, n * sizeof(node));
 		}
 
-		unordered_probe_map(const unordered_probe_map& other) noexcept :
+		unordered_set(const unordered_set& other) noexcept :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<PairAlloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.capacity())),
 			m_End(m_Begin + other.capacity()),
 			m_Count(other.m_Count),
 			m_Mask(other.m_Mask)
 		{
-			std::memset(m_Begin, 0, other.capacity() * sizeof(pair));
+			std::memset(m_Begin, 0, other.capacity() * sizeof(node));
 
 			for (size_t i = 0; i < other.capacity(); i++)
 			{
-				pair* block = other.m_Begin + i;
+				node* block = other.m_Begin + i;
 
 				// Only copy occupied slots
 				if ((block->Flags & FLAG_OCCUPIED) != 0)
 				{
-					pair* dest = m_Begin + i;
+					node* dest = m_Begin + i;
 
 					// Copy construct if not dead
 					if ((block->Flags & FLAG_DEAD) == 0)
@@ -170,7 +157,7 @@ namespace ktl
 			}
 		}
 
-		unordered_probe_map(unordered_probe_map&& other) noexcept :
+		unordered_set(unordered_set&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
@@ -182,12 +169,12 @@ namespace ktl
 			other.m_Count = 0;
 		}
 
-		~unordered_probe_map()
+		~unordered_set()
 		{
 			release();
 		}
 
-		unordered_probe_map& operator=(const unordered_probe_map& rhs) noexcept
+		unordered_set& operator=(const unordered_set& rhs) noexcept
 		{
 			release();
 
@@ -197,16 +184,16 @@ namespace ktl
 			m_Count = rhs.m_Count;
 			m_Mask = rhs.m_Mask;
 
-			std::memset(m_Begin, 0, rhs.capacity() * sizeof(pair));
+			std::memset(m_Begin, 0, rhs.capacity() * sizeof(node));
 
 			for (size_t i = 0; i < rhs.capacity(); i++)
 			{
-				pair* block = rhs.m_Begin + i;
+				node* block = rhs.m_Begin + i;
 
 				// Only copy occupied slots
 				if ((block->Flags & FLAG_OCCUPIED) != 0)
 				{
-					pair* dest = m_Begin + i;
+					node* dest = m_Begin + i;
 
 					// Copy construct if not dead
 					if ((block->Flags & FLAG_DEAD) == 0)
@@ -219,7 +206,7 @@ namespace ktl
 			return *this;
 		}
 
-		unordered_probe_map& operator=(unordered_probe_map&& rhs) noexcept
+		unordered_set& operator=(unordered_set&& rhs) noexcept
 		{
 			release();
 
@@ -234,21 +221,6 @@ namespace ktl
 			rhs.m_Count = 0;
 
 			return *this;
-		}
-
-		V& operator[](const K& index) noexcept
-		{
-			expand();
-
-			pair* block = get_pair(index, m_Begin, m_Mask);
-
-			if (block != m_End && (block->Flags & FLAG_OCCUPIED) == 0 || (block->Flags & FLAG_DEAD) != 0)
-			{
-				Traits::construct(m_Alloc, block, index);
-				m_Count++;
-			}
-
-			return block->Value;
 		}
 
 		iterator begin() noexcept { return iterator(m_Begin, m_End); }
@@ -281,39 +253,29 @@ namespace ktl
 				set_size(n);
 		}
 
-		V& at(const K& index) const
-		{
-			pair* block = get_pair(index, m_Begin, m_Mask);
-
-			// Assert that the value exists
-			KTL_ASSERT((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
-
-			return block->Value;
-		}
-
-		template<typename Key, typename Value>
-		iterator insert(Key&& index, Value&& value) noexcept
+		template<typename Value>
+		iterator insert(Value&& index) noexcept
 		{
 			expand();
 
 			// Disallow inserting the same key twice
 			// Lookup is more expensive, so only call in debug
-			KTL_ASSERT(find(std::forward<Key>(index)) == end());
+			KTL_ASSERT(find(std::forward<Value>(index)) == end());
 
-			pair* block = find_empty(std::forward<Key>(index), m_Begin, m_Mask);
+			node* block = find_empty(std::forward<Value>(index), m_Begin, m_Mask);
 
-			Traits::construct(m_Alloc, block, std::forward<Key>(index), std::forward<Value>(value));
+			Traits::construct(m_Alloc, block, std::forward<Value>(index));
 			m_Count++;
 
 			return iterator(block, m_End);
 		}
 
-		size_t erase(const K& index) noexcept
+		void erase(const T& index) noexcept
 		{
 			if (m_Begin == nullptr)
 				return 0;
 
-			pair* block = get_pair(index, m_Begin, m_Mask);
+			node* block = get_node(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
 			if (block != m_End && (block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
@@ -330,7 +292,7 @@ namespace ktl
 
 		iterator erase(const_iterator& iter) noexcept
 		{
-			pair* block = iter.m_Current;
+			node* block = iter.m_Current;
 
 			// If occupied and not dead
 			if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
@@ -343,12 +305,12 @@ namespace ktl
 			return iterator(block, m_End);
 		}
 
-		iterator find(const K& index) const noexcept
+		iterator find(const T& index) const noexcept
 		{
 			if (m_Begin == nullptr)
 				return iterator(nullptr, nullptr);
 
-			pair* block = get_pair(index, m_Begin, m_Mask);
+			node* block = get_node(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
 			if (block != m_End && (block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
@@ -357,20 +319,30 @@ namespace ktl
 			return iterator(m_End, m_End);
 		}
 
+		bool contains(const T& index) const noexcept
+		{
+			if (m_Begin == nullptr)
+				return false;
+
+			node* block = get_node(index, m_Begin, m_Mask);
+
+			return block != m_End && (block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0;
+		}
+
 		void clear() noexcept
 		{
-            m_Count = 0;
-            
+			m_Count = 0;
+
 			if (m_Begin)
 			{
-				for (pair* block = m_Begin; block != m_End; block++)
+				for (node* block = m_Begin; block != m_End; block++)
 				{
-			        // If occupied and not dead
-			        if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+					// If occupied and not dead
+					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 						Traits::destroy(m_Alloc, block);
 				}
-                
-                std::memset(m_Begin, 0, capacity() * sizeof(pair));
+
+				std::memset(m_Begin, 0, capacity() * sizeof(node));
 			}
 		}
 
@@ -379,7 +351,7 @@ namespace ktl
 		{
 			if (m_Begin)
 			{
-				for (pair* block = m_Begin; block != m_End; block++)
+				for (node* block = m_Begin; block != m_End; block++)
 				{
 					// Only destroy alive and occupied slots
 					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
@@ -407,22 +379,22 @@ namespace ktl
 
 			size_t curSize = (std::min)(capacity(), n);
 
-			pair* alBlock = Traits::allocate(m_Alloc, n);
-			std::memset(alBlock, 0, n * sizeof(pair));
+			node* alBlock = Traits::allocate(m_Alloc, n);
+			std::memset(alBlock, 0, n * sizeof(node));
 
 			if (m_Begin != nullptr)
 			{
 				// Rehash every occupied and alive slot into the new allocated block
-				for (pair* block = m_Begin; block != m_End; block++)
+				for (node* block = m_Begin; block != m_End; block++)
 				{
 					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
 					{
 						// Find an empty slot in the new allocation
-						pair* dest = find_empty(block->Key, alBlock, m_Mask);
-                        
-                        Traits::construct(m_Alloc, dest, std::move(*block));
-                        
-                        Traits::destroy(m_Alloc, block);
+						node* dest = find_empty(block->Value, alBlock, m_Mask);
+
+						Traits::construct(m_Alloc, dest, std::move(*block));
+
+						Traits::destroy(m_Alloc, block);
 					}
 				}
 
@@ -433,11 +405,11 @@ namespace ktl
 			m_End = m_Begin + n;
 		}
 
-		pair* find_empty(const K& index, pair* begin, size_t mask) const noexcept
+		node* find_empty(const T& index, node* begin, size_t mask) const noexcept
 		{
 			size_t h = Hash()(index);
 
-			pair* block;
+			node* block;
 			size_t counter = 0;
 
 			do
@@ -451,11 +423,11 @@ namespace ktl
 			return block;
 		}
 
-		pair* get_pair(const K& index, pair* begin, size_t mask) const noexcept
+		node* get_node(const T& index, node* begin, size_t mask) const noexcept
 		{
 			size_t h = Hash()(index);
 
-			pair* block;
+			node* block;
 			size_t counter = 0;
 
 			do
@@ -464,7 +436,7 @@ namespace ktl
 
 				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
-			} while (counter < capacity() && (block->Flags & FLAG_OCCUPIED) != 0 && ((block->Flags & FLAG_DEAD) != 0 || !Equals()(block->Key, index)));
+			} while (counter < capacity() && (block->Flags & FLAG_OCCUPIED) != 0 && ((block->Flags & FLAG_DEAD) != 0 || !Equals()(block->Value, index)));
 
 			// If nothing matches return end
 			if (counter == capacity())
@@ -476,8 +448,8 @@ namespace ktl
 
 	private:
 		PairAlloc m_Alloc;
-		pair* m_Begin;
-		pair* m_End;
+		node* m_Begin;
+		node* m_End;
 		size_t m_Count;
 		size_t m_Mask;
 	};
