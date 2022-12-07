@@ -89,10 +89,34 @@ namespace ktl::performance::std_unordered_map
         lookup_benchmark(std::allocator<std::pair<const size_t, trivial_t>>());
     }
 
+    KTL_ADD_BENCHMARK(std_unordered_map_lookup_stack_allocator)
+    {
+        profiler::pause();
+
+        auto block = new stack<262144>;
+        type_stack_allocator<std::pair<const size_t, trivial_t>, 262144> alloc(ktl::stack_allocator<262144>{ block });
+
+        lookup_benchmark(alloc);
+
+        delete block;
+    }
+
     KTL_ADD_BENCHMARK(std_unordered_map_range_std_allocator)
     {
         profiler::pause();
 
         range_benchmark(std::allocator<std::pair<const std::string, trivial_t>>());
+    }
+
+    KTL_ADD_BENCHMARK(std_unordered_map_range_stack_allocator)
+    {
+        profiler::pause();
+
+        auto block = new stack<262144>;
+        type_stack_allocator<std::pair<const std::string, trivial_t>, 262144> alloc(ktl::stack_allocator<262144>{ block });
+
+        range_benchmark(alloc);
+
+        delete block;
     }
 }

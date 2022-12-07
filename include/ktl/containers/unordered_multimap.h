@@ -17,9 +17,6 @@ namespace ktl
 	class unordered_multimap
 	{
 	private:
-		static constexpr uint8_t FLAG_OCCUPIED = 0x01;
-		static constexpr uint8_t FLAG_DEAD = 0x02;
-
 		struct pair
 		{
 			K Key;
