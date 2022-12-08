@@ -69,7 +69,7 @@ namespace ktl::test::overflow_allocator
 
     KTL_ADD_TEST(test_overflow_pre_unordered_map_string_double)
     {
-        using Alloc = type_overflow_allocator<double, pre_allocator<4096>, stringOut>;
+        using Alloc = type_overflow_allocator<std::pair<const std::string, double>, pre_allocator<4096>, stringOut>;
 
         assert_no_overflow([]()
         {
@@ -81,7 +81,7 @@ namespace ktl::test::overflow_allocator
 
     KTL_ADD_TEST(test_overflow_pre_unordered_map_string_complex)
     {
-        using Alloc = type_overflow_allocator<complex_t, pre_allocator<4096>, stringOut>;
+        using Alloc = type_overflow_allocator<std::pair<const std::string, complex_t>, pre_allocator<4096>, stringOut>;
 
         assert_no_overflow([]()
         {
