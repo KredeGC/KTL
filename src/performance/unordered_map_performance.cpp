@@ -2,7 +2,7 @@
 #include "shared/types.h"
 #include "shared/random.h"
 
-#include "ktl/containers/unordered_probe_map.h"
+#include "ktl/containers/unordered_map.h"
 
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/pre_allocator.h"
@@ -13,7 +13,7 @@ namespace ktl::performance::unordered_map
     template<typename Alloc>
     void insert_benchmark(const Alloc& alloc)
     {
-        ktl::unordered_probe_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
+        ktl::unordered_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
 
         profiler::resume();
 
@@ -26,7 +26,7 @@ namespace ktl::performance::unordered_map
     template<typename Alloc>
     void lookup_benchmark(const Alloc& alloc)
     {
-        ktl::unordered_probe_map<size_t, trivial_t, std::hash<size_t>, std::equal_to<size_t>, Alloc> map(alloc);
+        ktl::unordered_map<size_t, trivial_t, std::hash<size_t>, std::equal_to<size_t>, Alloc> map(alloc);
         map.reserve(1000);
 
         for (size_t i = 0; i < 1000; i++)
@@ -46,7 +46,7 @@ namespace ktl::performance::unordered_map
     template<typename Alloc>
     void range_benchmark(const Alloc& alloc)
     {
-        ktl::unordered_probe_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
+        ktl::unordered_map<std::string, trivial_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
         map.reserve(1000);
 
         for (size_t i = 0; i < 1000; i++)
@@ -94,7 +94,7 @@ namespace ktl::performance::unordered_map
         profiler::pause();
 
         auto block = new stack<262144>;
-        type_stack_allocator<std::pair<const std::string, trivial_t>, 262144> alloc(ktl::stack_allocator<262144>{ block });
+        type_stack_allocator<std::pair<const size_t, trivial_t>, 262144> alloc(ktl::stack_allocator<262144>{ block });
 
         lookup_benchmark(alloc);
 

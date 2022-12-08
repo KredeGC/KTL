@@ -7,20 +7,20 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/containers/unordered_probe_map.h"
+#include "ktl/containers/unordered_map.h"
 
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/pre_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
-// Naming scheme: test_unordered_probe_map_[Alloc]_[Type]
-// Contains tests that use the ktl::unordered_probe_map container
+// Naming scheme: test_unordered_map_[Alloc]_[Type]
+// Contains tests that use the ktl::unordered_map container
 
-namespace ktl::test::unordered_probe_map
+namespace ktl::test::unordered_map
 {
-    KTL_ADD_TEST(test_unordered_probe_map_constructors)
+    KTL_ADD_TEST(test_unordered_map_constructors)
     {
-        using Map = ktl::unordered_probe_map<std::string, double>;
+        using Map = ktl::unordered_map<std::string, double>;
 
         constexpr size_t size = 4;
 
@@ -51,10 +51,10 @@ namespace ktl::test::unordered_probe_map
         });
     }
 
-    KTL_ADD_TEST(test_unordered_probe_map_collide_tombstone)
+    KTL_ADD_TEST(test_unordered_map_collide_tombstone)
     {
         // Construct a map with a known size
-        ktl::unordered_probe_map<size_t, double> map(3); // This will result in a capacity of 8
+        ktl::unordered_map<size_t, double> map(3); // This will result in a capacity of 8
         map.reserve(3); // This will do the same, but is included for compilation's sake
 
         double values[] = {
@@ -92,27 +92,27 @@ namespace ktl::test::unordered_probe_map
     }
 
 #pragma region std::allocator
-    KTL_ADD_TEST(test_unordered_probe_map_std_double)
+    KTL_ADD_TEST(test_unordered_map_std_double)
     {
-        ktl::unordered_probe_map<std::string, double> map;
+        ktl::unordered_map<std::string, double> map;
         assert_unordered_map_values<double>(map);
     }
 
-    KTL_ADD_TEST(test_unordered_probe_map_std_trivial)
+    KTL_ADD_TEST(test_unordered_map_std_trivial)
     {
-        ktl::unordered_probe_map<std::string, trivial_t> map;
+        ktl::unordered_map<std::string, trivial_t> map;
         assert_unordered_map_values<trivial_t>(map);
     }
 
-    KTL_ADD_TEST(test_unordered_probe_map_std_packed)
+    KTL_ADD_TEST(test_unordered_map_std_packed)
     {
-        ktl::unordered_probe_map<std::string, packed_t> map;
+        ktl::unordered_map<std::string, packed_t> map;
         assert_unordered_map_values<packed_t>(map);
     }
 
-    KTL_ADD_TEST(test_unordered_probe_map_std_complex)
+    KTL_ADD_TEST(test_unordered_map_std_complex)
     {
-        ktl::unordered_probe_map<std::string, complex_t> map;
+        ktl::unordered_map<std::string, complex_t> map;
         assert_unordered_map_values<complex_t>(map);
     }
 #pragma endregion

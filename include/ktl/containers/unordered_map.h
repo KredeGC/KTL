@@ -2,7 +2,7 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/hashing_utility.h"
-#include "unordered_probe_map_fwd.h"
+#include "unordered_map_fwd.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -14,9 +14,11 @@
 namespace ktl
 {
 	template<typename K, typename V, typename Hash, typename Equals, typename Alloc>
-	class unordered_probe_map
+	class unordered_map
 	{
 	private:
+		static_assert(std::is_same<Alloc::value_type, std::pair<const K, V>>::value, "The allocator type does not match the pattern std::pair<const K, V>");
+
 		struct pair
 		{
 			K Key;
@@ -47,7 +49,7 @@ namespace ktl
 		class iter
 		{
 		private:
-			friend class unordered_probe_map;
+			friend class unordered_map;
 
 		public:
 			using iterator_category = std::forward_iterator_tag;
@@ -117,14 +119,14 @@ namespace ktl
 		typedef const iter const_iterator;
 
 	public:
-		unordered_probe_map(const PairAlloc& alloc = PairAlloc()) :
+		unordered_map(const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
 			m_Count(0),
 			m_Mask(0) {}
 
-		explicit unordered_probe_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
+		explicit unordered_map(size_t size, const PairAlloc& alloc = PairAlloc()) :
 			m_Alloc(alloc),
 			m_Begin(nullptr),
 			m_End(nullptr),
@@ -140,7 +142,7 @@ namespace ktl
 			std::memset(m_Begin, 0, n * sizeof(pair));
 		}
 
-		unordered_probe_map(const unordered_probe_map& other) noexcept :
+		unordered_map(const unordered_map& other) noexcept :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<PairAlloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.capacity())),
 			m_End(m_Begin + other.capacity()),
@@ -167,7 +169,7 @@ namespace ktl
 			}
 		}
 
-		unordered_probe_map(unordered_probe_map&& other) noexcept :
+		unordered_map(unordered_map&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
@@ -179,12 +181,12 @@ namespace ktl
 			other.m_Count = 0;
 		}
 
-		~unordered_probe_map()
+		~unordered_map()
 		{
 			release();
 		}
 
-		unordered_probe_map& operator=(const unordered_probe_map& rhs) noexcept
+		unordered_map& operator=(const unordered_map& rhs) noexcept
 		{
 			release();
 
@@ -216,7 +218,7 @@ namespace ktl
 			return *this;
 		}
 
-		unordered_probe_map& operator=(unordered_probe_map&& rhs) noexcept
+		unordered_map& operator=(unordered_map&& rhs) noexcept
 		{
 			release();
 
@@ -284,7 +286,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// Assert that the value exists
-			KTL_ASSERT(flag_occupied_alive(block->Flags));
+			KTL_ASSERT(block != m_End && flag_occupied_alive(block->Flags));
 
 			return block->Value;
 		}
@@ -463,7 +465,7 @@ namespace ktl
 
 				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
-			} while (counter < cap && flag_occupied(block->Flags) && (flag_dead(block->Flags)|| !Equals()(block->Key, index)));
+			} while (counter < cap && flag_occupied(block->Flags) && (flag_dead(block->Flags) || !Equals()(block->Key, index)));
 
 			// If nothing matches return end
 			if (counter == cap)

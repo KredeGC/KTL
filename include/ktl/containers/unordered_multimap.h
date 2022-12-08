@@ -17,6 +17,8 @@ namespace ktl
 	class unordered_multimap
 	{
 	private:
+		static_assert(std::is_same<Alloc::value_type, std::pair<const K, V>>::value, "The allocator type does not match the pattern std::pair<const K, V>");
+
 		struct pair
 		{
 			K Key;
@@ -61,7 +63,7 @@ namespace ktl
 				m_Current(current),
 				m_End(end)
 			{
-				while (m_Current != m_End && ((m_Current->Flags & FLAG_OCCUPIED) == 0 || (m_Current->Flags & FLAG_DEAD) != 0))
+				while (m_Current != m_End && !flag_occupied_alive(m_Current->Flags))
 					m_Current++;
 			}
 
@@ -71,7 +73,7 @@ namespace ktl
 				{
 					m_Current++;
 
-				} while (m_Current != m_End && ((m_Current->Flags & FLAG_OCCUPIED) == 0 || (m_Current->Flags & FLAG_DEAD) != 0));
+				} while (m_Current != m_End && !flag_occupied_alive(m_Current->Flags));
 
 				return *this;
 			}
@@ -137,10 +139,10 @@ namespace ktl
 					m_Current = m_Begin + hash_collision_offset(h, ++m_Counter, m_SizeMask);
 
 					// Probe while dead or key mismatch
-				} while (m_Counter <= m_SizeMask && (m_Current->Flags & FLAG_OCCUPIED) != 0 && ((m_Current->Flags & FLAG_DEAD) != 0 || !Equals()(m_Current->Key, m_Key)));
+				} while (m_Counter <= m_SizeMask && flag_occupied(m_Current->Flags) && (flag_dead(m_Current->Flags) || !Equals()(m_Current->Key, m_Key)));
 
 				// If we've tried every combination or the next element is unoccupied
-				if (m_Counter > m_SizeMask || (m_Current->Flags & FLAG_OCCUPIED) == 0)
+				if (m_Counter > m_SizeMask || !flag_occupied(m_Current->Flags))
 					m_Current = nullptr;
 
 				return *this;
@@ -233,12 +235,12 @@ namespace ktl
 				pair* block = other.m_Begin + i;
 
 				// Only copy occupied slots
-				if ((block->Flags & FLAG_OCCUPIED) != 0)
+				if (flag_occupied(block->Flags))
 				{
 					pair* dest = m_Begin + i;
 
 					// Copy construct if not dead
-					if ((block->Flags & FLAG_DEAD) == 0)
+					if (!flag_dead(block->Flags))
 						Traits::construct(m_Alloc, dest, *block);
 
 					dest->Flags = block->Flags;
@@ -280,12 +282,12 @@ namespace ktl
 				pair* block = rhs.m_Begin + i;
 
 				// Only copy occupied slots
-				if ((block->Flags & FLAG_OCCUPIED) != 0)
+				if (flag_occupied(block->Flags))
 				{
 					pair* dest = m_Begin + i;
 
 					// Copy construct if not dead
-					if ((block->Flags & FLAG_DEAD) == 0)
+					if (!flag_dead(block->Flags))
 						Traits::construct(m_Alloc, dest, *block);
 
 					dest->Flags = block->Flags;
@@ -347,7 +349,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// Assert that the value exists
-			KTL_ASSERT((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
+			KTL_ASSERT(flag_occupied_alive(block->Flags));
 
 			return block->Value;
 		}
@@ -373,7 +375,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
-			if (block != m_End && (block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+			if (block != m_End && flag_occupied_alive(block->Flags))
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -390,7 +392,7 @@ namespace ktl
 			pair* block = iter.m_Current;
 
 			// If occupied and not dead
-			if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+			if (flag_occupied_alive(block->Flags))
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -405,7 +407,7 @@ namespace ktl
 			pair* block = iter.m_Current;
 
 			// If occupied and not dead
-			if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+			if (flag_occupied_alive(block->Flags))
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -423,7 +425,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
-			if (block != m_End && (block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+			if (block != m_End && flag_occupied_alive(block->Flags))
 				return key_iterator(block, m_Begin, m_Mask);
 
 			return key_iterator(nullptr, m_Begin, m_Mask);
@@ -438,7 +440,7 @@ namespace ktl
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
 					// If occupied and not dead
-					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+					if (flag_occupied_alive(block->Flags))
 						Traits::destroy(m_Alloc, block);
 				}
 
@@ -454,7 +456,7 @@ namespace ktl
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
 					// Only destroy alive and occupied slots
-					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+					if (flag_occupied_alive(block->Flags))
 						Traits::destroy(m_Alloc, block);
 				}
 
@@ -487,7 +489,7 @@ namespace ktl
 				// Rehash every occupied and alive slot into the new allocated block
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
-					if ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0)
+					if (flag_occupied_alive(block->Flags))
 					{
 						// Find an empty slot in the new allocation
 						pair* dest = find_empty(block->Key, alBlock, m_Mask);
@@ -518,7 +520,7 @@ namespace ktl
 
 				// Increment while occupied and not dead, continue
 				// Since we are looking for empty slots, we can reuse dead ones
-			} while ((block->Flags & FLAG_OCCUPIED) != 0 && (block->Flags & FLAG_DEAD) == 0);
+			} while (flag_occupied_alive(block->Flags));
 
 			return block;
 		}
@@ -536,7 +538,7 @@ namespace ktl
 
 				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
-			} while (counter < capacity() && (block->Flags & FLAG_OCCUPIED) != 0 && ((block->Flags & FLAG_DEAD) != 0 || !Equals()(block->Key, index)));
+			} while (counter < capacity() && flag_occupied(block->Flags) && (flag_dead(block->Flags) || !Equals()(block->Key, index)));
 
 			// If nothing matches return end
 			if (counter == capacity())

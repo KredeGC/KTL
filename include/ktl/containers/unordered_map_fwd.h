@@ -7,5 +7,5 @@
 namespace ktl
 {
 	template<typename K, typename V, typename Hash = std::hash<K>, typename Equals = std::equal_to<K>, typename Alloc = std::allocator<std::pair<const K, V>>>
-	class unordered_probe_map;
+	class unordered_map;
 }
