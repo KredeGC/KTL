@@ -17,7 +17,7 @@ namespace ktl
 	class unordered_multimap
 	{
 	private:
-		static_assert(std::is_same<Alloc::value_type, std::pair<const K, V>>::value, "The allocator type does not match the pattern std::pair<const K, V>");
+		static_assert(std::is_same<typename Alloc::value_type, std::pair<const K, V>>::value, "The allocator type does not match the pattern std::pair<const K, V>");
 
 		struct pair
 		{
