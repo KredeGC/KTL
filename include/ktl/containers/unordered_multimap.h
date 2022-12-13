@@ -123,6 +123,13 @@ namespace ktl
 			using reference = std::pair<K, V>&;
 
 		public:
+			key_iter() :
+				m_Key{},
+				m_Begin(nullptr),
+				m_Current(nullptr),
+				m_Counter(0),
+				m_SizeMask(0) {}
+
 			explicit key_iter(pair* current, pair* begin, size_t mask) :
 				m_Key(current->Key),
 				m_Begin(begin),
@@ -420,7 +427,7 @@ namespace ktl
 		key_iterator find(const K& index) const noexcept
 		{
 			if (m_Begin == nullptr)
-				return key_iterator(nullptr, nullptr, 0);
+				return key_iterator();
 
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
@@ -428,7 +435,7 @@ namespace ktl
 			if (block != m_End && flag_occupied_alive(block->Flags))
 				return key_iterator(block, m_Begin, m_Mask);
 
-			return key_iterator(nullptr, m_Begin, m_Mask);
+			return key_iterator();
 		}
 
 		void clear() noexcept
