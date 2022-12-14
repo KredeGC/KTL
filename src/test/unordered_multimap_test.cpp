@@ -94,6 +94,40 @@ namespace ktl::test::unordered_multimap
         KTL_TEST_ASSERT((++iter)->second == values[2]);
     }
 
+    KTL_ADD_TEST(test_unordered_multimap_triple_collide)
+    {
+        ktl::unordered_multimap<std::string, double> map;
+
+        // Construct a map where .png, .wav and .hdr all collide
+        map.insert(".gltf", 0.0);
+        map.insert(".glb", 0.0);
+
+        map.insert(".material", 0.0);
+
+        map.insert(".gltf", 0.0);
+        map.insert(".glb", 0.0);
+
+        map.insert(".shader", 0.0);
+
+        map.insert(".wav", 0.0);
+        map.insert(".mp3", 0.0);
+
+        map.insert(".png", 0.0);
+        map.insert(".jpeg", 0.0);
+        map.insert(".jpg", 0.0);
+        map.insert(".hdr", 0.0);
+
+        size_t counter = 0;
+        auto iter = map.find(".hdr");
+        while (iter)
+        {
+            ++counter;
+            ++iter;
+        }
+
+        KTL_TEST_ASSERT(counter == 1);
+    }
+
 #pragma region std::allocator
     KTL_ADD_TEST(test_unordered_multimap_std_double)
     {

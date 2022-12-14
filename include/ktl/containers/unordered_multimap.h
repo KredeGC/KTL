@@ -124,32 +124,31 @@ namespace ktl
 
 		public:
 			key_iter() :
-				m_Key{},
 				m_Begin(nullptr),
 				m_Current(nullptr),
-				m_Counter(0),
 				m_SizeMask(0) {}
 
 			explicit key_iter(pair* current, pair* begin, size_t mask) :
-				m_Key(current->Key),
 				m_Begin(begin),
 				m_Current(current),
-				m_Counter(0),
 				m_SizeMask(mask) {}
 
 			key_iter& operator++()
 			{
-				size_t h = Hash()(m_Key);
+				pair* start = m_Current;
+				K& key = start->Key;
+				size_t h = Hash()(key);
 
 				do
 				{
-					m_Current = m_Begin + hash_collision_offset(h, ++m_Counter, m_SizeMask);
+					size_t offset = (m_Current - m_Begin) + 1;
+					m_Current = m_Begin + (offset & m_SizeMask);
 
 					// Probe while dead or key mismatch
-				} while (m_Counter <= m_SizeMask && flag_occupied(m_Current->Flags) && (flag_dead(m_Current->Flags) || !Equals()(m_Current->Key, m_Key)));
+				} while (start != m_Current && flag_occupied(m_Current->Flags) && (flag_dead(m_Current->Flags) || !Equals()(m_Current->Key, key)));
 
 				// If we've tried every combination or the next element is unoccupied
-				if (m_Counter > m_SizeMask || !flag_occupied(m_Current->Flags))
+				if (start == m_Current || !flag_occupied(m_Current->Flags))
 					m_Current = nullptr;
 
 				return *this;
@@ -185,11 +184,9 @@ namespace ktl
 			explicit operator bool() const noexcept { return m_Current; }
 
 		private:
-			K m_Key;
 			pair* m_Begin;
 			pair* m_Current;
 
-			size_t m_Counter;
 			size_t m_SizeMask;
 		};
 
@@ -413,6 +410,8 @@ namespace ktl
 		{
 			pair* block = iter.m_Current;
 
+			K index = std::move(block->Key);
+
 			// If occupied and not dead
 			if (flag_occupied_alive(block->Flags))
 			{
@@ -421,7 +420,12 @@ namespace ktl
 				m_Count--;
 			}
 
-			return key_iterator(block, m_Begin, m_Mask);
+			// Find the next key iterator
+			block = get_pair(index, m_Begin, m_Mask);
+			if (block != m_End && flag_occupied_alive(block->Flags))
+				return key_iterator(block, m_Begin, m_Mask);
+
+			return key_iterator();
 		}
 
 		key_iterator find(const K& index) const noexcept
