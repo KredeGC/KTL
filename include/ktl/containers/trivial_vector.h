@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/assert_utility.h"
 #include "trivial_vector_fwd.h"
 
 #include <cstring>
@@ -21,6 +22,9 @@ namespace ktl
 	public:
 		typedef T* iterator;
 		typedef const T* const_iterator;
+        
+        typedef std::reverse_iterator<T*> reverse_iterator;
+        typedef std::reverse_iterator<const T*> const_reverse_iterator;
 
 	public:
 		trivial_vector(const Alloc& allocator = Alloc()) noexcept :
@@ -143,13 +147,13 @@ namespace ktl
 
 		const_iterator end() const noexcept { return m_End; }
 
-		std::reverse_iterator<T*> rbegin() noexcept { return std::reverse_iterator(m_End); }
+		reverse_iterator rbegin() noexcept { return std::reverse_iterator(m_End); }
 
-		std::reverse_iterator<const T*> rbegin() const noexcept { return std::reverse_iterator(m_End); }
+		const_reverse_iterator rbegin() const noexcept { return std::reverse_iterator(m_End); }
 
-		std::reverse_iterator<T*> rend() noexcept { return std::reverse_iterator(m_Begin); }
+		reverse_iterator rend() noexcept { return std::reverse_iterator(m_Begin); }
 
-		std::reverse_iterator<const T*> rend() const noexcept { return std::reverse_iterator(m_Begin); }
+		const_reverse_iterator rend() const noexcept { return std::reverse_iterator(m_Begin); }
 
 
 		size_t size() const noexcept { return m_End - m_Begin; }
@@ -166,7 +170,7 @@ namespace ktl
 		T& at(size_t index) const noexcept { return m_Begin[index]; }
 
 
-		void resize(size_t n)
+		void resize(size_t n) noexcept
 		{
 			if (capacity() < n)
 				set_size(n);
@@ -174,13 +178,13 @@ namespace ktl
 			m_End = m_Begin + n;
 		}
 
-		void reserve(size_t n)
+		void reserve(size_t n) noexcept
 		{
 			if (capacity() < n)
 				set_size(n);
 		}
 
-		void push_back(const T& element)
+		void push_back(const T& element) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
@@ -188,7 +192,7 @@ namespace ktl
 			m_End++;
 		}
 
-		void push_back(T&& element)
+		void push_back(T&& element) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
@@ -196,7 +200,7 @@ namespace ktl
 			m_End++;
 		}
 
-		void push_back(const T* first, const T* last)
+		void push_back(const T* first, const T* last) noexcept
 		{
 			const size_t n = (last - first);
 
@@ -207,7 +211,7 @@ namespace ktl
 		}
 
 		template<typename... Args>
-		void emplace_back(Args&&... args)
+		void emplace_back(Args&&... args) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
@@ -215,12 +219,49 @@ namespace ktl
 			m_End++;
 		}
 
-		T pop_back() { return m_Begin[--m_End]; }
+		template<typename... Args>
+		void emplace(const_iterator iter, Args&&... args) noexcept
+		{
+            KTL_ASSERT(iter >= m_Begin && iter <= m_End);
+            
+			if (m_End == m_EndMax)
+				expand(1);
+            
+            std::memmove(const_cast<iterator>(iter + 1), iter, (m_End - iter) * sizeof(T));
+            
+			*iter = T(std::forward<Args>(args)...);
+			m_End++;
+		}
+        
+        iterator erase(const_iterator iter) noexcept
+        {
+            KTL_ASSERT(iter >= m_Begin && iter < m_End);
+            
+            std::memmove(const_cast<iterator>(iter), iter + 1, ((m_End - iter) - 1) * sizeof(T));
+            
+            m_End--;
+            
+            return const_cast<iterator>(iter);
+        }
+        
+        iterator erase(const_iterator first, const_iterator last) noexcept
+        {
+            KTL_ASSERT(first >= last);
+            KTL_ASSERT(first >= m_Begin && last <= m_End);
+            
+            std::memmove(const_cast<iterator>(first), last, (m_End - last) * sizeof(T));
+            
+            m_End -= (last - first);
+            
+            return const_cast<iterator>(first);
+        }
 
-		void clear() { m_End = m_Begin; }
+		T pop_back() noexcept { return m_Begin[--m_End]; }
+
+		void clear() noexcept { m_End = m_Begin; }
 
 	private:
-		void expand(size_t n)
+		void expand(size_t n) noexcept
 		{
 			size_t curCap = capacity();
 			size_t alSize = curCap + (std::max)(curCap, n);
@@ -228,7 +269,7 @@ namespace ktl
 			set_size(alSize);
 		}
 
-		void set_size(size_t n)
+		void set_size(size_t n) noexcept
 		{
 			size_t curSize = (std::min)(size(), n);
 

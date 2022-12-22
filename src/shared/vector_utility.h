@@ -1,26 +1,37 @@
 #pragma once
 #include "assert_utility.h"
 #include "types.h"
-
+#include <iostream>
 namespace ktl::test
 {
     template<typename Vec, typename T>
     void assert_vector_push_back(Vec& vec, const T* values, size_t amount)
     {
-        for (size_t i = 0; i < amount; i++)
+        for (size_t i = 0; i < amount; ++i)
             vec.push_back(values[i]);
 
         KTL_TEST_ASSERT(vec.size() == amount);
         KTL_TEST_ASSERT(vec.capacity() >= amount);
 
         // Assert operator[]
-        for (size_t i = 0; i < amount; i++)
+        for (size_t i = 0; i < amount; ++i)
             KTL_TEST_ASSERT(vec[i] == values[i]);
 
         // Assert iterators
         size_t counter = 0;
         for (auto& element : vec)
             KTL_TEST_ASSERT(element == values[counter++]);
+        
+        // Assert erase first element
+        for (size_t i = 0; i < amount; ++i)
+        {
+            auto iter = vec.begin();
+            KTL_TEST_ASSERT(*iter == values[i]);
+            KTL_TEST_ASSERT(vec.erase(iter) == vec.begin());
+        }
+        
+        // Assert size
+        KTL_TEST_ASSERT(vec.begin() == vec.end());
 
         // Assert clear
         vec.clear();

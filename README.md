@@ -11,7 +11,7 @@ Mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=
 [![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases)
 [![License](https://img.shields.io/github/license/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/blob/master/LICENSE)
 [![Issues](https://img.shields.io/github/issues/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/issues)
-[![Tests](https://img.shields.io/github/workflow/status/KredeGC/KTL/Test?style=flat-square)](https://github.com/KredeGC/KTL/actions/workflows/main.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/KredeGC/KTL/main.yml?branch=master&style=flat-square)](https://github.com/KredeGC/KTL/actions/workflows/main.yml)
 
 </div>
 
@@ -39,6 +39,7 @@ All allocators also have a typedeffed version with a `type_` prefix as a shortha
 | --- | --- |--- |
 | linear_allocator<br/>\<Size\> | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than pre_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
 | mallocator | Raw | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
+| null_allocator | Raw | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
 | pre_allocator<br/>\<Size\> | Raw | Uses a linked list to determine whether a given chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given. |
 | stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than pre_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
 | cascading_allocator<br/>\<Allocator\> | Composite | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one. |
@@ -88,6 +89,7 @@ This library also contains various containers that are STL compliant.
 | --- | --- |
 | `T& operator[size_t index]` | Returns a reference to the element at `index`. |
 | `void assign(const T* first, const T* last)` | Assigns the given values from `first` to `last`. It also resizes if the size doesn't match. |
+| `T* data()` | Returns a pointer to the start of the array. |
 | `bool empty()` | Returns true if the array has been initialized with no size. |
 | `void resize(size_t size)` | Resizes the array to the given size. |
 | `size_t size()` | Returns the current size of the array. |
@@ -98,8 +100,12 @@ This library also contains various containers that are STL compliant.
 | `T& operator[size_t index]` | Returns a reference to the element at `index`. |
 | `size_t capacity()` | Returns the current capacity of the vector. |
 | `void clear()` | Clear all elements in the vector. |
+| `T* data()` | Returns a pointer to the start of the array in the vector. |
+| `void emplace(const_iterator iter, Args&& args)` | Creates a new element at the given location in the vector. |
 | `void emplace_back(Args&& args)` | Creates a new element and pushes it to the vector. |
 | `bool empty()` | Returns whether or not the vector is empty. |
+| `iterator erase(const_iterator iter)` | Erases the element pointed to by the iterator. |
+| `iterator erase(const_iterator first, const_iterator last)` | Erases the elements within the range pointed to by `first` and `last`. |
 | `void pop_back()` | Removes the last element from the vector. |
 | `void push_back(const T& value)` | Pushes a new value by copying it. |
 | `void push_back(T&& value)` | Pushes a new value by moving it. |
@@ -116,10 +122,26 @@ This library also contains various containers that are STL compliant.
 | `size_t capacity()` | Returns the current capacity of the map. Always a power of two. |
 | `void clear()` | Clear all elements in the map. |
 | `bool empty()` | Returns whether or not the map is empty. |
-| `void erase(const K& index)` | Erase an element by its key. |
-| `void erase(iterator iter)` | Erase an element by an iterator pointing to it. |
+| `size_t erase(const K& index)` | Erase an element by its key. |
+| `iterator erase(iterator iter)` | Erase an element by an iterator pointing to it. |
 | `iterator insert(K&& index, V&& value)` | Inserts an element into the map with the key `index` and value `value`. Returns an iterator to the element. |
 | `iterator find(const K& index)` | Attempts to find the value with the given key `index`. Returns `end()` if not found. |
+| `float load_factor()` | Returns the load factor of the map, between 0 and 1. |
+| `void reserve(size_t size)` | Reserves a buffer of `size` elements, if the map isn't already this big. |
+| `size_t size()` | Returns the current amount of elements in the map. |
+
+## unordered_multimap interface
+| Method | Description |
+| --- | --- |
+| `V& at(const K& index)` | Returns a reference to the element with the given key and asserts if it doesn't exist. |
+| `size_t capacity()` | Returns the current capacity of the map. Always a power of two. |
+| `void clear()` | Clear all elements in the map. |
+| `bool empty()` | Returns whether or not the map is empty. |
+| `size_t erase(const K& index)` | Erase an element by its key. |
+| `iterator erase(iterator iter)` | Erase an element by an iterator pointing to it. |
+| `key_iterator erase(key_iterator iter)` | Erase an element by a key iterator pointing to it. |
+| `iterator insert(K&& index, V&& value)` | Inserts an element into the map with the key `index` and value `value`. Returns an iterator to the element. |
+| `key_iterator find(const K& index)` | Attempts to find the value with the given key `index`. Returns `end()` if not found. |
 | `float load_factor()` | Returns the load factor of the map, between 0 and 1. |
 | `void reserve(size_t size)` | Reserves a buffer of `size` elements, if the map isn't already this big. |
 | `size_t size()` | Returns the current amount of elements in the map. |
