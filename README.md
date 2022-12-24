@@ -21,6 +21,19 @@ In addition, most allocators presented are not thread-safe.
 For now thread safety is not on the roadmap as it would degrade performance on single-threaded applications.
 The library itself is fairly stable but should not be expected to be used in a production environment for the time being.
 
+# Table of Content
+* [Installation](#installation)
+* [Allocators](#allocators)
+* [Allocator Interface](#allocator-interface)
+* [Containers](#containers)
+  * [binary_heap interface](#binary_heap-interface)
+  * [trivial_array interface](#trivial_array-interface)
+  * [trivial_vector interface](#trivial_vector-interface)
+  * [unordered_map interface](#unordered_map-interface)
+  * [unordered_multimap interface](#unordered_multimap-interface)
+* [Allocator examples](#allocator-examples)
+* [Building and running tests](#building-and-running-tests)
+
 # Installation
 As this is a header-only library, you can simply copy the header files directly into your project.
 The header files can either be downloaded from the [release page](https://github.com/KredeGC/KTL/releases) or from the [`include/`](https://github.com/KredeGC/KTL/tree/master/include/ktl) directory on the master branch.
@@ -49,7 +62,7 @@ All allocators also have a typedeffed version with a `type_` prefix as a shortha
 | type_allocator<br/>\<T, Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators STL compliant, so they can be used with STL containers. |
 
 NOTES:
-Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like composite_allocator, which upon failure will attempt to use the fallback allocator instead.
+Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like fallback_allocator, which upon failure will attempt to use the fallback allocator instead.
 
 ## Allocator interface
 The allocators roughly follow the standard for STL allocators, except that they are not typed, so use void* instead.
@@ -150,7 +163,7 @@ This library also contains various containers that are STL compliant.
 Create an allocator which will attempt to use a pre allocator for allocation, but fall back on malloc when full.
 ```cpp
 // Create the allocator from some 16kb buffer and straight malloc
-type_composite_allocator<double, pre_allocator<16384>, mallocator> alloc;
+type_fallback_allocator<double, pre_allocator<16384>, mallocator> alloc;
 // Allocate and deallocate 3 doubles
 double* p1 = alloc.allocate(3);
 alloc.deallocate(p1, 3);

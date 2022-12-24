@@ -2,22 +2,23 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/alignment_utility.h"
+#include "../utility/notomic.h"
+#include "linear_allocator_fwd.h"
 #include "type_allocator.h"
 
-#include <atomic>
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<size_t Size>
+    template<size_t Size, typename Atomic>
 	class linear_allocator
 	{
 	private:
 		struct arena
 		{
 			alignas(ALIGNMENT) char Data[Size];
-			std::atomic<size_t> UseCount;
+			Atomic UseCount;
 			char* Free;
 			size_t ObjectCount;
 
@@ -139,7 +140,4 @@ namespace ktl
 
 		arena* m_Block;
 	};
-
-	template<typename T, size_t Size>
-	using type_linear_allocator = type_allocator<T, linear_allocator<Size>>;
 }

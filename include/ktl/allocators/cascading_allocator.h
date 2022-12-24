@@ -2,15 +2,16 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/meta_template.h"
+#include "../utility/notomic.h"
+#include "cascading_allocator_fwd.h"
 #include "type_allocator.h"
 
-#include <atomic>
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<typename Alloc>
+	template<typename Alloc, typename Atomic>
 	class cascading_allocator
 	{
 	private:
@@ -30,7 +31,7 @@ namespace ktl
 
 		struct block
 		{
-			std::atomic<size_t> UseCount;
+			Atomic UseCount;
 			node* Node;
 
 			block() noexcept :
@@ -242,7 +243,4 @@ namespace ktl
 
 		block* m_Block;
 	};
-
-	template<typename T, typename Alloc>
-	using type_cascading_allocator = type_allocator<T, cascading_allocator<Alloc>>;
 }

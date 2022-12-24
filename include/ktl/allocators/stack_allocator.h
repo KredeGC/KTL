@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utility/alignment_utility.h"
+#include "stack_allocator_fwd.h"
 #include "type_allocator.h"
 
 #include <memory>
@@ -96,7 +97,4 @@ namespace ktl
 	private:
 		stack<Size>* m_Block;
 	};
-
-	template<typename T, size_t Size>
-	using type_stack_allocator = type_allocator<T, stack_allocator<Size>>;
 }
