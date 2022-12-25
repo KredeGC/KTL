@@ -45,20 +45,21 @@ This library contains 2 different types of allocators:
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
 Both of these allocator types are not STL compliant, but can be made to be if used with the `type_allocator<T, Allocator>` type.<br/>
-This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, mallocator>`.<br/>
-All allocators also have a typedeffed version with a `type_` prefix as a shorthand, such as: `type_mallocator<int>`.
+This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, linear_allocator>`.<br/>
+All allocators also have a typedeffed version with a `type_` prefix as a shorthand, such as: `type_linear_allocator<int>`.
 
 | Signature | Type | Description |
 | --- | --- |--- |
-| linear_allocator<br/>\<Size\> | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than pre_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
+| linear_allocator<br/>\<Size\> | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than list_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
+| list_allocator<br/>\<Size\> | Raw | Uses a linked list to determine whether a given chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given. |
 | mallocator | Raw | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
 | null_allocator | Raw | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
-| pre_allocator<br/>\<Size\> | Raw | Uses a linked list to determine whether a given chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given. |
-| stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than pre_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
-| cascading_allocator<br/>\<Allocator\> | Composite | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one. |
-| fallback_allocator<br/>\<Primary, Fallback\> | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
-| overflow_allocator<br/>\<Allocator, std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
-| segragator_allocator<br/>\<Threshold, Primary, Fallback\> | Composite | Delegates allocation between 2 allocators based on a size threshold. |
+| stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than list_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
+| cascading<br/>\<Allocator\> | Composite | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one. |
+| fallback<br/>\<Primary, Fallback\> | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
+| freelist<br/>\<Min, Max, Alloc\> | Composite | Allocates using the given allocator, if the size specified is within the range of `Min` and `Max`, otherwise returns `nullptr`.<br/>When deallocating, it keeps the free memory in a linked list which can be reused on later allocations. |
+| overflow<br/>\<Allocator, std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
+| segragator<br/>\<Threshold, Primary, Fallback\> | Composite | Delegates allocation between 2 allocators based on a size threshold. |
 | type_allocator<br/>\<T, Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators STL compliant, so they can be used with STL containers. |
 
 NOTES:
@@ -73,11 +74,11 @@ Some additional methods have also been added.
 | --- | --- |
 | `void* allocate(size_type size)` | Attempts to allocate a chunk of memory defined by `size`. For non-typed allocators the size is in bytes, but for typed allocators it's the amount of objects of the given type. |
 | `void deallocate(void* ptr, size_type size)` | Attempts to deallocate the memory at location `ptr` with the given size, `size`. |
-| `void construct(T* ptr, Args&& args)` | Calls the constructor of a specific type at the location `ptr` with `args`.<br/>Not all allocators define this method. |
-| `void destroy(T* ptr)` | Calls the destructor of a specific type at the location `ptr`.<br/>Not all allocators define this method. |
+| `void construct(T* ptr, Args&& args)` | Calls the constructor of a specific type at the location `ptr` with `args`.<br/>Most allocators do not define this method. |
+| `void destroy(T* ptr)` | Calls the destructor of a specific type at the location `ptr`.<br/>Most allocators do not define this method. |
 | `size_type max_size()` | Returns the maximum size this allocator could possibly allocate.<br/>Not all allocators define this method. |
 | `bool owns(void* ptr)` | Returns whether or not the given memory at location `ptr` is owned by this allocator.<br/>Not all allocators define this method, such as `mallocator`. |
-| `Alloc get_allocator()` | Returns the allocator that this allocator wraps around.<br/>Most composite allocators define this method. |
+| `Alloc& get_allocator()` | Returns the allocator that this allocator wraps around.<br/>Only some composite allocators define this method. |
 
 # Containers
 This library also contains various containers that are STL compliant.
