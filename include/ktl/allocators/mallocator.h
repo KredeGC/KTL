@@ -2,6 +2,7 @@
 
 #include "../utility/alignment_malloc.h"
 #include "../utility/alignment_utility.h"
+#include "mallocator_fwd.h"
 #include "type_allocator.h"
 
 namespace ktl
@@ -41,7 +42,4 @@ namespace ktl
 		}
 #pragma endregion
 	};
-
-	template<typename T>
-	using type_mallocator = type_allocator<T, mallocator>;
 }

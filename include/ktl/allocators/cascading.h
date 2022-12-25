@@ -3,7 +3,7 @@
 #include "../utility/assert_utility.h"
 #include "../utility/meta_template.h"
 #include "../utility/notomic.h"
-#include "cascading_allocator_fwd.h"
+#include "cascading_fwd.h"
 #include "type_allocator.h"
 
 #include <memory>
@@ -12,7 +12,7 @@
 namespace ktl
 {
 	template<typename Alloc, typename Atomic>
-	class cascading_allocator
+	class cascading
 	{
 	private:
 		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
@@ -40,32 +40,32 @@ namespace ktl
 		};
 
 	public:
-		cascading_allocator() noexcept
+		cascading() noexcept
 		{
 			m_Block = new block;
 		}
 
-		cascading_allocator(const cascading_allocator& other) noexcept :
+		cascading(const cascading& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			KTL_ASSERT(other.m_Block);
 			m_Block->UseCount++;
 		}
 
-		cascading_allocator(cascading_allocator&& other) noexcept :
+		cascading(cascading&& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			KTL_ASSERT(other.m_Block);
 			other.m_Block = nullptr;
 		}
 
-		~cascading_allocator()
+		~cascading()
 		{
 			if (m_Block)
 				decrement();
 		}
 
-		cascading_allocator& operator=(const cascading_allocator& rhs) noexcept
+		cascading& operator=(const cascading& rhs) noexcept
 		{
 			if (m_Block)
 				decrement();
@@ -76,7 +76,7 @@ namespace ktl
 			return *this;
 		}
 
-		cascading_allocator& operator=(cascading_allocator&& rhs) noexcept
+		cascading& operator=(cascading&& rhs) noexcept
 		{
 			if (m_Block)
 				decrement();
@@ -88,12 +88,12 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const cascading_allocator& rhs) const noexcept
+		bool operator==(const cascading& rhs) const noexcept
 		{
 			return m_Block == rhs.m_Block;
 		}
 
-		bool operator!=(const cascading_allocator& rhs) const noexcept
+		bool operator!=(const cascading& rhs) const noexcept
 		{
 			return m_Block != rhs.m_Block;
 		}

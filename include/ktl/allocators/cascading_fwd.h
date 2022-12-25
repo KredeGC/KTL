@@ -12,10 +12,10 @@ namespace ktl
     template<typename T>
     struct notomic;
     
-    // cascading_allocator
+    // cascading
 	template<typename Alloc, typename Atomic = notomic<size_t>>
-	class cascading_allocator;
+	class cascading;
 
 	template<typename T, typename Alloc, typename Atomic = notomic<size_t>>
-	using type_cascading_allocator = type_allocator<T, cascading_allocator<Alloc, Atomic>>;
+	using type_cascading_allocator = type_allocator<T, cascading<Alloc, Atomic>>;
 }

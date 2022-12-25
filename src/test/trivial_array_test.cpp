@@ -9,8 +9,8 @@
 #define KTL_DEBUG_ASSERT
 #include "ktl/containers/trivial_array.h"
 
+#include "ktl/allocators/list_allocator.h"
 #include "ktl/allocators/mallocator.h"
-#include "ktl/allocators/pre_allocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_trivial_array_[Alloc]_[Type]
@@ -23,16 +23,16 @@ namespace ktl::test::trivial_array
         assert_construct_container<ktl::trivial_array<double>>();
     }
 
-    KTL_ADD_TEST(test_trivial_array_pre_double)
+    KTL_ADD_TEST(test_trivial_array_list_double)
     {
-        ktl::trivial_array<double, type_pre_allocator<double, 4096>> arr;
+        ktl::trivial_array<double, type_list_allocator<double, 4096>> arr;
 
         assert_array_values<double>(arr);
     }
 
-    KTL_ADD_TEST(test_trivial_array_pre_trivial)
+    KTL_ADD_TEST(test_trivial_array_list_trivial)
     {
-        ktl::trivial_array<trivial_t, type_pre_allocator<trivial_t, 4096>> arr;
+        ktl::trivial_array<trivial_t, type_list_allocator<trivial_t, 4096>> arr;
 
         assert_array_values<trivial_t>(arr);
     }

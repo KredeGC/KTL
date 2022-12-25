@@ -2,9 +2,10 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/meta_template.h"
+#include "../utility/notomic.h"
+#include "overflow_fwd.h"
 #include "type_allocator.h"
 
-#include <atomic>
 #include <cstring>
 #include <memory>
 #include <ostream>
@@ -12,8 +13,8 @@
 
 namespace ktl
 {
-	template<typename Alloc, std::ostream& Stream>
-	class overflow_allocator
+	template<typename Alloc, std::ostream& Stream, typename Atomic>
+	class overflow
 	{
 	private:
 		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
@@ -29,7 +30,7 @@ namespace ktl
 		struct stats
 		{
 			Alloc Allocator;
-			std::atomic<size_t> UseCount;
+			Atomic UseCount;
 			size_type Allocs;
 			size_type Constructs;
 
@@ -41,7 +42,7 @@ namespace ktl
 		};
 
 	public:
-		overflow_allocator(const Alloc& alloc = Alloc()) noexcept
+		overflow(const Alloc& alloc = Alloc()) noexcept
 		{
 			// Allocate the control block with the allocator, if we fit
 			if constexpr (!has_max_size<Alloc>::value)
@@ -58,26 +59,26 @@ namespace ktl
 			}
 		}
 
-		overflow_allocator(const overflow_allocator& other) noexcept :
+		overflow(const overflow& other) noexcept :
 			m_Stats(other.m_Stats)
 		{
 			m_Stats->UseCount++;
 		}
 
-		overflow_allocator(overflow_allocator&& other) noexcept :
+		overflow(overflow&& other) noexcept :
 			m_Stats(other.m_Stats)
 		{
 			KTL_ASSERT(other.m_Stats);
 			other.m_Stats = nullptr;
 		}
 
-		~overflow_allocator()
+		~overflow()
 		{
 			if (m_Stats)
 				decrement();
 		}
 
-		overflow_allocator& operator=(const overflow_allocator& rhs) noexcept
+		overflow& operator=(const overflow& rhs) noexcept
 		{
 			if (m_Stats)
 				decrement();
@@ -88,7 +89,7 @@ namespace ktl
 			return *this;
 		}
 
-		overflow_allocator& operator=(overflow_allocator&& rhs) noexcept
+		overflow& operator=(overflow&& rhs) noexcept
 		{
 			if (m_Stats)
 				decrement();
@@ -100,12 +101,12 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const overflow_allocator& rhs) const noexcept
+		bool operator==(const overflow& rhs) const noexcept
 		{
 			return m_Stats->Allocator == rhs.m_Stats->Allocator;
 		}
 
-		bool operator!=(const overflow_allocator& rhs) const noexcept
+		bool operator!=(const overflow& rhs) const noexcept
 		{
 			return m_Stats->Allocator != rhs.m_Stats->Allocator;
 		}
@@ -225,7 +226,4 @@ namespace ktl
 
 		stats* m_Stats;
 	};
-
-	template<typename T, typename A, std::ostream& Stream>
-	using type_overflow_allocator = type_allocator<T, overflow_allocator<A, Stream>>;
 }

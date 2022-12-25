@@ -2,16 +2,17 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/alignment_utility.h"
+#include "../utility/notomic.h"
+#include "list_allocator_fwd.h"
 #include "type_allocator.h"
 
-#include <atomic>
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<size_t Size>
-	class pre_allocator
+	template<size_t Size, typename Atomic>
+	class list_allocator
 	{
 	private:
 		struct footer
@@ -23,7 +24,7 @@ namespace ktl
 		struct arena
 		{
 			alignas(ALIGNMENT) char Data[Size];
-			std::atomic<size_t> UseCount;
+			Atomic UseCount;
 			footer* Free;
 			footer* Guess;
 
@@ -40,31 +41,31 @@ namespace ktl
 		};
 
 	public:
-		pre_allocator() noexcept
+		list_allocator() noexcept
 		{
 			m_Block = new arena;
 		}
 
-		pre_allocator(const pre_allocator& other) noexcept :
+		list_allocator(const list_allocator& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			m_Block->UseCount++;
 		}
 
-		pre_allocator(pre_allocator&& other) noexcept :
+		list_allocator(list_allocator&& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			KTL_ASSERT(other.m_Block);
 			other.m_Block = nullptr;
 		}
 
-		~pre_allocator()
+		~list_allocator()
 		{
 			if (m_Block)
 				decrement();
 		}
 
-		pre_allocator& operator=(const pre_allocator& rhs) noexcept
+		list_allocator& operator=(const list_allocator& rhs) noexcept
 		{
 			if (m_Block)
 				decrement();
@@ -75,7 +76,7 @@ namespace ktl
 			return *this;
 		}
 
-		pre_allocator& operator=(pre_allocator&& rhs) noexcept
+		list_allocator& operator=(list_allocator&& rhs) noexcept
 		{
 			if (m_Block)
 				decrement();
@@ -87,12 +88,12 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const pre_allocator& rhs) const noexcept
+		bool operator==(const list_allocator& rhs) const noexcept
 		{
 			return m_Block == rhs.m_Block;
 		}
 
-		bool operator!=(const pre_allocator& rhs) const noexcept
+		bool operator!=(const list_allocator& rhs) const noexcept
 		{
 			return m_Block != rhs.m_Block;
 		}
@@ -257,7 +258,4 @@ namespace ktl
 
 		arena* m_Block;
 	};
-
-	template<typename T, size_t Size>
-	using type_pre_allocator = type_allocator<T, pre_allocator<Size>>;
 }

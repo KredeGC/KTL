@@ -1,43 +1,43 @@
 #pragma once
 
 #include "../utility/meta_template.h"
+#include "segragator_fwd.h"
 #include "type_allocator.h"
 
-#include <limits>
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<typename P, typename F>
-	class fallback_allocator
+	template<size_t Threshold, typename P, typename F>
+	class segragator
 	{
 	private:
 		static_assert(has_no_value_type<P>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(has_no_value_type<F>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(has_owns<P>::value, "The primary allocator is required to have an 'owns(void*)' method");
+		static_assert(!has_construct<P>::value || has_owns<P>::value, "The primary allocator is required to have an 'owns(void*)' method, if it has a construct(void*, Args...) method");
 
 	public:
 		typedef typename get_size_type<P>::type size_type;
 
-		fallback_allocator(const P& primary = P(), const F& fallback = F()) noexcept :
+		segragator(const P& primary = P(), const F& fallback = F()) noexcept :
 			m_Primary(primary),
 			m_Fallback(fallback) {}
 
-		fallback_allocator(const fallback_allocator& other) noexcept = default;
+		segragator(const segragator& other) noexcept = default;
 
-		fallback_allocator(fallback_allocator&& other) noexcept = default;
+		segragator(segragator&& other) noexcept = default;
 
-		fallback_allocator& operator=(const fallback_allocator& rhs) noexcept = default;
+		segragator& operator=(const segragator& rhs) noexcept = default;
 
-		fallback_allocator& operator=(fallback_allocator&& rhs) noexcept = default;
+		segragator& operator=(segragator&& rhs) noexcept = default;
 
-		bool operator==(const fallback_allocator& rhs) const noexcept
+		bool operator==(const segragator& rhs) const noexcept
 		{
 			return m_Primary == rhs.m_Primary && m_Fallback == rhs.m_Fallback;
 		}
 
-		bool operator!=(const fallback_allocator& rhs) const noexcept
+		bool operator!=(const segragator& rhs) const noexcept
 		{
 			return m_Primary != rhs.m_Primary || m_Fallback != rhs.m_Fallback;
 		}
@@ -45,24 +45,18 @@ namespace ktl
 #pragma region Allocation
 		void* allocate(size_t n)
 		{
-			void* ptr = m_Primary.allocate(n);
-			if (!ptr)
+			if (n <= Threshold)
+				return m_Primary.allocate(n);
+			else
 				return m_Fallback.allocate(n);
-			return ptr;
 		}
 
 		void deallocate(void* p, size_t n)
 		{
-			if constexpr (has_owns<P>::value)
-			{
-				if (m_Primary.owns(p))
-				{
-					m_Primary.deallocate(p, n);
-					return;
-				}
-			}
-
-			m_Fallback.deallocate(p, n);
+			if (n <= Threshold)
+				return m_Primary.deallocate(p, n);
+			else
+				return m_Fallback.deallocate(p, n);
 		}
 #pragma endregion
 
@@ -136,7 +130,7 @@ namespace ktl
 		{
 			if (m_Primary.owns(p))
 				return true;
-			
+
 			return m_Fallback.owns(p);
 		}
 #pragma endregion
@@ -145,7 +139,4 @@ namespace ktl
 		P m_Primary;
 		F m_Fallback;
 	};
-
-	template<typename T, typename P, typename F>
-	using type_fallback_allocator = type_allocator<T, fallback_allocator<P, F>>;
 }

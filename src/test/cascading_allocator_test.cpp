@@ -4,10 +4,10 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/allocators/cascading_allocator.h"
+#include "ktl/allocators/cascading.h"
+#include "ktl/allocators/list_allocator.h"
 #include "ktl/allocators/mallocator.h"
-#include "ktl/allocators/pre_allocator.h"
-#include "ktl/allocators/segragator_allocator.h"
+#include "ktl/allocators/segragator.h"
 #include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_cascading_[Alloc]_[Container]_[Type]
@@ -15,9 +15,9 @@
 
 namespace ktl::test::cascading_allocator
 {
-    KTL_ADD_TEST(test_cascading_pre_unordered_double)
+    KTL_ADD_TEST(test_cascading_list_unordered_double)
     {
-        type_cascading_allocator<double, pre_allocator<32>> alloc;
+        type_cascading_allocator<double, list_allocator<32>> alloc;
         assert_unordered_values<double>(alloc);
     }
 }

@@ -1,15 +1,15 @@
 #pragma once
 
 // Allocators
-#include "allocators/cascading_allocator.h"
-#include "allocators/fallback_allocator.h"
-#include "allocators/freelist_allocator.h"
+#include "allocators/cascading.h"
+#include "allocators/fallback.h"
+#include "allocators/freelist.h"
 #include "allocators/linear_allocator.h"
+#include "allocators/list_allocator.h"
 #include "allocators/mallocator.h"
 #include "allocators/null_allocator.h"
-#include "allocators/overflow_allocator.h"
-#include "allocators/pre_allocator.h"
-#include "allocators/segragator_allocator.h"
+#include "allocators/overflow.h"
+#include "allocators/segragator.h"
 #include "allocators/stack_allocator.h"
 #include "allocators/type_allocator.h"
 

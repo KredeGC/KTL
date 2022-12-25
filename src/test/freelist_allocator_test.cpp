@@ -5,7 +5,7 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/allocators/freelist_allocator.h"
+#include "ktl/allocators/freelist.h"
 #include "ktl/allocators/stack_allocator.h"
 
 // Naming scheme: test_freelist_allocator_[Type]

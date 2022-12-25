@@ -6,8 +6,8 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/allocators/overflow_allocator.h"
-#include "ktl/allocators/pre_allocator.h"
+#include "ktl/allocators/list_allocator.h"
+#include "ktl/allocators/overflow.h"
 #include "ktl/allocators/stack_allocator.h"
 
 #include "ktl/containers/binary_heap.h"
@@ -49,27 +49,27 @@ namespace ktl::test::overflow_allocator
         });
     }
 
-    KTL_ADD_TEST(test_overflow_pre_unordered_double)
+    KTL_ADD_TEST(test_overflow_list_unordered_double)
     {
         assert_no_overflow([]()
         {
-            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc;
+            type_overflow_allocator<double, list_allocator<4096>, stringOut> alloc;
             assert_unordered_values<double>(alloc);
         });
     }
 
-    KTL_ADD_TEST(test_overflow_pre_binary_heap_double)
+    KTL_ADD_TEST(test_overflow_list_binary_heap_double)
     {
         assert_no_overflow([]()
         {
-            type_overflow_allocator<double, pre_allocator<4096>, stringOut> alloc;
+            type_overflow_allocator<double, list_allocator<4096>, stringOut> alloc;
             assert_binary_heap<double>(3, alloc);
         });
     }
 
-    KTL_ADD_TEST(test_overflow_pre_unordered_map_string_double)
+    KTL_ADD_TEST(test_overflow_list_unordered_map_string_double)
     {
-        using Alloc = type_overflow_allocator<std::pair<const std::string, double>, pre_allocator<4096>, stringOut>;
+        using Alloc = type_overflow_allocator<std::pair<const std::string, double>, list_allocator<4096>, stringOut>;
 
         assert_no_overflow([]()
         {
@@ -79,9 +79,9 @@ namespace ktl::test::overflow_allocator
         });
     }
 
-    KTL_ADD_TEST(test_overflow_pre_unordered_map_string_complex)
+    KTL_ADD_TEST(test_overflow_list_unordered_map_string_complex)
     {
-        using Alloc = type_overflow_allocator<std::pair<const std::string, complex_t>, pre_allocator<4096>, stringOut>;
+        using Alloc = type_overflow_allocator<std::pair<const std::string, complex_t>, list_allocator<4096>, stringOut>;
 
         assert_no_overflow([]()
         {

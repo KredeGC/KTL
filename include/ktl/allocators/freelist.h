@@ -2,17 +2,18 @@
 
 #include "../utility/assert_utility.h"
 #include "../utility/meta_template.h"
+#include "../utility/notomic.h"
+#include "freelist_fwd.h"
 #include "type_allocator.h"
 
-#include <atomic>
 #include <cstddef>
 #include <memory>
 #include <type_traits>
 
 namespace ktl
 {
-	template<size_t Min, size_t Max, typename Alloc>
-	class freelist_allocator
+	template<size_t Min, size_t Max, typename Alloc, typename Atomic>
+	class freelist
 	{
 	private:
 		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
@@ -29,7 +30,7 @@ namespace ktl
 		struct stats
 		{
 			Alloc Allocator;
-			std::atomic<size_t> UseCount;
+			Atomic UseCount;
 			link* Free;
 
 			stats(const Alloc& alloc) :
@@ -39,7 +40,7 @@ namespace ktl
 		};
 
 	public:
-		freelist_allocator(const Alloc& alloc = Alloc()) noexcept
+		freelist(const Alloc& alloc = Alloc()) noexcept
 		{
 			// Allocate the control block with the allocator, if we fit
 			if constexpr (sizeof(stats) > Min && sizeof(stats) <= Max)
@@ -56,26 +57,26 @@ namespace ktl
 			}
 		}
 
-		freelist_allocator(const freelist_allocator& other) noexcept :
+		freelist(const freelist& other) noexcept :
             m_Stats(other.m_Stats)
 		{
 			m_Stats->UseCount++;
 		}
 
-		freelist_allocator(freelist_allocator&& other) noexcept :
+		freelist(freelist&& other) noexcept :
 			m_Stats(other.m_Stats)
 		{
 			KTL_ASSERT(other.m_Stats);
 			other.m_Stats = nullptr;
 		}
 
-        ~freelist_allocator()
+        ~freelist()
         {
 			if (m_Stats)
 				decrement();
         }
 
-		freelist_allocator& operator=(const freelist_allocator& rhs)
+		freelist& operator=(const freelist& rhs)
 		{
 			if (m_Stats)
 				decrement();
@@ -86,7 +87,7 @@ namespace ktl
 			return *this;
 		}
 
-		freelist_allocator& operator=(freelist_allocator&& rhs)
+		freelist& operator=(freelist&& rhs)
 		{
 			if (m_Stats)
 				decrement();
@@ -98,12 +99,12 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const freelist_allocator& rhs) const noexcept
+		bool operator==(const freelist& rhs) const noexcept
 		{
 			return m_Stats->Allocator == rhs.m_Stats->Allocator;
 		}
 
-		bool operator!=(const freelist_allocator& rhs) const noexcept
+		bool operator!=(const freelist& rhs) const noexcept
 		{
 			return m_Stats->Allocator != rhs.m_Stats->Allocator;
 		}
@@ -211,7 +212,4 @@ namespace ktl
 
         stats* m_Stats;
 	};
-
-	template<typename T, size_t Min, size_t Max, typename A>
-	using type_freelist_allocator = type_allocator<T, freelist_allocator<Min, Max, A>>;
 }
