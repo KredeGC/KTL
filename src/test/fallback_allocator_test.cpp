@@ -14,6 +14,25 @@
 
 namespace ktl::test::fallback_allocator
 {
+    KTL_ADD_TEST(test_fallback_variadic)
+    {
+        using Alloc1 = fallback_builder_t<
+            list_allocator<1024>,
+            list_allocator<2048>,
+            list_allocator<4096>,
+            mallocator>;
+        
+        using Alloc2 = ktl::fallback<
+            list_allocator<1024>,
+            fallback<
+                list_allocator<2048>,
+                fallback<
+                    list_allocator<4096>,
+                    mallocator>>>;
+        
+        static_assert(std::is_same_v<Alloc1, Alloc2>, "The allocator types don't match");
+    }
+    
     KTL_ADD_TEST(test_fallback_stack_stack_unordered_double)
     {
         stack<16> primaryStack;

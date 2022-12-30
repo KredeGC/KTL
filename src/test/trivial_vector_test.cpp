@@ -22,7 +22,6 @@ namespace ktl::test::trivial_vector
     KTL_ADD_TEST(test_trivial_vector_construct)
     {
         using Alloc = ktl::type_linear_allocator<double, 2048>;
-        
         using Container = ktl::trivial_vector<double, Alloc>;
 
         constexpr size_t size = 4;

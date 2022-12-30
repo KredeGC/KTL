@@ -12,13 +12,13 @@ namespace ktl
 	struct has_no_value_type<Alloc, std::void_t<typename Alloc::value_type>> : std::false_type {};
 
 	// get size_type
-	template <class Alloc, class = void>
+	template<typename Alloc, typename = void>
 	struct get_size_type
 	{
 		using type = size_t;
 	};
 
-	template <class Alloc>
+	template<typename Alloc>
 	struct get_size_type<Alloc, std::void_t<typename Alloc::size_type>>
 	{
 		using type = typename Alloc::size_type;
