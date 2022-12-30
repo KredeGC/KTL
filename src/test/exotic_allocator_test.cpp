@@ -28,13 +28,13 @@ namespace ktl::test::exotic_allocator
     {
         // TODO: More tests with exotic allocator arrangements
         stack<1024> block;
-        type_segragator_allocator<double, 32, stack_allocator<1024>, cascading<list_allocator<1024>>> alloc2({ block });
+        type_segragator_allocator<double, 32, stack_allocator<1024>, cascading<list_allocator<1024, mallocator>>> alloc2({ block });
     }
 
     KTL_ADD_TEST(test_exotic_allocator_1)
     {
         // Create the allocator from some 16kb buffer and straight malloc
-        type_fallback_allocator<double, list_allocator<16384>, mallocator> alloc;
+        type_fallback_allocator<double, list_allocator<16384, mallocator>, mallocator> alloc;
         // Allocate and deallocate 3 doubles
         double* p1 = alloc.allocate(3);
         alloc.deallocate(p1, 3);
@@ -67,7 +67,7 @@ namespace ktl::test::exotic_allocator
     {
         // Create the allocator from a combination of a cascading 8kb pre allocator and malloc
         // Anything smaller than 8kb should use the cascading pre allcoator, while anything larger should use malloc
-        type_segragator_allocator<double, 8192, cascading<list_allocator<8192>>, mallocator> alloc;
+        type_segragator_allocator<double, 8192, cascading<list_allocator<8192, mallocator>>, mallocator> alloc;
         // Allocate 1024 doubles
         double* p1 = alloc.allocate(1024);
         // Allocate another 1024 doubles, which should force the allocator to create a new pre allocator

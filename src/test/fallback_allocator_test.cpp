@@ -5,6 +5,7 @@
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/fallback.h"
+#include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/list_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
@@ -17,17 +18,17 @@ namespace ktl::test::fallback_allocator
     KTL_ADD_TEST(test_fallback_variadic)
     {
         using Alloc1 = fallback_builder_t<
-            list_allocator<1024>,
-            list_allocator<2048>,
-            list_allocator<4096>,
+            linear_allocator<1024>,
+            linear_allocator<2048>,
+            linear_allocator<4096>,
             mallocator>;
         
         using Alloc2 = ktl::fallback<
-            list_allocator<1024>,
+            linear_allocator<1024>,
             fallback<
-                list_allocator<2048>,
+                linear_allocator<2048>,
                 fallback<
-                    list_allocator<4096>,
+                    linear_allocator<4096>,
                     mallocator>>>;
         
         static_assert(std::is_same_v<Alloc1, Alloc2>, "The allocator types don't match");
@@ -41,10 +42,12 @@ namespace ktl::test::fallback_allocator
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_fallback_stack_pre_unordered_double)
+    KTL_ADD_TEST(test_fallback_stack_list_unordered_double)
     {
+        constexpr size_t size = list_min_size<4096, linear_allocator<0>>::value;
+        
         stack<16> primaryStack;
-        type_fallback_allocator<double, stack_allocator<16>, list_allocator<4096>> alloc({ primaryStack });
+        type_fallback_allocator<double, stack_allocator<16>, list_allocator<4096, linear_allocator<size>>> alloc({ primaryStack });
         assert_unordered_values<double>(alloc);
     }
 
@@ -55,9 +58,9 @@ namespace ktl::test::fallback_allocator
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_fallback_pre_pre_unordered_double)
+    KTL_ADD_TEST(test_fallback_list_list_unordered_double)
     {
-        type_fallback_allocator<double, list_allocator<32>, list_allocator<4096>> alloc;
+        type_fallback_allocator<double, list_allocator<64, mallocator>, list_allocator<4096, mallocator>> alloc;
         assert_unordered_values<double>(alloc);
     }
 }

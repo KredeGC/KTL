@@ -17,7 +17,7 @@ namespace ktl::test::cascading_allocator
 {
     KTL_ADD_TEST(test_cascading_list_unordered_double)
     {
-        type_cascading_allocator<double, list_allocator<32>> alloc;
+        type_cascading_allocator<double, list_allocator<64, mallocator>> alloc;
         assert_unordered_values<double>(alloc);
     }
 }

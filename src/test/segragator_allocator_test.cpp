@@ -4,7 +4,7 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/allocators/list_allocator.h"
+#include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/segragator.h"
 #include "ktl/allocators/stack_allocator.h"
@@ -17,20 +17,20 @@ namespace ktl::test::segragator_allocator
     KTL_ADD_TEST(test_segragator_variadic)
     {
         using Alloc1 = segragator_builder_t<
-            list_allocator<1024>,
+            linear_allocator<1024>,
             threshold<8>,
-            list_allocator<2048>,
+            linear_allocator<2048>,
             threshold<16>,
-            list_allocator<4096>,
+            linear_allocator<4096>,
             threshold<32>,
             mallocator>;
         
         using Alloc2 = ktl::segragator<8,
-            list_allocator<1024>,
+            linear_allocator<1024>,
             segragator<16,
-                list_allocator<2048>,
+                linear_allocator<2048>,
                 segragator<32,
-                    list_allocator<4096>,
+                    linear_allocator<4096>,
                     mallocator>>>;
         
         static_assert(std::is_same_v<Alloc1, Alloc2>, "The allocator types don't match");

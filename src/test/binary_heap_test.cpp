@@ -70,27 +70,27 @@ namespace ktl::test::binary_heap
 #pragma endregion
 
 #pragma region ktl::freelist_allocator
-    KTL_ADD_TEST(test_binary_heap_pre_double)
+    KTL_ADD_TEST(test_binary_heap_list_double)
     {
-        type_list_allocator<double, 4096> alloc;
+        type_list_allocator<double, 4096, mallocator> alloc;
         assert_binary_heap<double>(3, alloc);
     }
 
-    KTL_ADD_TEST(test_binary_heap_pre_trivial)
+    KTL_ADD_TEST(test_binary_heap_list_trivial)
     {
-        type_list_allocator<trivial_t, 4096> alloc;
+        type_list_allocator<trivial_t, 4096, mallocator> alloc;
         assert_binary_heap<trivial_t>(3, alloc);
     }
 
-    KTL_ADD_TEST(test_binary_heap_pre_packed)
+    KTL_ADD_TEST(test_binary_heap_list_packed)
     {
-        type_list_allocator<packed_t, 4096> alloc;
+        type_list_allocator<packed_t, 4096, mallocator> alloc;
         assert_binary_heap<packed_t>(3, alloc);
     }
 
-    KTL_ADD_TEST(test_binary_heap_pre_complex)
+    KTL_ADD_TEST(test_binary_heap_list_complex)
     {
-        type_list_allocator<complex_t, 4096> alloc;
+        type_list_allocator<complex_t, 4096, mallocator> alloc;
         assert_binary_heap<complex_t>(3, alloc);
     }
 #pragma endregion

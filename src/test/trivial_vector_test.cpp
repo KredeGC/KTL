@@ -80,13 +80,13 @@ namespace ktl::test::trivial_vector
 
     KTL_ADD_TEST(test_trivial_vector_list_double)
     {
-        ktl::trivial_vector<double, type_list_allocator<double, 4096>> vec;
+        ktl::trivial_vector<double, type_list_allocator<double, 4096, mallocator>> vec;
         assert_vector_values<double>(vec);
     }
 
     KTL_ADD_TEST(test_trivial_vector_list_trivial)
     {
-        ktl::trivial_vector<trivial_t, type_list_allocator<trivial_t, 4096>> vec;
+        ktl::trivial_vector<trivial_t, type_list_allocator<trivial_t, 4096, mallocator>> vec;
         assert_vector_values<trivial_t>(vec);
     }
 

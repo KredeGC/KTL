@@ -11,7 +11,7 @@
 
 namespace ktl
 {
-	template<size_t Size, typename Atomic>
+	template<size_t Size, typename Alloc, typename Atomic>
 	class list_allocator
 	{
 	private:
@@ -23,12 +23,14 @@ namespace ktl
 
 		struct arena
 		{
+			Alloc Allocator;
 			alignas(ALIGNMENT) char Data[Size];
 			Atomic UseCount;
 			footer* Free;
 			footer* Guess;
 
-			arena() noexcept :
+			arena(const Alloc& alloc) noexcept :
+                Allocator(alloc),
 				Data{},
 				UseCount(1)
 			{
@@ -41,9 +43,16 @@ namespace ktl
 		};
 
 	public:
-		list_allocator() noexcept
+		typedef typename get_size_type<Alloc>::type size_type;
+
+	public:
+		list_allocator(const Alloc& alloc = Alloc()) noexcept
 		{
-			m_Block = new arena;
+            m_Block = reinterpret_cast<arena*>(const_cast<Alloc&>(alloc).allocate(sizeof(arena)));
+            if constexpr (has_construct<void, Alloc, arena*, const Alloc&>::value)
+                alloc.construct(m_Block, alloc);
+            else
+                ::new(m_Block) arena(alloc);
 		}
 
 		list_allocator(const list_allocator& other) noexcept :
@@ -253,9 +262,18 @@ namespace ktl
 		void decrement()
 		{
 			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-				delete m_Block;
+            {
+                Alloc alloc = std::move(m_Block->Allocator);
+                
+				if constexpr (has_destroy<Alloc, arena*>::value)
+                    alloc.destroy(m_Block);
+                else
+                    m_Block->~arena();
+                alloc.deallocate(m_Block, sizeof(arena));
+            }
 		}
 
+    private:
 		arena* m_Block;
 	};
 }

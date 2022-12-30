@@ -2,11 +2,12 @@
 #include "shared/types.h"
 
 #include "ktl/allocators/list_allocator.h"
+#include "ktl/allocators/mallocator.h"
 
 namespace ktl::performance::list_allocator
 {
     template<size_t Size>
-    using AllocType = type_list_allocator<trivial_t, sizeof(trivial_t) * Size>;
+    using AllocType = type_list_allocator<trivial_t, sizeof(trivial_t) * Size, mallocator>;
 
     template<typename T, size_t Size, typename Func>
     void run_benchmark(Func func)
@@ -20,7 +21,7 @@ namespace ktl::performance::list_allocator
 
     KTL_ADD_BENCHMARK(list_allocator_init)
     {
-        type_list_allocator<trivial_t, 16384> alloc;
+        AllocType<16384> alloc;
 
         profiler::pause();
     }
@@ -30,7 +31,7 @@ namespace ktl::performance::list_allocator
         profiler::pause();
 
         {
-            type_list_allocator<trivial_t, 16384> alloc;
+            AllocType<16384> alloc;
 
             profiler::resume();
         }
