@@ -142,7 +142,7 @@ namespace ktl
 			std::memset(m_Begin, 0, n * sizeof(pair));
 		}
 
-		unordered_map(const unordered_map& other) noexcept :
+		unordered_map(const unordered_map& other) noexcept(std::is_nothrow_copy_constructible_v<pair>) :
 			m_Alloc(Traits::select_on_container_copy_construction(static_cast<PairAlloc>(other.m_Alloc))),
 			m_Begin(Traits::allocate(m_Alloc, other.capacity())),
 			m_End(m_Begin + other.capacity()),
@@ -169,7 +169,7 @@ namespace ktl
 			}
 		}
 
-		unordered_map(unordered_map&& other) noexcept :
+		unordered_map(unordered_map&& other) noexcept(std::is_nothrow_move_constructible_v<pair>) :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End),
@@ -186,7 +186,7 @@ namespace ktl
 			release();
 		}
 
-		unordered_map& operator=(const unordered_map& rhs) noexcept
+		unordered_map& operator=(const unordered_map& rhs) noexcept(std::is_nothrow_copy_assignable_v<pair>)
 		{
 			release();
 
@@ -218,7 +218,7 @@ namespace ktl
 			return *this;
 		}
 
-		unordered_map& operator=(unordered_map&& rhs) noexcept
+		unordered_map& operator=(unordered_map&& rhs) noexcept(std::is_nothrow_move_assignable_v<pair>)
 		{
 			release();
 

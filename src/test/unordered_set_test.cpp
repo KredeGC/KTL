@@ -19,7 +19,7 @@ namespace ktl::test::unordered_set
 {
     KTL_ADD_TEST(test_unordered_set_constructors)
     {
-        using Map = ktl::unordered_set<std::string>;
+        using Container = ktl::unordered_set<std::string>;
 
         constexpr size_t size = 4;
 
@@ -30,16 +30,19 @@ namespace ktl::test::unordered_set
             "A bit longer string"
         };
 
-        assert_construct_container_base<Map>(
-            [&](Map& map)
-        {
-            for (size_t i = 0; i < size; i++)
-                map.insert(values[i]);
-        },
-            [&](Map& lhs, Map& rhs)
+        assert_construct_container<Container>(
+            [&](Container& lhs, Container& rhs)
         {
             for (size_t i = 0; i < size; i++)
                 KTL_TEST_ASSERT(*lhs.find(values[i]) == values[i]);
+        }, [&]()
+        {
+            Container container;
+            
+            for (size_t i = 0; i < size; i++)
+                container.insert(values[i]);
+            
+            return container;
         });
     }
 

@@ -41,7 +41,7 @@ namespace ktl
 			std::uninitialized_fill_n<T*, size_t>(m_Begin, n, value);
 		}
 
-		explicit trivial_array(std::initializer_list<T> initializer, const Alloc& allocator = Alloc()) :
+		trivial_array(std::initializer_list<T> initializer, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, initializer.size())),
 			m_End(m_Begin + initializer.size())
@@ -64,19 +64,46 @@ namespace ktl
 			std::memcpy(m_Begin, first, n * sizeof(T));
 		}
 
-		trivial_array(const trivial_array& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
-			m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other.m_Alloc))),
+		trivial_array(const trivial_array& other) noexcept :
+			m_Alloc(Traits::select_on_container_copy_construction(other.m_Alloc)),
 			m_Begin(Traits::allocate(m_Alloc, other.size())),
 			m_End(m_Begin + other.size())
 		{
-			std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
+            if (other.m_Begin != nullptr)
+			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
 		}
 
-		trivial_array(trivial_array&& other) noexcept(std::is_nothrow_move_constructible_v<T>) :
+		trivial_array(const trivial_array& other, const Alloc& allocator) noexcept :
+			m_Alloc(allocator),
+			m_Begin(Traits::allocate(m_Alloc, other.size())),
+			m_End(m_Begin + other.size())
+		{
+            if (other.m_Begin != nullptr)
+			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
+		}
+
+		trivial_array(trivial_array&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
 			m_End(other.m_End)
 		{
+			other.m_Begin = nullptr;
+			other.m_End = nullptr;
+		}
+        
+        trivial_array(trivial_array&& other, const Alloc& allocator) noexcept :
+			m_Alloc(allocator),
+			m_Begin(Traits::allocate(m_Alloc, other.size())),
+			m_End(m_Begin + other.size())
+		{
+            // Moving using a different allocator means we can't just move, we have to reallocate
+            if (other.m_Begin != nullptr)
+            {
+                std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
+                
+                Traits::deallocate(other.m_Alloc, other.m_Begin, other.size() * sizeof(T));
+            }
+            
 			other.m_Begin = nullptr;
 			other.m_End = nullptr;
 		}
@@ -87,7 +114,7 @@ namespace ktl
 				Traits::deallocate(m_Alloc, m_Begin, size());
 		}
 
-		trivial_array& operator=(const trivial_array& other) noexcept(std::is_nothrow_copy_assignable_v<T>)
+		trivial_array& operator=(const trivial_array& other) noexcept
 		{
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, size());
@@ -105,7 +132,7 @@ namespace ktl
 			return *this;
 		}
 
-		trivial_array& operator=(trivial_array&& other) noexcept(std::is_nothrow_move_assignable_v<T>)
+		trivial_array& operator=(trivial_array&& other) noexcept
 		{
 			if (m_Begin != nullptr)
 				Traits::deallocate(m_Alloc, m_Begin, size());

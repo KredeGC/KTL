@@ -22,6 +22,7 @@ newoption {
 }
 
 require "scripts/build"
+require "scripts/test"
 
 workspace "KTL"
     architecture "x64"

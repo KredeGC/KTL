@@ -20,7 +20,7 @@ namespace ktl::test::unordered_multimap
 {
     KTL_ADD_TEST(test_unordered_multimap_constructors)
     {
-        using Map = ktl::unordered_multimap<std::string, double>;
+        using Container = ktl::unordered_multimap<std::string, double>;
 
         constexpr size_t size = 4;
 
@@ -38,16 +38,19 @@ namespace ktl::test::unordered_multimap
             10.0
         };
 
-        assert_construct_container_base<Map>(
-            [&](Map& map)
-        {
-            for (size_t i = 0; i < size; i++)
-                map.insert(keys[i], values[i]);
-        },
-            [&](Map& lhs, Map& rhs)
+        assert_construct_container<Container>(
+            [&](Container& lhs, Container& rhs)
         {
             for (size_t i = 0; i < size; i++)
                 KTL_TEST_ASSERT(lhs.find(keys[i])->second == rhs.find(keys[i])->second);
+        }, [&]()
+        {
+            Container container;
+            
+            for (size_t i = 0; i < size; i++)
+                container.insert(keys[i], values[i]);
+            
+            return container;
         });
     }
 
