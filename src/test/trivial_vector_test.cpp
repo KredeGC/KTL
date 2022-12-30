@@ -10,7 +10,7 @@
 #include "ktl/containers/trivial_vector.h"
 
 #include "ktl/allocators/linear_allocator.h"
-#include "ktl/allocators/list_allocator.h"
+#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
@@ -80,13 +80,13 @@ namespace ktl::test::trivial_vector
 
     KTL_ADD_TEST(test_trivial_vector_list_double)
     {
-        ktl::trivial_vector<double, type_list_allocator<double, 4096, mallocator>> vec;
+        ktl::trivial_vector<double, type_linked_allocator<double, 4096, mallocator>> vec;
         assert_vector_values<double>(vec);
     }
 
     KTL_ADD_TEST(test_trivial_vector_list_trivial)
     {
-        ktl::trivial_vector<trivial_t, type_list_allocator<trivial_t, 4096, mallocator>> vec;
+        ktl::trivial_vector<trivial_t, type_linked_allocator<trivial_t, 4096, mallocator>> vec;
         assert_vector_values<trivial_t>(vec);
     }
 

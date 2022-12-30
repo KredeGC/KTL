@@ -10,7 +10,7 @@
 #include "ktl/containers/trivial_array.h"
 
 #include "ktl/allocators/linear_allocator.h"
-#include "ktl/allocators/list_allocator.h"
+#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
@@ -82,14 +82,14 @@ namespace ktl::test::trivial_array
 
     KTL_ADD_TEST(test_trivial_array_list_double)
     {
-        ktl::trivial_array<double, type_list_allocator<double, 4096, mallocator>> arr;
+        ktl::trivial_array<double, type_linked_allocator<double, 4096, mallocator>> arr;
 
         assert_array_values<double>(arr);
     }
 
     KTL_ADD_TEST(test_trivial_array_list_trivial)
     {
-        ktl::trivial_array<trivial_t, type_list_allocator<trivial_t, 4096, mallocator>> arr;
+        ktl::trivial_array<trivial_t, type_linked_allocator<trivial_t, 4096, mallocator>> arr;
 
         assert_array_values<trivial_t>(arr);
     }

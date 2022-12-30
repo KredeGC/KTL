@@ -11,7 +11,7 @@ namespace ktl::test
         
         test(container, baseContainer);
         
-        if constexpr (sizeof...(Funcs))
+        if constexpr (sizeof...(Funcs) > 0)
             assert_construct_variadic(baseContainer, test, funcs...);
     }
     

@@ -8,7 +8,7 @@
 #define KTL_DEBUG_ASSERT
 #include "ktl/containers/binary_heap.h"
 
-#include "ktl/allocators/list_allocator.h"
+#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
@@ -72,25 +72,25 @@ namespace ktl::test::binary_heap
 #pragma region ktl::freelist_allocator
     KTL_ADD_TEST(test_binary_heap_list_double)
     {
-        type_list_allocator<double, 4096, mallocator> alloc;
+        type_linked_allocator<double, 4096, mallocator> alloc;
         assert_binary_heap<double>(3, alloc);
     }
 
     KTL_ADD_TEST(test_binary_heap_list_trivial)
     {
-        type_list_allocator<trivial_t, 4096, mallocator> alloc;
+        type_linked_allocator<trivial_t, 4096, mallocator> alloc;
         assert_binary_heap<trivial_t>(3, alloc);
     }
 
     KTL_ADD_TEST(test_binary_heap_list_packed)
     {
-        type_list_allocator<packed_t, 4096, mallocator> alloc;
+        type_linked_allocator<packed_t, 4096, mallocator> alloc;
         assert_binary_heap<packed_t>(3, alloc);
     }
 
     KTL_ADD_TEST(test_binary_heap_list_complex)
     {
-        type_list_allocator<complex_t, 4096, mallocator> alloc;
+        type_linked_allocator<complex_t, 4096, mallocator> alloc;
         assert_binary_heap<complex_t>(3, alloc);
     }
 #pragma endregion

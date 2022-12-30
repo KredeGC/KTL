@@ -8,7 +8,6 @@
 #define KTL_DEBUG_ASSERT
 #include "ktl/containers/unordered_set.h"
 
-#include "ktl/allocators/list_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
 

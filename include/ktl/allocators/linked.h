@@ -3,7 +3,7 @@
 #include "../utility/assert_utility.h"
 #include "../utility/alignment_utility.h"
 #include "../utility/notomic.h"
-#include "list_allocator_fwd.h"
+#include "linked_fwd.h"
 #include "type_allocator.h"
 
 #include <memory>
@@ -12,7 +12,7 @@
 namespace ktl
 {
 	template<size_t Size, typename Alloc, typename Atomic>
-	class list_allocator
+	class linked
 	{
 	private:
 		struct footer
@@ -46,7 +46,7 @@ namespace ktl
 		typedef typename get_size_type<Alloc>::type size_type;
 
 	public:
-		list_allocator(const Alloc& alloc = Alloc()) noexcept
+		linked(const Alloc& alloc = Alloc()) noexcept
 		{
             m_Block = reinterpret_cast<arena*>(const_cast<Alloc&>(alloc).allocate(sizeof(arena)));
             if constexpr (has_construct<void, Alloc, arena*, const Alloc&>::value)
@@ -55,26 +55,26 @@ namespace ktl
                 ::new(m_Block) arena(alloc);
 		}
 
-		list_allocator(const list_allocator& other) noexcept :
+		linked(const linked& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			m_Block->UseCount++;
 		}
 
-		list_allocator(list_allocator&& other) noexcept :
+		linked(linked&& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			KTL_ASSERT(other.m_Block);
 			other.m_Block = nullptr;
 		}
 
-		~list_allocator()
+		~linked()
 		{
 			if (m_Block)
 				decrement();
 		}
 
-		list_allocator& operator=(const list_allocator& rhs) noexcept
+		linked& operator=(const linked& rhs) noexcept
 		{
 			if (m_Block)
 				decrement();
@@ -85,7 +85,7 @@ namespace ktl
 			return *this;
 		}
 
-		list_allocator& operator=(list_allocator&& rhs) noexcept
+		linked& operator=(linked&& rhs) noexcept
 		{
 			if (m_Block)
 				decrement();
@@ -97,12 +97,12 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const list_allocator& rhs) const noexcept
+		bool operator==(const linked& rhs) const noexcept
 		{
 			return m_Block == rhs.m_Block;
 		}
 
-		bool operator!=(const list_allocator& rhs) const noexcept
+		bool operator!=(const linked& rhs) const noexcept
 		{
 			return m_Block != rhs.m_Block;
 		}

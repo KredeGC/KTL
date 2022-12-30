@@ -50,14 +50,14 @@ All allocators also have a typedeffed version with a `type_` prefix as a shortha
 
 | Signature | Type | Description |
 | --- | --- |--- |
-| linear_allocator<br/>\<Size\> | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than list_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
+| linear_allocator<br/>\<Size\> | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than linked_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
 | mallocator | Raw | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
 | null_allocator | Raw | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
-| stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than list_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
+| stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than linked_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
 | cascading<br/>\<Allocator\> | Composite | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one. |
 | fallback<br/>\<Primary, Fallback\> | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
 | freelist<br/>\<Min, Max, Alloc\> | Composite | Allocates using the given allocator, if the size specified is within the range of `Min` and `Max`, otherwise returns `nullptr`.<br/>When deallocating, it keeps the free memory in a linked list which can be reused on later allocations. |
-| list_allocator<br/>\<Size\> | Composite | Allocates one big chunk of memory when instantiated.<br/>Uses a linked list to determine whether a given sub-chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given. |
+| linked<br/>\<Size\> | Composite | Allocates one big chunk of memory when instantiated.<br/>Uses a linked list to determine whether a given sub-chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given.<br/>More versatile than `linear_allocator`, but also more slow on deallocation. |
 | overflow<br/>\<Allocator, std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
 | segragator<br/>\<Threshold, Primary, Fallback\> | Composite | Delegates allocation between 2 allocators based on a size threshold. |
 | type_allocator<br/>\<T, Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators STL compliant, so they can be used with STL containers. |
@@ -164,7 +164,7 @@ This library also contains various containers that are STL compliant.
 Create an allocator which will attempt to use a linked list allocator for allocation, but fall back on malloc when full.
 ```cpp
 // Create the allocator from some 16kb buffer and straight malloc
-type_fallback_allocator<double, list_allocator<16384, mallocator>, mallocator> alloc;
+type_fallback_allocator<double, linked<16384, mallocator>, mallocator> alloc;
 // Allocate and deallocate 3 doubles
 double* p1 = alloc.allocate(3);
 alloc.deallocate(p1, 3);
@@ -191,7 +191,7 @@ Create an allocator which will use a cascading pre allocator for anything less t
 ```cpp
 // Create the allocator from a combination of a cascading 8kb list allocator and malloc
 // Anything smaller than 8kb should use the cascading list allcoator, while anything larger should use malloc
-type_segragator_allocator<double, 8192, cascading_allocator<list_allocator<8192, mallocator>>, mallocator> alloc;
+type_segragator_allocator<double, 8192, cascading_allocator<linked<8192, mallocator>>, mallocator> alloc;
 // Allocate 1024 doubles
 double* p1 = alloc.allocate(1024);
 // Allocate another 1024 doubles, which should force the allocator to create a new pre allocator
@@ -207,7 +207,7 @@ alloc.deallocate(p3, 2048);
 Create an allocator which will reuse earlier allocations in a freelist.
 ```cpp
 // Create the allocator from a freelist, backed by malloc
-type_segragator_allocator<double, 16, freelist_allocator<0, 16, mallocator>, mallocator> alloc;
+type_segragator_allocator<double, 16, freelinked<0, 16, mallocator>, mallocator> alloc;
 // Allocate 1 double and deallocate, so that it ends up in the freelist
 double* p1 = alloc.allocate(1);
 alloc.deallocate(p1, 1);

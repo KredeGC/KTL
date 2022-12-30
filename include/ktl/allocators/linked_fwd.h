@@ -12,12 +12,12 @@ namespace ktl
     template<typename T>
     struct notomic;
     
-    // list_allocator
+    // linked
 	template<size_t Size, typename Alloc, typename Atomic = notomic<size_t>>
-	class list_allocator;
+	class linked;
 
 	template<typename T, size_t Size, typename Alloc, typename Atomic = notomic<size_t>>
-	using type_list_allocator = type_allocator<T, list_allocator<Size, Alloc, Atomic>>;
+	using type_linked_allocator = type_allocator<T, linked<Size, Alloc, Atomic>>;
     
     // get minimum size of linked list allocator
     template<size_t Size, typename Alloc, typename Atomic = notomic<size_t>>
