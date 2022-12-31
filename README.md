@@ -187,14 +187,14 @@ double* p = alloc.allocate(1);
 alloc.deallocate(p, 1);
 ```
 
-Create an allocator which will use a cascading pre allocator for anything less than 8kb and malloc for anything above.
+Create an allocator which will use a cascading list allocator for anything less than 8kb and malloc for anything larger.
 ```cpp
 // Create the allocator from a combination of a cascading 8kb list allocator and malloc
 // Anything smaller than 8kb should use the cascading list allcoator, while anything larger should use malloc
 type_segragator_allocator<double, 8192, cascading_allocator<linked<8192, mallocator>>, mallocator> alloc;
 // Allocate 1024 doubles
 double* p1 = alloc.allocate(1024);
-// Allocate another 1024 doubles, which should force the allocator to create a new pre allocator
+// Allocate another 1024 doubles, which should force the allocator to create a new list allocator
 double* p2 = alloc.allocate(1024);
 // Allocate 2048 doubles, which should use malloc instead
 double* p3 = alloc.allocate(2048);
@@ -217,6 +217,37 @@ alloc.deallocate(p2, 2);
 // Allocate 4 doubles, which should be handled by the backup malloc
 double* p3 = alloc.allocate(4);
 alloc.deallocate(p3, 4);
+```
+
+Create a non-typed allocator with many freelists of different sizes, backed by malloc for anything larger.
+```cpp
+// Just a shorthand for writing freelists
+template<size_t Max>
+using FList = freelist<0, Max, mallocator>;
+// Create the allocator from various thresholded freelists, backed by a cascading linear allocator and malloc
+using Alloc = segragator_builder_t<
+    FList<8>,
+    threshold<8>,
+    FList<128>,
+    threshold<128>,
+    FList<512>,
+    threshold<512>,
+    FList<1024>,
+    threshold<1024>,
+    cascading<linear_allocator<4096>>,
+    threshold<4096>,
+    mallocator>;
+
+Alloc alloc;
+// Allocate and deallocate 256 bytes, which should use the third freelist
+void* p1 = alloc.allocate(256);
+alloc.deallocate(p1, 256);
+// Allocate and deallocate 256 bytes, which should reuse the previous allocation
+void* p2 = alloc.allocate(256);
+alloc.deallocate(p2, 256);
+// Allocate and deallocate 1024 bytes, which should use the fifth freelist
+void* p3 = alloc.allocate(1024);
+alloc.deallocate(p3, 1024);
 ```
 
 # Building and running tests

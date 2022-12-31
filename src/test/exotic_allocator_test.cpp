@@ -8,6 +8,7 @@
 #include "ktl/allocators/cascading.h"
 #include "ktl/allocators/fallback.h"
 #include "ktl/allocators/freelist.h"
+#include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/overflow.h"
@@ -97,6 +98,41 @@ namespace ktl::test::exotic_allocator
         double* p3 = alloc.allocate(4);
         alloc.deallocate(p3, 4);
 
+        KTL_TEST_ASSERT(p1 == p2);
+        KTL_TEST_ASSERT(p2 != p3);
+    }
+    
+    // Just a shorthand for writing freelists
+    template<size_t Max>
+    using FList = freelist<0, Max, mallocator>;
+    
+    KTL_ADD_TEST(test_exotic_allocator_5)
+    {
+        // Create the allocator from various thresholded freelists, backed by a cascading linear allocator and malloc
+        using Alloc = segragator_builder_t<
+            FList<8>,
+            threshold<8>,
+            FList<128>,
+            threshold<128>,
+            FList<512>,
+            threshold<512>,
+            FList<1024>,
+            threshold<1024>,
+            cascading<linear_allocator<4096>>,
+            threshold<4096>,
+            mallocator>;
+        
+        Alloc alloc;
+        // Allocate and deallocate 256 bytes, which should use the third freelist
+        void* p1 = alloc.allocate(256);
+        alloc.deallocate(p1, 256);
+        // Allocate and deallocate 256 bytes, which should reuse the previous allocation
+        void* p2 = alloc.allocate(256);
+        alloc.deallocate(p2, 256);
+        // Allocate and deallocate 1024 bytes, which should use the fifth freelist
+        void* p3 = alloc.allocate(1024);
+        alloc.deallocate(p3, 1024);
+        
         KTL_TEST_ASSERT(p1 == p2);
         KTL_TEST_ASSERT(p2 != p3);
     }
