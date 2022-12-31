@@ -40,7 +40,7 @@ namespace ktl
 #pragma endregion
 
 #pragma region Utility
-		bool owns(void* p)
+		bool owns(void* p) const
 		{
 			return p == nullptr;
 		}

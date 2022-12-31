@@ -129,9 +129,9 @@ namespace ktl::test::exotic_allocator
         // Allocate and deallocate 256 bytes, which should reuse the previous allocation
         void* p2 = alloc.allocate(256);
         alloc.deallocate(p2, 256);
-        // Allocate and deallocate 1024 bytes, which should use the fifth freelist
-        void* p3 = alloc.allocate(1024);
-        alloc.deallocate(p3, 1024);
+        // Allocate and deallocate 2048 bytes, which should use the cascading linear allocator
+        void* p3 = alloc.allocate(2048);
+        alloc.deallocate(p3, 2048);
         
         KTL_TEST_ASSERT(p1 == p2);
         KTL_TEST_ASSERT(p2 != p3);

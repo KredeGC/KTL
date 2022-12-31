@@ -207,7 +207,7 @@ alloc.deallocate(p3, 2048);
 Create an allocator which will reuse earlier allocations in a freelist.
 ```cpp
 // Create the allocator from a freelist, backed by malloc
-type_segragator_allocator<double, 16, freelinked<0, 16, mallocator>, mallocator> alloc;
+type_segragator_allocator<double, 16, freelist<0, 16, mallocator>, mallocator> alloc;
 // Allocate 1 double and deallocate, so that it ends up in the freelist
 double* p1 = alloc.allocate(1);
 alloc.deallocate(p1, 1);

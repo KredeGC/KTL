@@ -133,7 +133,7 @@ namespace ktl
 
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<has_owns<Primary>::value && has_owns<Fallback>::value, bool>::type
-		owns(void* p)
+		owns(void* p) const
 		{
 			if (m_Primary.owns(p))
 				return true;

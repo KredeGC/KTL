@@ -89,7 +89,7 @@ namespace ktl
 
 		template<typename A = Alloc>
 		typename std::enable_if<has_owns<A>::value, bool>::type
-		owns(value_type* p)
+		owns(value_type* p) const
 		{
 			return m_Alloc.owns(reinterpret_cast<value_type*>(p));
 		}

@@ -48,7 +48,7 @@ namespace ktl::test
         test(moveAssignmentContainer, baseContainer);
         
         // Run any additional construct tests
-        if constexpr (sizeof...(Funcs))
+        if constexpr (sizeof...(Funcs) > 0)
             assert_construct_variadic(baseContainer, test, funcs...);
     }
 }

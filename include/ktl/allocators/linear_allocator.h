@@ -124,7 +124,7 @@ namespace ktl
 			return Size;
 		}
 
-		bool owns(void* p)
+		bool owns(void* p) const
 		{
 			char* ptr = reinterpret_cast<char*>(p);
 			return ptr >= m_Block->Data && ptr < m_Block->Data + Size;

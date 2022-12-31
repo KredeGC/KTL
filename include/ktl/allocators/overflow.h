@@ -183,7 +183,7 @@ namespace ktl
 
 		template<typename A = Alloc>
 		typename std::enable_if<has_owns<A>::value, bool>::type
-		owns(void* p)
+		owns(void* p) const
 		{
 			return m_Stats->Allocator.owns(p);
 		}

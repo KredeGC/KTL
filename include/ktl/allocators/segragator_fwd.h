@@ -19,16 +19,16 @@ namespace ktl
     template<typename ...Args>
     struct segragator_builder;
     
-    template<typename P, typename Threshold, typename F>
-    struct segragator_builder<P, Threshold, F>
+    template<typename Primary, typename Threshold, typename Fallback>
+    struct segragator_builder<Primary, Threshold, Fallback>
     {
-        using type = typename ktl::segragator<Threshold::value, P, F>;
+        using type = typename ktl::segragator<Threshold::value, Primary, Fallback>;
     };
     
-    template<typename P, typename Threshold, typename ...Args>
-    struct segragator_builder<P, Threshold, Args...>
+    template<typename Alloc, typename Threshold, typename ...Args>
+    struct segragator_builder<Alloc, Threshold, Args...>
     {
-        using type = typename ktl::segragator<Threshold::value, P, typename segragator_builder<Args...>::type>;
+        using type = typename ktl::segragator<Threshold::value, Alloc, typename segragator_builder<Args...>::type>;
     };
     
     template<typename ...Args>

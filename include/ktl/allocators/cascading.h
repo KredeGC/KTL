@@ -204,7 +204,7 @@ namespace ktl
 			return m_Block->Node->Allocator.max_size();
 		}
 
-		bool owns(void* p)
+		bool owns(void* p) const
 		{
 			node* next = m_Block->Node;
 			while (next)
