@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <tuple>
+#include <utility>
 
 namespace ktl
 {
@@ -65,7 +67,7 @@ namespace ktl
     template<class... Ts>
     struct tuple_half<std::tuple<Ts...>>
     {
-        using threshold = typename std::tuple_element<sizeof...(Ts) / 2, std::tuple<Ts...>>::type;
+        using threshold = typename std::tuple_element_t<sizeof...(Ts) / 2, std::tuple<Ts...>>;
 
         using split = half_half<
             std::make_index_sequence<sizeof...(Ts) / 2>,
