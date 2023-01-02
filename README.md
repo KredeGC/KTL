@@ -5,8 +5,8 @@
 ![Linux supported](https://img.shields.io/badge/Linux-Ubuntu-green?style=flat-square)
 ![MacOS untested](https://img.shields.io/badge/MacOS-Untested-red?style=flat-square)
 
-A library containing various composite memory allocators and containers.<br/>
-Mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=LIb3L4vKZ7U).
+A C++ library containing various composite memory allocators and containers.<br/>
+Allocators are mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=LIb3L4vKZ7U).
 
 [![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases)
 [![License](https://img.shields.io/github/license/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/blob/master/LICENSE)
@@ -19,10 +19,11 @@ Mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=
 The interface is currently not in a stable state, so expect changes between updates to cause some disruption, as functions or types may not exist between versions.
 In addition, most allocators presented are not thread-safe.
 For now thread safety is not on the roadmap as it would degrade performance on single-threaded applications.
-The library itself is fairly stable but should not be expected to be used in a production environment for the time being.
+The functionality itself is fairly stable but should not be expected to be used in a production environment for the time being.
 
 # Table of Content
 * [Installation](#installation)
+* [Usage](#usage)
 * [Allocators](#allocators)
 * [Allocator Interface](#allocator-interface)
 * [Containers](#containers)
@@ -36,8 +37,20 @@ The library itself is fairly stable but should not be expected to be used in a p
 
 # Installation
 As this is a header-only library, you can simply copy the header files directly into your project.
-The header files can either be downloaded from the [release page](https://github.com/KredeGC/KTL/releases) or from the [`include/`](https://github.com/KredeGC/KTL/tree/master/include/ktl) directory on the master branch.
+The header files can either be downloaded from the [releases page](https://github.com/KredeGC/KTL/releases) or from the [`include/`](https://github.com/KredeGC/KTL/tree/master/include/ktl) directory on the master branch.
 The source and header files inside the `src/` directory are only tests and should not be included into your project.
+
+# Usage
+This library was made with C++17 in mind and may or may not be compatible with earlier versions.
+The library has 3 main files that you can include into your application.
+* [`ktl/ktl.h`](https://github.com/KredeGC/KTL/tree/master/include/ktl/ktl.h) - Includes everything into this translation unit
+* [`ktl/ktl_alloc_fwd.h`](https://github.com/KredeGC/KTL/tree/master/include/ktl/ktl_alloc_fwd.h) - Includes forward declarations for all the allocators
+* [`ktl/ktl_container_fwd.h`](https://github.com/KredeGC/KTL/tree/master/include/ktl/ktl_container_fwd.h) - Includes forward declarations for all the containers
+
+If you only need a specific allocator, container or forward declaration, you can simply include the ones you need. Forward declaration files are postfixed with `_fwd` in their name.
+Allocators and containers are separated into the [`allocators/`](https://github.com/KredeGC/KTL/tree/master/include/ktl/allocators) and [`containers/`](https://github.com/KredeGC/KTL/tree/master/include/ktl/containers) directories.
+
+For more information about a specific type, you can look in the interface descriptions below or look up the source code or tests. You can also look at the examples in [Allocator examples](#allocator-examples).
 
 # Allocators
 This library contains 2 different types of allocators:
