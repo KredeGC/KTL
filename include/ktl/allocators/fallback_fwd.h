@@ -22,13 +22,13 @@ namespace ktl
     template<typename Primary, typename Fallback>
     struct fallback_builder<Primary, Fallback>
     {
-        using type = typename fallback<Primary, Fallback>;
+        using type = fallback<Primary, Fallback>;
     };
     
     template<typename Alloc, typename ...Args>
     struct fallback_builder<Alloc, Args...>
     {
-        using type = typename fallback<Alloc, typename fallback_builder<Args...>::type>;
+        using type = fallback<Alloc, typename fallback_builder<Args...>::type>;
     };
     
     template<typename ...Args>

@@ -22,13 +22,13 @@ namespace ktl
     template<typename Primary, typename Threshold, typename Fallback>
     struct segragator_builder<Primary, Threshold, Fallback>
     {
-        using type = typename segragator<Threshold::value, Primary, Fallback>;
+        using type = segragator<Threshold::value, Primary, Fallback>;
     };
     
     template<typename Alloc, typename Threshold, typename ...Args>
     struct segragator_builder<Alloc, Threshold, Args...>
     {
-        using type = typename segragator<Threshold::value, Alloc, typename segragator_builder<Args...>::type>;
+        using type = segragator<Threshold::value, Alloc, typename segragator_builder<Args...>::type>;
     };
     
     template<typename ...Args>
@@ -38,23 +38,6 @@ namespace ktl
     using threshold = std::integral_constant<size_t, N>;
 
 
-    // Test
-    template<size_t N, typename ...Args>
-    struct variadic_segragator;
-
-    template<size_t N, typename Primary, typename Threshold, typename Fallback>
-    struct variadic_segragator<N, Primary, Threshold, Fallback>
-    {
-        using type = typename segragator<Threshold::value, Primary, Fallback>;
-    };
-
-    template<size_t N, typename Primary, typename Threshold, typename Fallback, typename ...Args>
-    struct variadic_segragator<N, Primary, Threshold, Fallback, Args...>
-    {
-        using type = typename std::conditional_t<sizeof...(Args) == N, typename segragator<Threshold::value, Primary, Fallback>, typename variadic_segragator<N, Threshold, Fallback, Args...>::type>;
-    };
-
-
 
     template <class, class, class>
     struct half_half;
@@ -62,9 +45,9 @@ namespace ktl
     template <std::size_t... N, std::size_t... M, class T>
     struct half_half<std::index_sequence<N...>, std::index_sequence<M...>, T>
     {
-        using first = std::tuple<typename std::tuple_element_t<N, T>::type...>;
+        using first = std::tuple<typename std::tuple_element_t<N, T>...>;
 
-        using second = std::tuple<typename std::tuple_element_t<M + 1 + sizeof...(N), T>::type...>;
+        using second = std::tuple<typename std::tuple_element_t<M + 1 + sizeof...(N), T>...>;
     };
 
 
@@ -84,16 +67,16 @@ namespace ktl
     {
         using threshold = typename std::tuple_element<sizeof...(Ts) / 2, std::tuple<Ts...>>::type;
 
-        using split = typename half_half<
+        using split = half_half<
             std::make_index_sequence<sizeof...(Ts) / 2>,
             std::make_index_sequence<sizeof...(Ts) / 2>,
-            std::tuple<std::enable_if<1, Ts>...>>;
+            std::tuple<Ts...>>;
 
-        using first = typename tuple_half<typename split::first>::type;
+        using first = tuple_half<typename split::first>::type;
 
-        using second = typename tuple_half<typename split::second>::type;
+        using second = tuple_half<typename split::second>::type;
 
-        using type = typename segragator<threshold::value, first, second>;
+        using type = segragator<threshold::value, first, second>;
     };
 
     template<class... Ts>
