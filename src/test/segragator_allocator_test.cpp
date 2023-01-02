@@ -60,7 +60,10 @@ namespace ktl::test::segragator_allocator
                     linear_allocator<8192>>>,
             mallocator>;
 
-        Alloc3 allocator;
+        Alloc1 alloc1;
+        Alloc2 alloc2;
+        Alloc3 alloc3;
+        Alloc4 alloc4;
         
         static_assert(!std::is_same_v<Alloc1, Alloc2>, "The allocator types shouldn't match");
         static_assert(std::is_same_v<Alloc3, Alloc4>, "The allocator types don't match");

@@ -30,6 +30,9 @@ namespace ktl::test::fallback_allocator
                 fallback<
                     linear_allocator<4096>,
                     mallocator>>>;
+
+        Alloc1 alloc1;
+        Alloc2 alloc2;
         
         static_assert(std::is_same_v<Alloc1, Alloc2>, "The allocator types don't match");
     }

@@ -15,22 +15,25 @@ namespace ktl
 	template<typename T, typename P, typename F>
 	using type_fallback_allocator = type_allocator<T, fallback<P, F>>;
     
-    // variadic builder
-    template<typename ...Args>
-    struct fallback_builder;
-    
-    template<typename Primary, typename Fallback>
-    struct fallback_builder<Primary, Fallback>
+    namespace detail
     {
-        using type = fallback<Primary, Fallback>;
-    };
+        // Recursive helper struct for generating the fallback type
+        template<typename ...Ts>
+        struct fallback_builder;
+
+        template<typename Primary, typename Fallback>
+        struct fallback_builder<Primary, Fallback>
+        {
+            using type = fallback<Primary, Fallback>;
+        };
+
+        template<typename Alloc, typename ...Ts>
+        struct fallback_builder<Alloc, Ts...>
+        {
+            using type = fallback<Alloc, typename fallback_builder<Ts...>::type>;
+        };
+    }
     
-    template<typename Alloc, typename ...Args>
-    struct fallback_builder<Alloc, Args...>
-    {
-        using type = fallback<Alloc, typename fallback_builder<Args...>::type>;
-    };
-    
-    template<typename ...Args>
-    using fallback_builder_t = typename fallback_builder<Args...>::type;
+    template<typename ...Ts>
+    using fallback_builder_t = typename detail::fallback_builder<Ts...>::type;
 }
