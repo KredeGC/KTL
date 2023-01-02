@@ -58,7 +58,7 @@ namespace ktl
     template<typename Primary, typename Threshold, typename Secondary>
     struct tuple_half<std::tuple<Primary, Threshold, Secondary>>
     {
-        using type = typename segragator<Threshold::value, Primary, Secondary>;
+        using type = segragator<Threshold::value, Primary, Secondary>;
     };
 
     // Takes in a tuple of types
@@ -72,9 +72,9 @@ namespace ktl
             std::make_index_sequence<sizeof...(Ts) / 2>,
             std::tuple<Ts...>>;
 
-        using first = tuple_half<typename split::first>::type;
+        using first = typename tuple_half<typename split::first>::type;
 
-        using second = tuple_half<typename split::second>::type;
+        using second = typename tuple_half<typename split::second>::type;
 
         using type = segragator<threshold::value, first, second>;
     };
