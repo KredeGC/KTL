@@ -19,16 +19,16 @@ namespace ktl
     template<typename ...Args>
     struct fallback_builder;
     
-    template<typename P, typename F>
-    struct fallback_builder<P, F>
+    template<typename Primary, typename Fallback>
+    struct fallback_builder<Primary, Fallback>
     {
-        using type = typename ktl::fallback<P, F>;
+        using type = typename fallback<Primary, Fallback>;
     };
     
-    template<typename P, typename ...Args>
-    struct fallback_builder<P, Args...>
+    template<typename Alloc, typename ...Args>
+    struct fallback_builder<Alloc, Args...>
     {
-        using type = typename ktl::fallback<P, typename fallback_builder<Args...>::type>;
+        using type = typename fallback<Alloc, typename fallback_builder<Args...>::type>;
     };
     
     template<typename ...Args>

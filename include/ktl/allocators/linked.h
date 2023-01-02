@@ -15,6 +15,12 @@ namespace ktl
 	class linked
 	{
 	private:
+		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+
+	public:
+		typedef typename get_size_type<Alloc>::type size_type;
+
+	private:
 		struct footer
 		{
 			size_t AvailableSpace;
@@ -41,9 +47,6 @@ namespace ktl
 				Guess = Free;
 			}
 		};
-
-	public:
-		typedef typename get_size_type<Alloc>::type size_type;
 
 	public:
 		linked(const Alloc& alloc = Alloc()) noexcept

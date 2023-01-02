@@ -44,7 +44,7 @@ namespace ktl
         
         T fetch_sub(T value, std::memory_order order = std::memory_order_seq_cst ) noexcept
         {
-            return m_Value++;
+            return m_Value--;
         }
         
     private:

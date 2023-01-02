@@ -10,10 +10,10 @@ namespace ktl
 	template<typename T, typename Alloc>
 	class type_allocator
 	{
+	private:
 		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(!std::is_const<T>::value, "Using an allocator of const T is ill-formed");
 
-	private:
 		template<typename U, typename A>
 		friend class type_allocator;
 
