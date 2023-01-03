@@ -29,7 +29,7 @@ namespace ktl::test::segragator_allocator
             mallocator>;
         
         // This allocator might use up to 3 comparisons, since the tree isn't complete
-        using Alloc2 = ktl::segragator<8,
+        using Alloc2 = segragator<8,
             linear_allocator<1024>,
             segragator<16,
                 linear_allocator<2048>,
@@ -50,20 +50,25 @@ namespace ktl::test::segragator_allocator
             mallocator>;
 
         // Same allocator as above, but written manually, where you can see the tree structure
-        using Alloc4 = segragator<48,
-            segragator<16,
-                segragator<8,
-                    linear_allocator<1024>,
-                    linear_allocator<2048>>,
-                segragator<32,
-                    linear_allocator<4096>,
-                    linear_allocator<8192>>>,
-            mallocator>;
+        using Alloc4 = segragator<8,
+            linear_allocator<1024>,
+            segragator<32,
+                segragator<16,
+                    linear_allocator<2048>,
+                    linear_allocator<4096>>,
+                segragator<48,
+                    linear_allocator<8192>,
+                    mallocator>>>;
 
         Alloc1 alloc1;
         Alloc2 alloc2;
         Alloc3 alloc3;
         Alloc4 alloc4;
+
+        static_assert(has_no_value_type<Alloc1>::value);
+        static_assert(has_no_value_type<Alloc2>::value);
+        static_assert(has_no_value_type<Alloc3>::value);
+        static_assert(has_no_value_type<Alloc4>::value);
         
         static_assert(!std::is_same_v<Alloc1, Alloc2>, "The allocator types shouldn't match");
         static_assert(std::is_same_v<Alloc3, Alloc4>, "The allocator types don't match");
