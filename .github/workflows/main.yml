@@ -11,29 +11,27 @@ jobs:
     strategy:
       matrix:
         config: [debug, release]
-        architecture: [x86_64]
         machine:
         - host: linux
           os: ubuntu-latest
           action: gmake2
           toolset: gcc
-          extension:
         - host: linux
           os: ubuntu-latest
           action: gmake2
           toolset: clang
-          extension:
         - host: windows
           os: windows-latest
           action: vs2019
           toolset: msc
-          extension: .exe
     runs-on: ${{ matrix.machine.os }}
+    permissions:
+      security-events: write
     steps:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Setup premake
-      uses: abel0b/setup-premake@v2.1
+      uses: abel0b/setup-premake@v2.2
       with:
         version: "5.0.0-beta1"
     - name: Install GCC
@@ -47,7 +45,13 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: Run premake
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }}
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: cpp
     - name: Build
       run: premake5 build --config=${{ matrix.config }}
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
     - name: Run test
-      run: bin/${{ matrix.config }}-${{ matrix.machine.host }}-${{ matrix.architecture }}/Test${{ matrix.machine.extension }}
+      run: premake5 test --config=${{ matrix.config }}
