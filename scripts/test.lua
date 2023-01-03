@@ -12,7 +12,7 @@ if not p.modules.test then
             local res,msg,sig;
             
             if (os.host() == "windows") then
-                res,msg,sig = os.execute("bin/".._OPTIONS["config"].."-windows-x86_64/Test.exe")
+                res,msg,sig = os.execute("bin\\".._OPTIONS["config"].."-windows-x86_64\\Test.exe")
             else
                 res,msg,sig = os.execute("bin/".._OPTIONS["config"].."-linux-x86_64/Test")
             end
