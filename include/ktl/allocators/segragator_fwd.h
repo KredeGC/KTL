@@ -90,7 +90,7 @@ namespace ktl
 
             // The middle of the parameter pack is the root of a complete binary tree
             // The root of a complete binary tree is (2^(log2(N)) - 1) / 2
-            using middle = typename size_invert<R, (pow2<sizeof...(Ts)>::Result - 1) / 2, sizeof...(Ts)>;
+            using middle = size_invert<R, (pow2<sizeof...(Ts)>::Result - 1) / 2, sizeof...(Ts)>;
 
             // Split the parameter pack into 2 tuples
             using split = tuple_split_indices<
