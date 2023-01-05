@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utility/assert_utility.h"
+#include "../utility/assert.h"
 
 namespace ktl
 {

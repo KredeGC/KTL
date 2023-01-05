@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utility/assert_utility.h"
+#include "../utility/assert.h"
 #include "trivial_vector_fwd.h"
 
 #include <cstring>

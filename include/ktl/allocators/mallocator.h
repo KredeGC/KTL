@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../utility/alignment_malloc.h"
-#include "../utility/alignment_utility.h"
+#include "../utility/aligned_malloc.h"
+#include "../utility/alignment.h"
 #include "mallocator_fwd.h"
 #include "type_allocator.h"
 

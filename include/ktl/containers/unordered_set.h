@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../utility/assert_utility.h"
-#include "../utility/hashing_utility.h"
+#include "../utility/assert.h"
+#include "../utility/hashing.h"
 #include "unordered_set_fwd.h"
 
 #include <algorithm>
@@ -244,7 +244,7 @@ namespace ktl
 
 		void reserve(size_t size)
 		{
-			size_t n = size_pow2(size);
+			size_t n = detail::size_pow2(size);
 
 			if (capacity() < n)
 				set_size(n);
@@ -411,7 +411,7 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offset(h, counter++, mask);
+				block = begin + detail::hash_collision_offset(h, counter++, mask);
 
 				// Increment while occupied and not dead, continue
 				// Since we are looking for empty slots, we can reuse dead ones
@@ -429,7 +429,7 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offset(h, counter++, mask);
+				block = begin + detail::hash_collision_offset(h, counter++, mask);
 
 				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it

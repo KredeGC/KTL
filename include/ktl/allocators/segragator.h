@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utility/meta_template.h"
+#include "../utility/meta.h"
 #include "segragator_fwd.h"
 #include "type_allocator.h"
 

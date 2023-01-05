@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utility/alignment_utility.h"
+#include "../utility/alignment.h"
 #include "stack_allocator_fwd.h"
 #include "type_allocator.h"
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../utility/assert_utility.h"
-#include "../utility/alignment_utility.h"
+#include "../utility/assert.h"
+#include "../utility/alignment.h"
 #include "../utility/notomic.h"
 #include "linear_allocator_fwd.h"
 #include "type_allocator.h"

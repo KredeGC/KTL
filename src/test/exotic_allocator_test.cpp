@@ -109,7 +109,7 @@ namespace ktl::test::exotic_allocator
     KTL_ADD_TEST(test_exotic_allocator_5)
     {
         // Create the allocator from various thresholded freelists, backed by a cascading linear allocator and malloc
-        using Alloc = segragator_builder_r<
+        using Alloc = segragator_builder_max<
             FList<8>,
             threshold<8>,
             FList<128>,

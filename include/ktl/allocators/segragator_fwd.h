@@ -1,8 +1,9 @@
 #pragma once
 
+#include "../utility/builder.h"
+
 #include <cstddef>
 #include <tuple>
-#include <utility>
 
 namespace ktl
 {
@@ -19,60 +20,8 @@ namespace ktl
 
     namespace detail
     {
-        // Helper struct for getting the closest power of 2
-        template<size_t N>
-        struct pow2
-        {
-            enum : size_t
-            {
-                A = N - 1,
-                B = A | (A >> 1),
-                C = B | (B >> 2),
-                D = C | (C >> 4),
-                E = D | (D >> 8),
-                F = E | (E >> 16),
-                G = F | (F >> 32),
-                Result = G + 1
-            };
-        };
-
-
-        // Helper struct for splitting a tuple based on indices
-        template<typename, typename, typename>
-        struct tuple_split_indices;
-
-        template<size_t... N, size_t... M, typename... T>
-        struct tuple_split_indices<std::index_sequence<N...>, std::index_sequence<M...>, std::tuple<T...>>
-        {
-            // The middle point is at sizeof...(N)
-            using first = std::tuple<typename std::tuple_element_t<N, std::tuple<T...>>...>;
-
-            // Offset by N + 1, since we don't include the middle type
-            using second = std::tuple<typename std::tuple_element_t<M + 1 + sizeof...(N), std::tuple<T...>>...>;
-        };
-
-
-        // Helper struct for inverting sizes
-        template<bool, size_t, size_t>
-        struct size_invert;
-
-        template<size_t N, size_t M>
-        struct size_invert<false, N, M>
-        {
-            static constexpr size_t first = N;
-            static constexpr size_t second = M - 1 - N;
-        };
-
-        template<size_t N, size_t M>
-        struct size_invert<true, N, M>
-        {
-            static constexpr size_t first = M - 1 - N;
-            static constexpr size_t second = N;
-        };
-
-
         // Recursive helper struct for generating the segragator type
-        template<bool, typename...>
+        template<bool, typename>
         struct segragator_builder;
 
         // When a single type remains, just return it
@@ -90,10 +39,12 @@ namespace ktl
 
             // The middle of the parameter pack is the root of a complete binary tree
             // The root of a complete binary tree is (2^(log2(N)) - 1) / 2
-            using middle = size_invert<R, (pow2<sizeof...(Ts)>::Result - 1) / 2, sizeof...(Ts)>;
+            using middle = size_invert<R,
+                (pow2<sizeof...(Ts)>::Result - 1) / 2,
+                sizeof...(Ts) - 1>;
 
             // Split the parameter pack into 2 tuples
-            using split = tuple_split_indices<
+            using split = tuple_split_indices<1, // Offset by 1, since we don't want the middle
                 std::make_index_sequence<middle::first>, // Up to, but not including the middle threshold
                 std::make_index_sequence<middle::second>, // Anything after the middle threshold
                 std::tuple<Ts...>>;
@@ -111,10 +62,10 @@ namespace ktl
 
     // Helper type without the tuple
     template<typename ...Ts>
-    using segragator_builder_l = typename detail::segragator_builder<false, std::tuple<Ts...>>::type;
+    using segragator_builder_min = typename detail::segragator_builder<false, std::tuple<Ts...>>::type;
 
     template<typename ...Ts>
-    using segragator_builder_r = typename detail::segragator_builder<true, std::tuple<Ts...>>::type;
+    using segragator_builder_max = typename detail::segragator_builder<true, std::tuple<Ts...>>::type;
 
     template<size_t N>
     using threshold = std::integral_constant<size_t, N>;

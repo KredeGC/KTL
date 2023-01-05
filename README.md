@@ -240,7 +240,7 @@ Create a non-typed allocator with many freelists of different sizes, backed by m
 template<size_t Max>
 using FList = freelist<0, Max, mallocator>;
 // Create the allocator from various thresholded freelists, backed by a cascading linear allocator and malloc
-using Alloc = segragator_builder_t<
+using Alloc = segragator_builder_max<
     FList<8>,
     threshold<8>,
     FList<128>,
@@ -276,8 +276,11 @@ premake5 vs2019 --toolset=msc
 ```
 
 Afterwards the tests can be built using the command below:
-```
+```bash
 premake5 build --config=(release | debug)
 ```
 
-The built binary can then be found in `bin/{{config}}-{{platform}}-{{architecture}}`.
+You can also run the tests using the command below, or simply run the binary located in `bin/{{config}}-{{platform}}-{{architecture}}`:
+```bash
+premake5 test --config=(release | debug)
+```

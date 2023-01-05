@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../utility/assert_utility.h"
-#include "../utility/hashing_utility.h"
+#include "../utility/assert.h"
+#include "../utility/hashing.h"
 #include "unordered_multimap_fwd.h"
 
 #include <algorithm>
@@ -63,7 +63,7 @@ namespace ktl
 				m_Current(current),
 				m_End(end)
 			{
-				while (m_Current != m_End && !flag_occupied_alive(m_Current->Flags))
+				while (m_Current != m_End && !detail::flag_occupied_alive(m_Current->Flags))
 					m_Current++;
 			}
 
@@ -73,7 +73,7 @@ namespace ktl
 				{
 					m_Current++;
 
-				} while (m_Current != m_End && !flag_occupied_alive(m_Current->Flags));
+				} while (m_Current != m_End && !detail::flag_occupied_alive(m_Current->Flags));
 
 				return *this;
 			}
@@ -145,10 +145,10 @@ namespace ktl
 					m_Current = m_Begin + (offset & m_SizeMask);
 
 					// Probe while dead or key mismatch
-				} while (start != m_Current && flag_occupied(m_Current->Flags) && (flag_dead(m_Current->Flags) || !Equals()(m_Current->Key, key)));
+				} while (start != m_Current && detail::flag_occupied(m_Current->Flags) && (detail::flag_dead(m_Current->Flags) || !Equals()(m_Current->Key, key)));
 
 				// If we've tried every combination or the next element is unoccupied
-				if (start == m_Current || !flag_occupied(m_Current->Flags))
+				if (start == m_Current || !detail::flag_occupied(m_Current->Flags))
 					m_Current = nullptr;
 
 				return *this;
@@ -216,7 +216,7 @@ namespace ktl
 			m_Count(0),
 			m_Mask(0)
 		{
-			size_t n = size_pow2(size);
+			size_t n = detail::size_pow2(size);
 
 			m_Begin = Traits::allocate(m_Alloc, n);
 			m_End = m_Begin + n;
@@ -239,12 +239,12 @@ namespace ktl
 				pair* block = other.m_Begin + i;
 
 				// Only copy occupied slots
-				if (flag_occupied(block->Flags))
+				if (detail::flag_occupied(block->Flags))
 				{
 					pair* dest = m_Begin + i;
 
 					// Copy construct if not dead
-					if (!flag_dead(block->Flags))
+					if (!detail::flag_dead(block->Flags))
 						Traits::construct(m_Alloc, dest, *block);
 
 					dest->Flags = block->Flags;
@@ -286,12 +286,12 @@ namespace ktl
 				pair* block = rhs.m_Begin + i;
 
 				// Only copy occupied slots
-				if (flag_occupied(block->Flags))
+				if (detail::flag_occupied(block->Flags))
 				{
 					pair* dest = m_Begin + i;
 
 					// Copy construct if not dead
-					if (!flag_dead(block->Flags))
+					if (!detail::flag_dead(block->Flags))
 						Traits::construct(m_Alloc, dest, *block);
 
 					dest->Flags = block->Flags;
@@ -342,7 +342,7 @@ namespace ktl
 
 		void reserve(size_t size)
 		{
-			size_t n = size_pow2(size);
+			size_t n = detail::size_pow2(size);
 
 			if (capacity() < n)
 				set_size(n);
@@ -353,7 +353,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// Assert that the value exists
-			KTL_ASSERT(flag_occupied_alive(block->Flags));
+			KTL_ASSERT(detail::flag_occupied_alive(block->Flags));
 
 			return block->Value;
 		}
@@ -379,7 +379,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
-			if (block != m_End && flag_occupied_alive(block->Flags))
+			if (block != m_End && detail::flag_occupied_alive(block->Flags))
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -396,7 +396,7 @@ namespace ktl
 			pair* block = iter.m_Current;
 
 			// If occupied and not dead
-			if (flag_occupied_alive(block->Flags))
+			if (detail::flag_occupied_alive(block->Flags))
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -413,7 +413,7 @@ namespace ktl
 			K index = std::move(block->Key);
 
 			// If occupied and not dead
-			if (flag_occupied_alive(block->Flags))
+			if (detail::flag_occupied_alive(block->Flags))
 			{
 				Traits::destroy(m_Alloc, block);
 				block->Flags = FLAG_OCCUPIED | FLAG_DEAD;
@@ -422,7 +422,7 @@ namespace ktl
 
 			// Find the next key iterator
 			block = get_pair(index, m_Begin, m_Mask);
-			if (block != m_End && flag_occupied_alive(block->Flags))
+			if (block != m_End && detail::flag_occupied_alive(block->Flags))
 				return key_iterator(block, m_Begin, m_Mask);
 
 			return key_iterator();
@@ -436,7 +436,7 @@ namespace ktl
 			pair* block = get_pair(index, m_Begin, m_Mask);
 
 			// If occupied and not dead
-			if (block != m_End && flag_occupied_alive(block->Flags))
+			if (block != m_End && detail::flag_occupied_alive(block->Flags))
 				return key_iterator(block, m_Begin, m_Mask);
 
 			return key_iterator();
@@ -451,7 +451,7 @@ namespace ktl
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
 					// If occupied and not dead
-					if (flag_occupied_alive(block->Flags))
+					if (detail::flag_occupied_alive(block->Flags))
 						Traits::destroy(m_Alloc, block);
 				}
 
@@ -467,7 +467,7 @@ namespace ktl
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
 					// Only destroy alive and occupied slots
-					if (flag_occupied_alive(block->Flags))
+					if (detail::flag_occupied_alive(block->Flags))
 						Traits::destroy(m_Alloc, block);
 				}
 
@@ -500,7 +500,7 @@ namespace ktl
 				// Rehash every occupied and alive slot into the new allocated block
 				for (pair* block = m_Begin; block != m_End; block++)
 				{
-					if (flag_occupied_alive(block->Flags))
+					if (detail::flag_occupied_alive(block->Flags))
 					{
 						// Find an empty slot in the new allocation
 						pair* dest = find_empty(block->Key, alBlock, m_Mask);
@@ -527,11 +527,11 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offset(h, counter++, mask);
+				block = begin + detail::hash_collision_offset(h, counter++, mask);
 
 				// Increment while occupied and not dead, continue
 				// Since we are looking for empty slots, we can reuse dead ones
-			} while (flag_occupied_alive(block->Flags));
+			} while (detail::flag_occupied_alive(block->Flags));
 
 			return block;
 		}
@@ -545,11 +545,11 @@ namespace ktl
 
 			do
 			{
-				block = begin + hash_collision_offset(h, counter++, mask);
+				block = begin + detail::hash_collision_offset(h, counter++, mask);
 
 				// Increment while occupied and key mismatch
 				// Leave dead slots alone. This is called a tombstone, since we don't want to tread on it
-			} while (counter < capacity() && flag_occupied(block->Flags) && (flag_dead(block->Flags) || !Equals()(block->Key, index)));
+			} while (counter < capacity() && detail::flag_occupied(block->Flags) && (detail::flag_dead(block->Flags) || !Equals()(block->Key, index)));
 
 			// If nothing matches return end
 			if (counter == capacity())

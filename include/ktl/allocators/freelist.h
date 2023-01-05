@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../utility/assert_utility.h"
-#include "../utility/meta_template.h"
+#include "../utility/assert.h"
+#include "../utility/meta.h"
 #include "../utility/notomic.h"
 #include "freelist_fwd.h"
 #include "type_allocator.h"

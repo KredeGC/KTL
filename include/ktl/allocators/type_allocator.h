@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utility/meta_template.h"
+#include "../utility/meta.h"
 
 #include <memory>
 #include <type_traits>
