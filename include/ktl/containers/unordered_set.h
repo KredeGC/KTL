@@ -118,7 +118,7 @@ namespace ktl
 			m_Count(0),
 			m_Mask(0)
 		{
-			size_t n = size_pow2(size);
+			size_t n = detail::size_pow2(size);
 
 			m_Begin = Traits::allocate(m_Alloc, n);
 			m_End = m_Begin + n;
