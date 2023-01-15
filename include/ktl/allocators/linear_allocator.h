@@ -44,7 +44,6 @@ namespace ktl
 		linear_allocator(linear_allocator&& other) noexcept :
 			m_Block(other.m_Block)
 		{
-			KTL_ASSERT(other.m_Block);
 			other.m_Block = nullptr;
 		}
 
@@ -105,6 +104,8 @@ namespace ktl
 
 		void deallocate(void* p, size_t n) noexcept
 		{
+			KTL_ASSERT(p != nullptr);
+
 			size_t totalSize = n + align_to_architecture(n);
 
 			if (m_Block->Free - totalSize == p)

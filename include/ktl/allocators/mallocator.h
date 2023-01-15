@@ -12,13 +12,13 @@ namespace ktl
 	public:
 		mallocator() noexcept = default;
 
-		mallocator(const mallocator& other) noexcept = default;
+		mallocator(const mallocator&) noexcept = default;
 
-		mallocator(mallocator&& other) noexcept = default;
+		mallocator(mallocator&&) noexcept = default;
 
-		mallocator& operator=(const mallocator& rhs) noexcept = default;
+		mallocator& operator=(const mallocator&) noexcept = default;
 
-		mallocator& operator=(mallocator&& rhs) noexcept = default;
+		mallocator& operator=(mallocator&&) noexcept = default;
 
 		bool operator==(const mallocator& rhs) const noexcept
 		{

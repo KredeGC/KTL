@@ -17,6 +17,7 @@ namespace ktl
 	{
 	private:
 		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(Max >= sizeof(void*), "The freelist allocator requires a Max of at least 8 bytes");
 
 	public:
 		typedef typename get_size_type<Alloc>::type size_type;
@@ -66,7 +67,6 @@ namespace ktl
 		freelist(freelist&& other) noexcept :
 			m_Stats(other.m_Stats)
 		{
-			KTL_ASSERT(other.m_Stats);
 			other.m_Stats = nullptr;
 		}
 
@@ -129,6 +129,8 @@ namespace ktl
 
 		void deallocate(void* p, size_type n)
 		{
+			KTL_ASSERT(p != nullptr);
+
 			if (n > Min && n <= Max && p)
 			{
 				link* next = reinterpret_cast<link*>(p);

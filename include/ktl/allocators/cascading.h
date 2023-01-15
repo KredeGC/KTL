@@ -48,14 +48,12 @@ namespace ktl
 		cascading(const cascading& other) noexcept :
 			m_Block(other.m_Block)
 		{
-			KTL_ASSERT(other.m_Block);
 			m_Block->UseCount++;
 		}
 
 		cascading(cascading&& other) noexcept :
 			m_Block(other.m_Block)
 		{
-			KTL_ASSERT(other.m_Block);
 			other.m_Block = nullptr;
 		}
 
@@ -131,6 +129,8 @@ namespace ktl
 
 		void deallocate(void* p, size_type n) noexcept
 		{
+			KTL_ASSERT(p != nullptr);
+
 			node* prev = nullptr;
 			node* next = m_Block->Node;
 			while (next)

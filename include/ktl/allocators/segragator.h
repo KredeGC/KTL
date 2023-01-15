@@ -24,13 +24,13 @@ namespace ktl
 			m_Primary(primary),
 			m_Fallback(fallback) {}
 
-		segragator(const segragator& other) noexcept = default;
+		segragator(const segragator&) noexcept = default;
 
-		segragator(segragator&& other) noexcept = default;
+		segragator(segragator&&) noexcept = default;
 
-		segragator& operator=(const segragator& rhs) noexcept = default;
+		segragator& operator=(const segragator&) noexcept = default;
 
-		segragator& operator=(segragator&& rhs) noexcept = default;
+		segragator& operator=(segragator&&) noexcept = default;
 
 		bool operator==(const segragator& rhs) const noexcept
 		{

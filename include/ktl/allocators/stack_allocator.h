@@ -32,13 +32,13 @@ namespace ktl
 		stack_allocator(stack<Size>* block) noexcept
 			: m_Block(block) {}
 
-		stack_allocator(const stack_allocator& other) noexcept = default;
+		stack_allocator(const stack_allocator&) noexcept = default;
 
-		stack_allocator(stack_allocator&& other) noexcept = default;
+		stack_allocator(stack_allocator&&) noexcept = default;
 
-		stack_allocator& operator=(const stack_allocator& other) noexcept = default;
+		stack_allocator& operator=(const stack_allocator&) noexcept = default;
 
-		stack_allocator& operator=(stack_allocator&& other) noexcept = default;
+		stack_allocator& operator=(stack_allocator&&) noexcept = default;
 
 		bool operator==(const stack_allocator& rhs) const noexcept
 		{

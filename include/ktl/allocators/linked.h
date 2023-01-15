@@ -67,7 +67,6 @@ namespace ktl
 		linked(linked&& other) noexcept :
 			m_Block(other.m_Block)
 		{
-			KTL_ASSERT(other.m_Block);
 			other.m_Block = nullptr;
 		}
 
@@ -177,6 +176,8 @@ namespace ktl
 
 		void deallocate(void* p, size_t n) noexcept
 		{
+			KTL_ASSERT(p != nullptr);
+
 			size_t totalSize = (std::max)(n, sizeof(footer));
 			totalSize += align_to_architecture(totalSize);
 
@@ -199,10 +200,8 @@ namespace ktl
 			{
 				// Utilize the power of random chance
 				// Guessing is usually better than starting from scratch
+				// TODO: Would be better to use a balanced binary search tree
 				footer* current = m_Block->Guess < footerPtr ? m_Block->Guess : m_Block->Free;
-
-				//if (m_Block->Guess < footerPtr)
-				//	std::cout << footerPtr - m_Block->Guess << std::endl;
 
 				while (current->Next)
 				{

@@ -58,25 +58,25 @@ This library contains 2 different types of allocators:
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
 Both of these allocator types are not STL compliant, but can be made to be if used with the `type_allocator<T, Allocator>` type.<br/>
-This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, linear_allocator>`.<br/>
-All allocators also have a typedeffed version with a `type_` prefix as a shorthand, such as: `type_linear_allocator<int>`.
+This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, linear_allocator<1024>>`.<br/>
+All allocators also have a typedeffed version with a `type_` prefix as a shorthand, such as: `type_linear_allocator<int, 1024>`.
 
 | Signature | Type | Description |
 | --- | --- |--- |
-| linear_allocator<br/>\<Size\> | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than linked_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
-| mallocator | Raw | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
-| null_allocator | Raw | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
-| stack_allocator<br/>\<Size\> | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than linked_allcoator, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
-| cascading<br/>\<Allocator\> | Composite | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one. |
-| fallback<br/>\<Primary, Fallback\> | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
-| freelist<br/>\<Min, Max, Alloc\> | Composite | Allocates using the given allocator, if the size specified is within the range of `Min` and `Max`, otherwise returns `nullptr`.<br/>When deallocating, it keeps the free memory in a linked list which can be reused on later allocations. |
-| linked<br/>\<Size\> | Composite | Allocates one big chunk of memory when instantiated.<br/>Uses a linked list to determine whether a given sub-chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given.<br/>More versatile than `linear_allocator`, but also more slow on deallocation. |
-| overflow<br/>\<Allocator, std::ostream\> | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
-| segragator<br/>\<Threshold, Primary, Fallback\> | Composite | Delegates allocation between 2 allocators based on a size threshold. |
-| type_allocator<br/>\<T, Allocator\> | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators STL compliant, so they can be used with STL containers. |
+| `linear_allocator<Size>` | Raw | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making it faster than `linked<Size, Alloc>`, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` constructs it's memory dynamically. |
+| `mallocator` | Raw | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
+| `null_allocator` | Raw | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
+| `stack_allocator<Size>` | Raw | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making it faster than `linked<Size, Alloc>`, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
+| `cascading<Allocator>` | Composite | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one.<br/>The allocator type must be default-constructible, which means the `stack_allocator` can't be used. |
+| `fallback<Primary, Fallback>` | Composite | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
+| `freelist<Min, Max, Alloc>` | Composite | Allocates using the given allocator, if the size specified is within the range of `Min` and `Max`, otherwise returns `nullptr`.<br/>When deallocating, it keeps the free memory in a linked list which can be reused on later allocations. |
+| `linked<Size, Alloc>` | Composite | Allocates one big chunk of memory when instantiated.<br/>Uses a linked list to determine whether a given sub-chunk of memory is free or allocated, which takes O(n) time.<br/>Has a max allocation size of the `Size` given.<br/>More versatile than `linear_allocator`, but also more slow on deallocation. |
+| `overflow<Allocator, std::ostream>` | Composite | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the std::ostream specified. |
+| `segragator<Threshold, Primary, Fallback>` | Composite | Delegates allocation between 2 allocators based on a size threshold. |
+| `type_allocator<T, Allocator>` | Composite | Wraps around the specified allocator with a type. This can be used to make the other allocators STL compliant, so they can be used with STL containers. |
 
 NOTES:
-Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like fallback_allocator, which upon failure will attempt to use the fallback allocator instead.
+Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like fallback_allocator, which upon failure will attempt to use the given `Fallback` allocator instead.
 
 ## Allocator interface
 The allocators roughly follow the standard for STL allocators, except that they are not typed, so use void* instead.

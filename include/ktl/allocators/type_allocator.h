@@ -37,19 +37,17 @@ namespace ktl
 		explicit type_allocator(Alloc&& alloc) noexcept :
 			m_Alloc(std::move(alloc)) {}
 
-		type_allocator(const type_allocator& other) noexcept :
-			m_Alloc(other.m_Alloc) {}
+		type_allocator(const type_allocator&) noexcept = default;
 
-		type_allocator(type_allocator&& other) noexcept :
-			m_Alloc(std::move(other.m_Alloc)) {}
+		type_allocator(type_allocator&&) noexcept = default;
 
 		template<typename U>
 		type_allocator(const type_allocator<U, Alloc>& other) noexcept :
 			m_Alloc(other.m_Alloc) {}
 
-		type_allocator& operator=(const type_allocator& rhs) noexcept = default;
+		type_allocator& operator=(const type_allocator&) noexcept = default;
 
-		type_allocator& operator=(type_allocator&& rhs) noexcept = default;
+		type_allocator& operator=(type_allocator&&) noexcept = default;
 
 #pragma region Allocation
 		value_type* allocate(size_t n)

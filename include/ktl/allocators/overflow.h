@@ -31,8 +31,8 @@ namespace ktl
 		{
 			Alloc Allocator;
 			Atomic UseCount;
-			size_type Allocs;
-			size_type Constructs;
+			int64_t Allocs;
+			int64_t Constructs;
 
 			stats(const Alloc& alloc) :
 				Allocator(alloc),
@@ -68,7 +68,6 @@ namespace ktl
 		overflow(overflow&& other) noexcept :
 			m_Stats(other.m_Stats)
 		{
-			KTL_ASSERT(other.m_Stats);
 			other.m_Stats = nullptr;
 		}
 
@@ -130,6 +129,8 @@ namespace ktl
 
 		void deallocate(void* p, size_type n)
 		{
+			KTL_ASSERT(p != nullptr);
+
 			m_Stats->Allocs -= n;
 
 			if (p)
@@ -205,7 +206,18 @@ namespace ktl
 			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
 			{
 				if (m_Stats->Allocs != 0 || m_Stats->Constructs != 0)
-					Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n" << m_Stats->Allocs << " Allocations\n" << m_Stats->Constructs << " Constructions\n";
+				{
+					Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n";
+					if (m_Stats->Allocs > 0)
+						Stream << " Leaked memory (" << m_Stats->Allocs << " bytes)\n";
+					else if (m_Stats->Allocs < 0)
+						Stream << " Too many frees (" << -m_Stats->Allocs << " bytes)\n";
+
+					if (m_Stats->Constructs > 0)
+						Stream << " Too many constructor calls (" << m_Stats->Constructs << ")\n";
+					else if (m_Stats->Constructs < 0)
+						Stream << " Too many destructor calls (" << -m_Stats->Constructs << ")\n";
+				}
 
 				if constexpr (!has_max_size<Alloc>::value)
 				{

@@ -25,13 +25,13 @@ namespace ktl
 			m_Primary(primary),
 			m_Fallback(fallback) {}
 
-		fallback(const fallback& other) noexcept = default;
+		fallback(const fallback&) noexcept = default;
 
-		fallback(fallback&& other) noexcept = default;
+		fallback(fallback&&) noexcept = default;
 
-		fallback& operator=(const fallback& rhs) noexcept = default;
+		fallback& operator=(const fallback&) noexcept = default;
 
-		fallback& operator=(fallback&& rhs) noexcept = default;
+		fallback& operator=(fallback&&) noexcept = default;
 
 		bool operator==(const fallback& rhs) const noexcept
 		{
