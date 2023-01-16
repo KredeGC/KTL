@@ -9,7 +9,9 @@ A C++ library containing various composite memory allocators and containers.<br/
 Allocators are mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=LIb3L4vKZ7U).
 
 [![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases)
+[![Size](https://img.shields.io/github/languages/code-size/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/issues)
 [![License](https://img.shields.io/github/license/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/blob/master/LICENSE)
+
 [![Issues](https://img.shields.io/github/issues/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/issues)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KredeGC/KTL/main.yml?branch=master&style=flat-square)](https://github.com/KredeGC/KTL/actions/workflows/main.yml)
 
@@ -22,6 +24,7 @@ For now thread safety is not on the roadmap as it would degrade performance on s
 The functionality itself is fairly stable but should not be expected to be used in a production environment for the time being.
 
 # Table of Content
+* [Compatibility](#compatibility)
 * [Installation](#installation)
 * [Usage](#usage)
 * [Allocators](#allocators)
@@ -35,13 +38,16 @@ The functionality itself is fairly stable but should not be expected to be used 
 * [Allocator examples](#allocator-examples)
 * [Building and running tests](#building-and-running-tests)
 
+# Compatibility
+This library was made with C++17 in mind and may or may not be compatible with earlier versions.
+Backwards compatability is currently not on the roadmap, but pull requests which try to fix such issues are welcome.
+
 # Installation
 As this is a header-only library, you can simply copy the header files directly into your project.
 The header files can either be downloaded from the [releases page](https://github.com/KredeGC/KTL/releases) or from the [`include/`](https://github.com/KredeGC/KTL/tree/master/include/ktl) directory on the master branch.
 The source and header files inside the `src/` directory are only tests and should not be included into your project.
 
 # Usage
-This library was made with C++17 in mind and may or may not be compatible with earlier versions.
 The library has 3 main files that you can include into your application.
 * [`ktl/ktl.h`](https://github.com/KredeGC/KTL/tree/master/include/ktl/ktl.h) - Includes everything into this translation unit
 * [`ktl/ktl_alloc_fwd.h`](https://github.com/KredeGC/KTL/tree/master/include/ktl/ktl_alloc_fwd.h) - Includes forward declarations for all the allocators
@@ -102,7 +108,7 @@ This library also contains various containers that are STL compliant.
 | [trivial_array<br/>\<T, Alloc\>](#trivial_array-interface) | An array wrapper class, similar to `std::array`, but uses dynamic allocation and is optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors.<br/>Just like with the standard array, the container may invalidate iterators and references on insertion, but not on erasure. |
 | [trivial_vector<br/>\<T, Alloc\>](#trivial_vector-interface) | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors.<br/>Just like with the standard vector, the container may invalidate iterators and references on insertion, but not on erasure. |
 | [unordered_map<br/><K, V, Hash, EqualTo, Alloc>](#unordered_map-interface) | A hash map class similar to `std::unordered_map`, but optimized for cache locality using open addressing with linear probing. | The container uses a `Hash` struct, `EqualTo` struct and `Alloc` class passed in as template parameters, just like the standard unordered map.<br/>Unlike `std::unordered_map` iterator and reference invalidation may happen on insertion. However, only iterators and references to the erased object are invalidated on erasure. |
-| [unordered_multi_map<br/><K, V, Hash, EqualTo, Alloc>](#unordered_multimap-interface) | A hash multimap class similar to `std::unordered_multimap`, but optimized for cache locality using open addressing with linear probing. | The container uses a `Hash` struct, `EqualTo` struct and `Alloc` class passed in as template parameters, just like the standard unordered map.<br/>Unlike `std::unordered_multimap` iterator and reference invalidation may happen on insertion. However, only iterators and references to the erased object are invalidated on erasure. |
+| [unordered_multimap<br/><K, V, Hash, EqualTo, Alloc>](#unordered_multimap-interface) | A hash multimap class similar to `std::unordered_multimap`, but optimized for cache locality using open addressing with linear probing. | The container uses a `Hash` struct, `EqualTo` struct and `Alloc` class passed in as template parameters, just like the standard unordered map.<br/>Unlike `std::unordered_multimap` iterator and reference invalidation may happen on insertion. However, only iterators and references to the erased object are invalidated on erasure. |
 
 ## binary_heap interface
 | Method | Description |

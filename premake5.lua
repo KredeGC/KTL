@@ -21,6 +21,13 @@ newoption {
     }
 }
 
+newoption {
+    trigger = "dialect",
+    value = "Dialect (eg. C++17, C++20)",
+    description = "The dialect to use when generating project files",
+    default = "C++17",
+}
+
 require "scripts/build"
 require "scripts/test"
 
@@ -42,7 +49,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 project "Test"
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++17"
+    cppdialect(_OPTIONS["dialect"])
     staticruntime "off"
     
     targetdir ("bin/%{outputdir}")

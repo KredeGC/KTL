@@ -14,6 +14,7 @@ jobs:
     strategy:
       matrix:
         config: [debug, release]
+        dialect: [C++17, C++20]
         machine:
         - host: linux
           os: ubuntu-latest
@@ -53,7 +54,7 @@ jobs:
       with:
         languages: cpp
     - name: Build
-      run: premake5 build --config=${{ matrix.config }}
+      run: premake5 build --config=${{ matrix.config }} --dialect=${{ matrix.dialect }}
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
     - name: Run test
