@@ -151,19 +151,19 @@ namespace ktl
 
         /**
          * @brief Returns the current size of the heap.
-         * @return Returns the current size of the heap.
+		 * @return The current size of the heap in number of elements.
         */
         size_t size() const noexcept { return m_Size; }
 
         /**
          * @brief Returns the current capacity of the heap.
-         * @return Returns the current capacity of the heap.
+         * @return The current capacity of the heap in number of elements.
         */
         size_t capacity() const noexcept { return m_Capacity; }
 
         /**
          * @brief Returns true if the heap has no elements.
-         * @return Returns true if the heap has no elements.
+         * @return Whether the heap has a size of 0.
         */
         bool empty() const noexcept { return m_Size == 0; }
 
@@ -270,7 +270,7 @@ namespace ktl
         */
         iterator find(const T& value) const noexcept
         {
-            for (size_t i = 0; i < m_Size i++)
+            for (size_t i = 0; i < m_Size; i++)
             {
                 if (m_Begin[i] == value) // TODO: Use std::equal_to
                     return m_Begin + i;

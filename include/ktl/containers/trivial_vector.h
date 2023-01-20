@@ -198,20 +198,50 @@ namespace ktl
 		const_reverse_iterator rend() const noexcept { return std::reverse_iterator(m_Begin); }
 
 
+		/**
+		 * @brief Returns the current size of the vector.
+		 * @return The current size of the vector in number of elements.
+		*/
 		size_t size() const noexcept { return m_End - m_Begin; }
 
+		/**
+		 * @brief Returns the current capacity of the vector.
+		 * @return The current capacity of the vector in number of elements.
+		*/
 		size_t capacity() const noexcept { return m_EndMax - m_Begin; }
 
+		/**
+		 * @brief Returns true if the vector has no elements.
+		 * @return Whether the vector has a size of 0.
+		*/
 		bool empty() const noexcept { return m_Begin == m_End; }
 
 
-		T* data() noexcept { return m_Begin; }
+		/**
+		 * @brief Returns an iterator to the start of the vector.
+		 * @return An iterator to the start of the vector.
+		*/
+		iterator data() noexcept { return m_Begin; }
 
-		const T* data() const noexcept { return m_Begin; }
+		/**
+		 * @brief Returns a const iterator to the start of the vector.
+		 * @return A const iterator to the start of the vector.
+		*/
+		const_iterator data() const noexcept { return m_Begin; }
 
-		T& at(size_t index) const noexcept { return m_Begin[index]; }
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the vector. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		T& at(size_t index) const noexcept { KTL_ASSERT(index < size()); return m_Begin[index]; }
 
 
+		/**
+		 * @brief Resizes the vector to the given size.
+		 * @param n The size to resize to.
+		*/
 		void resize(size_t n) noexcept
 		{
 			if (capacity() < n)
@@ -220,47 +250,88 @@ namespace ktl
 			m_End = m_Begin + n;
 		}
 
+		/**
+		 * @brief Reserves the capacity of the vector to @p n, without initializing any elements.
+		 * @param n The minimum capacity of the vector.
+		*/
 		void reserve(size_t n) noexcept
 		{
 			if (capacity() < n)
 				set_size(n);
 		}
 
-		void push_back(const T& element) noexcept
+		/**
+		 * @brief Pushes a new element into the vector by copying it.
+         * @param value The element to copy into the vector.
+         * @return An iterator to the element that was added.
+		*/
+		iterator push_back(const T& element) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
 			*m_End = element;
-			m_End++;
+
+			return m_End++;
 		}
 
-		void push_back(T&& element) noexcept
+		/**
+		 * @brief Pushes a new element into the vector by moving it.
+		 * @param value The element to move into the vector.
+		 * @return An iterator to the element that was added.
+		*/
+		iterator push_back(T&& element) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
 			*m_End = std::move(element);
-			m_End++;
+
+			return m_End++;
 		}
 
-		void push_back(const T* first, const T* last) noexcept
+		/**
+		 * @brief Pushes a range of values into the vector.
+		 * @param first A pointer to the first element.
+		 * @param last A pointer one element past the last element.
+		 * @return An iterator to the element that was added.
+		*/
+		iterator push_back(const T* first, const T* last) noexcept
 		{
 			const size_t n = (last - first);
 
-			if (capacity() - size() < n)
+			if (m_EndMax - m_End < n)
 				expand(n);
 
-			std::memcpy(m_End, first, n * sizeof(T));
+			T* lastElement = m_End;
+			m_End += n;
+
+			std::memcpy(lastElement, first, n * sizeof(T));
+
+			return lastElement;
 		}
 
+		/**
+		 * @brief Pushes a new element into the vector by constructing it.
+		 * @tparam ...Args Variadic template arguments.
+		 * @param ...args Any arguments to use in the construction of the element.
+		 * @return An iterator to the element that was added.
+		*/
 		template<typename... Args>
-		void emplace_back(Args&&... args) noexcept
+		iterator emplace_back(Args&&... args) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
 			*m_End = T(std::forward<Args>(args)...);
-			m_End++;
+
+			return m_End++;
 		}
 
+		/**
+		 * @brief Inserts a new element into the vector by constructing it.
+		 * @tparam ...Args Variadic template arguments.
+		 * @param iter An iterator pointing to the location where the new element should be emplaced.
+		 * @param ...args Any arguments to use in the construction of the element.
+		 * @return An iterator to the element that was added.
+		*/
 		template<typename... Args>
 		void emplace(const_iterator iter, Args&&... args) noexcept
 		{
@@ -275,6 +346,11 @@ namespace ktl
 			m_End++;
 		}
         
+        /**
+         * @brief Erases the element pointed to by the iterator.
+         * @param iter An iterator pointing to the element.
+         * @return An iterator pointing to the element immidiately after the erased one.
+        */
         iterator erase(const_iterator iter) noexcept
         {
             KTL_ASSERT(iter >= m_Begin && iter < m_End);
@@ -286,6 +362,12 @@ namespace ktl
             return const_cast<iterator>(iter);
         }
         
+		/**
+		 * @brief Erases all elements in a range.
+		 * @param first An iterator pointing to the element first.
+		 * @param last An iterator pointing to the location after the last element.
+		 * @return An iterator pointing to the element immidiately after the erased ones.
+		*/
         iterator erase(const_iterator first, const_iterator last) noexcept
         {
             KTL_ASSERT(first >= last);
@@ -298,8 +380,15 @@ namespace ktl
             return const_cast<iterator>(first);
         }
 
+		/**
+		 * @brief Removes the last element from the vector and returns it.
+		 * @return The last element in the vector.
+		*/
 		T pop_back() noexcept { return m_Begin[--m_End]; }
 
+		/**
+		 * @brief Clears all elements in the vector.
+		*/
 		void clear() noexcept { m_End = m_Begin; }
 
 	private:

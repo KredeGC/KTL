@@ -150,9 +150,9 @@ This library also contains various containers that are STL compliant.
 | `iterator erase(const_iterator iter)` | Erases the element pointed to by the iterator. |
 | `iterator erase(const_iterator first, const_iterator last)` | Erases the elements within the range pointed to by `first` and `last`. |
 | `void pop_back()` | Removes the last element from the vector. |
-| `void push_back(const T& value)` | Pushes a new value by copying it. |
-| `void push_back(T&& value)` | Pushes a new value by moving it. |
-| `void push_back(const T* first, const T* last)` | Pushes a range of values from `first` to `last`. |
+| `iterator push_back(const T& value)` | Pushes a new value by copying it. |
+| `iterator push_back(T&& value)` | Pushes a new value by moving it. |
+| `iterator push_back(const T* first, const T* last)` | Pushes a range of values from `first` to `last`. |
 | `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
 | `void resize(size_t size)` | Resizes the vector to the given size. |
 | `size_t size() const` | Returns the current amount of elements in the vector. |
