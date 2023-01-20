@@ -136,24 +136,53 @@ namespace ktl
 
         const_reverse_iterator rend() const noexcept { return std::reverse_iterator(m_Begin); }
 
-
+        
+        /**
+         * @brief Returns an iterator to the start of the heap.
+         * @return Returns an iterator to the start of the heap.
+        */
         iterator data() noexcept { return m_Begin; }
 
+        /**
+         * @brief Returns a const iterator to the start of the heap.
+         * @return Returns a const iterator to the start of the heap.
+        */
         const_iterator data() const noexcept { return m_Begin; }
 
+        /**
+         * @brief Returns the current size of the heap.
+         * @return Returns the current size of the heap.
+        */
         size_t size() const noexcept { return m_Size; }
 
+        /**
+         * @brief Returns the current capacity of the heap.
+         * @return Returns the current capacity of the heap.
+        */
         size_t capacity() const noexcept { return m_Capacity; }
 
+        /**
+         * @brief Returns true if the heap has no elements.
+         * @return Returns true if the heap has no elements.
+        */
         bool empty() const noexcept { return m_Size == 0; }
 
         
+		/**
+		 * @brief Reserves the capacity of the heap to @p n, without initializing any elements.
+		 * @param n The minimum capacity of the heap.
+		*/
 		void reserve(size_t n) noexcept
 		{
 			if (capacity() < n)
 				set_size(n);
 		}
 
+        /**
+         * @brief Pushes a new element into the heap by copying it.
+         * @param value The element to copy into the heap.
+         * @return An iterator to the element that was added.
+        */
         iterator insert(const T& value) noexcept
         {
             if (m_Size == m_Capacity)
@@ -178,6 +207,11 @@ namespace ktl
             return m_Begin + hole;
         }
 
+        /**
+         * @brief Pushes a new element into the heap by moving it.
+         * @param value The element to move into the heap.
+         * @return An iterator to the element that was added.
+        */
         iterator insert(T&& value) noexcept
         {
             if (m_Size == m_Capacity)
@@ -202,11 +236,19 @@ namespace ktl
             return m_Begin + hole;
         }
 
+        /**
+         * @brief Peeks at the root element (lowest or highest, depending on min or max heap) and returns a reference to it.
+         * @return A reference to the root element.
+        */
         T& peek() noexcept
         {
             return m_Begin[0];
         }
 
+        /**
+         * @brief Removes the root element (lowest or highest, depending on min or max heap) and returns it.
+         * @return The removed root element, returned by value.
+        */
         T pop() noexcept
         {
             T root = m_Begin[0];
@@ -221,6 +263,11 @@ namespace ktl
             return root;
         }
 
+        /**
+         * @brief Returns an iterator to the element `index`. Takes O(n) time.
+         * @param value The value to return the iterator of.
+         * @return An iterator to the given value or `end()` if not found.
+        */
         iterator find(const T& value) const noexcept
         {
             for (size_t i = 0; i < m_Size i++)
@@ -232,6 +279,9 @@ namespace ktl
             return m_Begin + m_Size;
         }
 
+        /**
+         * @brief Clear all elements in the heap, destroying each element.
+        */
         void clear() noexcept
         {
             for (size_t i = 0; i < m_Size; i++)

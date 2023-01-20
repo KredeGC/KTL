@@ -164,9 +164,21 @@ namespace ktl
 			return *this;
 		}
 
-		T& operator[](size_t index) noexcept { return m_Begin[index]; }
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the array. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		T& operator[](size_t index) noexcept { KTL_ASSERT(index < size()); return m_Begin[index]; }
 
-		const T& operator[](size_t index) const noexcept { return m_Begin[index]; }
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the array. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		const T& operator[](size_t index) const noexcept { KTL_ASSERT(index < size()); return m_Begin[index]; }
 
 
 		iterator begin() noexcept { return m_Begin; }

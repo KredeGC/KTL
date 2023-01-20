@@ -130,6 +130,7 @@ This library also contains various containers that are STL compliant.
 | --- | --- |
 | `T& operator[size_t index]` | Returns a reference to the element at `index`. |
 | `void assign(const T* first, const T* last)` | Assigns the given values from `first` to `last`. It also resizes if the size doesn't match. |
+| `T& at(size_t index) const` | Returns the element at the given index. |
 | `T* data() const` | Returns a pointer to the start of the array. |
 | `bool empty() const` | Returns true if the array has been initialized with no size. |
 | `void resize(size_t size)` | Resizes the array to the given size. |

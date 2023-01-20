@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/assert.h"
 #include "trivial_array_fwd.h"
 
 #include <cstring>
@@ -21,6 +22,9 @@ namespace ktl
 	public:
 		typedef T* iterator;
 		typedef const T* const_iterator;
+
+		typedef std::reverse_iterator<T*> reverse_iterator;
+		typedef std::reverse_iterator<const T*> const_reverse_iterator;
 
 	public:
 		trivial_array(const Alloc& allocator = Alloc()) noexcept :
@@ -73,15 +77,6 @@ namespace ktl
 			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
 		}
 
-		trivial_array(const trivial_array& other, const Alloc& allocator) noexcept :
-			m_Alloc(allocator),
-			m_Begin(Traits::allocate(m_Alloc, other.size())),
-			m_End(m_Begin + other.size())
-		{
-            if (other.m_Begin != nullptr)
-			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
-		}
-
 		trivial_array(trivial_array&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Begin(other.m_Begin),
@@ -89,6 +84,15 @@ namespace ktl
 		{
 			other.m_Begin = nullptr;
 			other.m_End = nullptr;
+		}
+
+		trivial_array(const trivial_array& other, const Alloc& allocator) noexcept :
+			m_Alloc(allocator),
+			m_Begin(Traits::allocate(m_Alloc, other.size())),
+			m_End(m_Begin + other.size())
+		{
+            if (other.m_Begin != nullptr)
+			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
 		}
         
         trivial_array(trivial_array&& other, const Alloc& allocator) noexcept :
@@ -146,9 +150,21 @@ namespace ktl
 			return *this;
 		}
 
-		T& operator[](size_t index) noexcept { return m_Begin[index]; }
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the array. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		T& operator[](size_t index) noexcept { KTL_ASSERT(index < size()); return m_Begin[index]; }
 
-		const T& operator[](size_t index) const noexcept { return m_Begin[index]; }
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the array. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		const T& operator[](size_t index) const noexcept { KTL_ASSERT(index < size()); return m_Begin[index]; }
 
 
 		iterator begin() noexcept { return m_Begin; }
@@ -168,18 +184,44 @@ namespace ktl
 		std::reverse_iterator<const T*> rend() const noexcept { return std::reverse_iterator(m_Begin); }
 
 
+		/**
+		 * @brief Returns the current size of the array.
+		 * @return The size of the array in number of elements.
+		*/
 		size_t size() const noexcept { return m_End - m_Begin; }
 
+		/**
+		 * @brief Returns true if the array has been initialized with no size.
+		 * @return Whether the array has a size of 0.
+		*/
 		bool empty() const noexcept { return m_Begin == m_End; }
 
 
-		T* data() noexcept { return m_Begin; }
+		/**
+		 * @brief Returns an iterator to the start of the array.
+		 * @return An iterator to the start of the array.
+		*/
+		iterator data() noexcept { return m_Begin; }
 
-		const T* data() const noexcept { return m_Begin; }
+		/**
+		 * @brief Returns a const iterator to the start of the array.
+		 * @return A const iterator to the start of the array.
+		*/
+		const_iterator data() const noexcept { return m_Begin; }
 
-		T& at(size_t index) const noexcept { return m_Begin[index]; }
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the array. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		T& at(size_t index) const noexcept { KTL_ASSERT(index < size()); return m_Begin[index]; }
 
 
+		/**
+		 * @brief Resizes the array to the given size.
+		 * @param n The size to resize to.
+		*/
 		void resize(size_t n)
 		{
 			if (size() != n)
@@ -198,6 +240,11 @@ namespace ktl
 			}
 		}
 
+		/**
+		 * @brief Assigns the given values from @p first to @p last. It also resizes if the size doesn't match the number of elements.
+		 * @param first A pointer to the first element.
+		 * @param last A pointer one element past the last element.
+		*/
 		void assign(const T* first, const T* last)
 		{
 			const size_t n = last - first;
@@ -215,8 +262,6 @@ namespace ktl
 
 			std::memcpy(m_Begin, first, n * sizeof(T));
 		}
-
-		void clear() { m_End = m_Begin; }
 
 	private:
 		Alloc m_Alloc;
