@@ -8,8 +8,8 @@
 A C++ library containing various composite memory allocators and containers.<br/>
 Allocators are mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=LIb3L4vKZ7U).
 
-[![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases)
-[![Size](https://img.shields.io/github/languages/code-size/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/issues)
+[![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases/latest)
+[![Size](https://img.shields.io/github/languages/code-size/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/releases/latest)
 [![License](https://img.shields.io/github/license/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/blob/master/LICENSE)
 
 [![Issues](https://img.shields.io/github/issues/KredeGC/KTL?style=flat-square)](https://github.com/KredeGC/KTL/issues)
@@ -113,20 +113,27 @@ This library also contains various containers that are STL compliant.
 ## binary_heap interface
 | Method | Description |
 | --- | --- |
+| `size_t capacity() const` | Returns the current capacity of the heap. |
 | `void clear()` | Clear all elements in the heap. |
-| `T pop()` | Removes the root element (lowest or highest, depending on min or max heap) and returns it. |
+| `T* data() const` | Returns a pointer to the start of the heap. |
+| `bool empty() const` | Returns true if the heap has no elements. |
+| `iterator find(const K& index) const` | Returns an iterator to the element `index`. Returns `end()` if not found. Takes O(n) time. |
 | `void insert(const T& value)` | Pushes a new element into the heap by copying. |
 | `void insert(T&& value)` | Pushes a new element into the heap by moving. |
+| `T& peek()` | Peeks at the root element (lowest or highest, depending on min or max heap) and returns a reference to it. |
+| `T pop()` | Removes the root element (lowest or highest, depending on min or max heap) and returns it. |
+| `void reserve(size_t size)` | Reserves the capacity of the heap to `size`, without initializing any elements. |
+| `size_t size() const` | Returns the current size of the heap. |
 
 ## trivial_array interface
 | Method | Description |
 | --- | --- |
 | `T& operator[size_t index]` | Returns a reference to the element at `index`. |
 | `void assign(const T* first, const T* last)` | Assigns the given values from `first` to `last`. It also resizes if the size doesn't match. |
-| `T* data()` | Returns a pointer to the start of the array. |
-| `bool empty()` | Returns true if the array has been initialized with no size. |
+| `T* data() const` | Returns a pointer to the start of the array. |
+| `bool empty() const` | Returns true if the array has been initialized with no size. |
 | `void resize(size_t size)` | Resizes the array to the given size. |
-| `size_t size()` | Returns the current size of the array. |
+| `size_t size() const` | Returns the current size of the array. |
 
 ## trivial_vector interface
 | Method | Description |
@@ -135,7 +142,7 @@ This library also contains various containers that are STL compliant.
 | `T& at(size_t index) const` | Returns the element at the given index. |
 | `size_t capacity() const` | Returns the current capacity of the vector. |
 | `void clear()` | Clear all elements in the vector. |
-| `T* data()` | Returns a pointer to the start of the array in the vector. |
+| `T* data() const` | Returns a pointer to the start of the array in the vector. |
 | `void emplace(const_iterator iter, Args&& args)` | Creates a new element at the given location in the vector. |
 | `void emplace_back(Args&& args)` | Creates a new element and pushes it to the vector. |
 | `bool empty() const` | Returns whether or not the vector is empty. |

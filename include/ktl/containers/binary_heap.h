@@ -3,6 +3,7 @@
 #include "binary_heap_fwd.h"
 
 #include <cstddef>
+#include <iterator>
 #include <memory>
 #include <utility>
 
@@ -13,6 +14,13 @@ namespace ktl
     {
     private:
         typedef std::allocator_traits<Alloc> Traits;
+
+    public:
+        typedef T* iterator;
+        typedef const T* const_iterator;
+
+        typedef std::reverse_iterator<T*> reverse_iterator;
+        typedef std::reverse_iterator<const T*> const_reverse_iterator;
 
     public:
         binary_heap(const Alloc& allocator = Alloc(), const Comp& comp = Comp()) noexcept :
@@ -99,7 +107,7 @@ namespace ktl
             }
 
             m_Alloc = std::move(other.m_Alloc);
-            m_Comp = other.m_Comp;
+            m_Comp = std::move(other.m_Comp);
             m_Size = other.m_Size;
             m_Capacity = other.m_Capacity;
             m_Begin = other.m_Begin;
@@ -112,9 +120,26 @@ namespace ktl
         }
 
 
-        T* data() noexcept { return m_Begin; }
+        iterator begin() noexcept { return m_Begin; }
 
-        const T* data() const noexcept { return m_Begin; }
+        const_iterator begin() const noexcept { return m_Begin; }
+
+        iterator end() noexcept { return m_Begin + m_Size; }
+
+        const_iterator end() const noexcept { return m_Begin + m_Size; }
+
+        reverse_iterator rbegin() noexcept { return std::reverse_iterator(m_Begin + m_Size); }
+
+        const_reverse_iterator rbegin() const noexcept { return std::reverse_iterator(m_Begin + m_Size); }
+
+        reverse_iterator rend() noexcept { return std::reverse_iterator(m_Begin); }
+
+        const_reverse_iterator rend() const noexcept { return std::reverse_iterator(m_Begin); }
+
+
+        iterator data() noexcept { return m_Begin; }
+
+        const_iterator data() const noexcept { return m_Begin; }
 
         size_t size() const noexcept { return m_Size; }
 
@@ -122,8 +147,14 @@ namespace ktl
 
         bool empty() const noexcept { return m_Size == 0; }
 
+        
+		void reserve(size_t n) noexcept
+		{
+			if (capacity() < n)
+				set_size(n);
+		}
 
-        void insert(const T& value)
+        iterator insert(const T& value) noexcept
         {
             if (m_Size == m_Capacity)
                 expand(1);
@@ -143,9 +174,11 @@ namespace ktl
                 Traits::construct(m_Alloc, m_Begin + hole, value);
             else
                 m_Begin[hole] = value;
+
+            return m_Begin + hole;
         }
 
-        void insert(T&& value)
+        iterator insert(T&& value) noexcept
         {
             if (m_Size == m_Capacity)
                 expand(1);
@@ -165,9 +198,16 @@ namespace ktl
                 Traits::construct(m_Alloc, m_Begin + hole, std::move(value));
             else
                 m_Begin[hole] = std::move(value);
+
+            return m_Begin + hole;
         }
 
-        T pop()
+        T& peek() noexcept
+        {
+            return m_Begin[0];
+        }
+
+        T pop() noexcept
         {
             T root = m_Begin[0];
 
@@ -181,7 +221,18 @@ namespace ktl
             return root;
         }
 
-        void clear()
+        iterator find(const T& value) const noexcept
+        {
+            for (size_t i = 0; i < m_Size i++)
+            {
+                if (m_Begin[i] == value) // TODO: Use std::equal_to
+                    return m_Begin + i;
+            }
+
+            return m_Begin + m_Size;
+        }
+
+        void clear() noexcept
         {
             for (size_t i = 0; i < m_Size; i++)
                 Traits::destroy(m_Alloc, m_Begin + i);
@@ -190,15 +241,24 @@ namespace ktl
         }
 
     private:
-        void expand(size_t n)
+        void expand(size_t n) noexcept
         {
-            size_t newCapacity = m_Size + (std::max)(m_Size, n);
-            T* newData = Traits::allocate(m_Alloc, newCapacity);
+            size_t curCap = capacity();
+            size_t alSize = curCap + (std::max)(curCap, n);
+
+            set_size(alSize);
+        }
+
+        void set_size(size_t n) noexcept
+        {
+            size_t curSize = (std::min)(size(), n);
+
+            T* newData = Traits::allocate(m_Alloc, n);
 
             if (m_Begin)
             {
                 // Move construct elements
-                for (size_t i = 0; i < m_Size; i++)
+                for (size_t i = 0; i < curSize; i++)
                     Traits::construct(m_Alloc, newData + i, std::move(m_Begin[i]));
 
                 // Deconstruct elements
@@ -209,26 +269,27 @@ namespace ktl
                 Traits::deallocate(m_Alloc, m_Begin, m_Capacity);
             }
 
-            m_Capacity = newCapacity;
+            m_Size = curSize;
+            m_Capacity = n;
             m_Begin = newData;
         }
 
-        constexpr size_t parent(size_t index) const
+        constexpr size_t parent(size_t index) const noexcept
         {
             return (index - 1) / 2;
         }
 
-        constexpr size_t left(size_t index) const
+        constexpr size_t left(size_t index) const noexcept
         {
             return index * 2 + 1;
         }
 
-        constexpr size_t right(size_t index) const
+        constexpr size_t right(size_t index) const noexcept
         {
             return index * 2 + 2;
         }
 
-        void heapify(size_t index)
+        void heapify(size_t index) noexcept
         {
             size_t parent = index;
             size_t child = index;
