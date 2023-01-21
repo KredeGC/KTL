@@ -1,5 +1,6 @@
 #include "shared/assert_utility.h"
 #include "shared/binary_heap_utility.h"
+#include "shared/construct_utility.h"
 #include "shared/test.h"
 #include "shared/types.h"
 
@@ -8,6 +9,7 @@
 #define KTL_DEBUG_ASSERT
 #include "ktl/containers/binary_heap.h"
 
+#include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
@@ -17,6 +19,65 @@
 
 namespace ktl::test::binary_heap
 {
+    KTL_ADD_TEST(test_binary_heap_array_construct)
+    {
+        using Alloc = ktl::type_linear_allocator<double, 2048>;
+        using Container = ktl::binary_min_heap<double, Alloc>;
+
+        constexpr size_t size = 4;
+
+        double values[] = {
+            4.0,
+            8.0,
+            -1.0,
+            10.0
+        };
+
+        Container baseContainer;
+
+        Alloc allocator;
+
+        assert_construct_container<Container>(
+            [&](Container& lhs, Container& rhs)
+        {
+            // Comparison function
+            KTL_TEST_ASSERT(lhs.peek() == rhs.peek());
+            KTL_TEST_ASSERT(lhs.size() == rhs.size());
+        }, [&]()
+        {
+            // Insert some elements
+            for (size_t i = 0; i < size; i++)
+                baseContainer.insert(values[i]);
+
+            return baseContainer;
+        }, [&]()
+        {
+            // Construct using initializer list
+            Container container{ values[0], values[1], values[2], values[3] };
+
+            KTL_TEST_ASSERT(!allocator.owns(container.begin()));
+
+            return container;
+        }, [&]()
+        {
+            // Construct by copying using a different allocator
+            Container container(baseContainer, allocator);
+
+            KTL_TEST_ASSERT(allocator.owns(container.begin()));
+
+            return container;
+        }, [&]()
+        {
+            // Construct by moving using a different allocator
+            Container container(std::move(baseContainer), allocator);
+
+            KTL_TEST_ASSERT(baseContainer.empty());
+            KTL_TEST_ASSERT(allocator.owns(container.begin()));
+
+            return container;
+        });
+    }
+
 #pragma region std::allocator
     KTL_ADD_TEST(test_binary_heap_std_double)
     {
@@ -69,7 +130,7 @@ namespace ktl::test::binary_heap
     }
 #pragma endregion
 
-#pragma region ktl::freelist_allocator
+#pragma region ktl::linked
     KTL_ADD_TEST(test_binary_heap_list_double)
     {
         type_linked_allocator<double, 4096, mallocator> alloc;

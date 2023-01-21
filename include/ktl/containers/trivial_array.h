@@ -51,10 +51,9 @@ namespace ktl
 			m_End(m_Begin + initializer.size())
 		{
 			T* dst = m_Begin;
-			// Using a normal auto for loop gives illegal indirection error
-			for (auto i = initializer.begin(); i != initializer.end(); i++)
+			for (auto value : initializer)
 			{
-				*dst = *i;
+				*dst = value;
 				dst++;
 			}
 		}

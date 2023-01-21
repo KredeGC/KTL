@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/assert.h"
 #include "binary_heap_fwd.h"
 
 #include <cstddef>
@@ -37,8 +38,19 @@ namespace ktl
             m_Capacity(capacity),
             m_Begin(Traits::allocate(m_Alloc, capacity)) {}
 
+        binary_heap(std::initializer_list<T> initializer, const Alloc& allocator = Alloc(), const Comp& comp = Comp()) :
+            m_Alloc(allocator),
+            m_Comp(comp),
+            m_Size(0),
+            m_Capacity(initializer.size()),
+            m_Begin(Traits::allocate(m_Alloc, initializer.size()))
+        {
+            for (auto value : initializer)
+                insert(value);
+        }
+
         binary_heap(const binary_heap& other) noexcept(std::is_nothrow_copy_constructible_v<T>) :
-            m_Alloc(Traits::select_on_container_copy_construction(static_cast<Alloc>(other))),
+            m_Alloc(Traits::select_on_container_copy_construction(other.m_Alloc)),
             m_Comp(other.m_Comp),
             m_Size(other.m_Size),
             m_Capacity(other.m_Size),
@@ -49,12 +61,42 @@ namespace ktl
         }
 
         binary_heap(binary_heap&& other) noexcept(std::is_nothrow_move_constructible_v<T>) :
-            m_Alloc(std::move(other)),
+            m_Alloc(std::move(other.m_Alloc)),
             m_Comp(other.m_Comp),
             m_Size(other.m_Size),
             m_Capacity(other.m_Capacity),
             m_Begin(std::move(other.m_Begin))
         {
+            other.m_Capacity = 0;
+            other.m_Size = 0;
+            other.m_Begin = nullptr;
+        }
+
+        binary_heap(const binary_heap& other, const Alloc& allocator) noexcept(std::is_nothrow_copy_constructible_v<T>) :
+            m_Alloc(allocator),
+            m_Comp(other.m_Comp),
+            m_Size(other.m_Size),
+            m_Capacity(other.m_Size),
+            m_Begin(Traits::allocate(m_Alloc, other.m_Size))
+        {
+            for (size_t i = 0; i < m_Size; i++)
+                Traits::construct(m_Alloc, m_Begin + i, other.m_Begin[i]);
+        }
+
+        binary_heap(binary_heap&& other, const Alloc& allocator) noexcept(std::is_nothrow_move_constructible_v<T>) :
+            m_Alloc(allocator),
+            m_Comp(std::move(other.m_Comp)),
+            m_Size(other.m_Size),
+            m_Capacity(other.m_Size),
+            m_Begin(Traits::allocate(m_Alloc, other.m_Size))
+        {
+            // Moving using a different allocator means we can't just move, we have to reallocate
+            for (size_t i = 0; i < m_Size; i++)
+                Traits::construct(m_Alloc, m_Begin + i, other.m_Begin[i]);
+
+            if (other.m_Begin != nullptr)
+                Traits::deallocate(other.m_Alloc, other.m_Begin, other.m_Capacity * sizeof(T));
+
             other.m_Capacity = 0;
             other.m_Size = 0;
             other.m_Begin = nullptr;
@@ -139,13 +181,13 @@ namespace ktl
         
         /**
          * @brief Returns an iterator to the start of the heap.
-         * @return Returns an iterator to the start of the heap.
+         * @return An iterator to the start of the heap.
         */
         iterator data() noexcept { return m_Begin; }
 
         /**
          * @brief Returns a const iterator to the start of the heap.
-         * @return Returns a const iterator to the start of the heap.
+         * @return A const iterator to the start of the heap.
         */
         const_iterator data() const noexcept { return m_Begin; }
 
@@ -190,23 +232,11 @@ namespace ktl
             if (m_Size == m_Capacity)
                 expand(1);
 
-            const size_t lastElement = m_Size;
-            size_t hole = m_Size++;
-            while (hole != 0 && m_Comp(std::forward<V>(value), m_Begin[parent(hole)]))
-            {
-                if (hole == lastElement)
-                    Traits::construct(m_Alloc, m_Begin + hole, std::move(m_Begin[parent(hole)]));
-                else
-                    m_Begin[hole] = std::move(m_Begin[parent(hole)]);
-                hole = parent(hole);
-            }
+            Traits::construct(m_Alloc, m_Begin + m_Size, std::forward<V>(value));
 
-            if (hole == lastElement)
-                Traits::construct(m_Alloc, m_Begin + hole, std::forward<V>(value));
-            else
-                m_Begin[hole] = std::forward<V>(value);
+            size_t index = percolateUp(m_Size++);
 
-            return m_Begin + hole;
+            return m_Begin + index;
         }
 
         /**
@@ -215,6 +245,8 @@ namespace ktl
         */
         T& peek() noexcept
         {
+            KTL_ASSERT(m_Size > 0);
+
             return m_Begin[0];
         }
 
@@ -224,22 +256,21 @@ namespace ktl
         */
         T pop() noexcept
         {
+            KTL_ASSERT(m_Size > 0);
+
             T root = m_Begin[0];
 
-            if (m_Size > 0)
-            {
-                m_Begin[0] = std::move(m_Begin[--m_Size]);
-                Traits::destroy(m_Alloc, m_Begin + m_Size);
-                heapify(0);
-            }
+            m_Begin[0] = std::move(m_Begin[--m_Size]);
+            Traits::destroy(m_Alloc, m_Begin + m_Size);
+            percolateDown(0);
 
             return root;
         }
 
         /**
-         * @brief Returns an iterator to the element `index`. Takes O(n) time.
+         * @brief Returns an iterator to the element @p index. Takes O(n) time.
          * @param value The value to return the iterator of.
-         * @return An iterator to the given value or `end()` if not found.
+         * @return An iterator to the given value or end() if not found.
         */
         iterator find(const T& value) const noexcept
         {
@@ -312,10 +343,24 @@ namespace ktl
             return index * 2 + 2;
         }
 
-        void heapify(size_t index) noexcept
+        size_t percolateUp(size_t index)
+        {
+            const T value = m_Begin[index];
+
+            while (index != 0 && m_Comp(value, m_Begin[parent(index)]))
+            {
+                m_Begin[index] = std::move(m_Begin[parent(index)]);
+                index = parent(index);
+            }
+
+            m_Begin[index] = std::move(value);
+
+            return index;
+        }
+
+        void percolateDown(size_t index) noexcept
         {
             size_t parent = index;
-            size_t child = index;
 
             const T value = m_Begin[index];
 
@@ -324,7 +369,7 @@ namespace ktl
                 size_t l = left(parent);
                 size_t r = right(parent);
 
-                child = parent;
+                size_t child = parent;
 
                 if (l < m_Size && m_Comp(m_Begin[l], m_Begin[child]))
                     child = l;
@@ -332,21 +377,17 @@ namespace ktl
                 if (r < m_Size && m_Comp(m_Begin[r], m_Begin[child]))
                     child = r;
 
-                if (child != parent)
-                {
-                    const T temp = std::move(m_Begin[child]);
-                    m_Begin[child] = std::move(m_Begin[parent]);
-                    m_Begin[parent] = std::move(temp);
-
-                    parent = child;
-                }
-                else
-                {
+                if (child == parent)
                     break;
-                }
+
+                const T temp = std::move(m_Begin[child]);
+                m_Begin[child] = std::move(m_Begin[parent]);
+                m_Begin[parent] = std::move(temp);
+
+                parent = child;
             }
 
-            m_Begin[child] = value;
+            m_Begin[parent] = std::move(value);
         }
 
     private:
