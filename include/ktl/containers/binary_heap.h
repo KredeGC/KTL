@@ -179,18 +179,20 @@ namespace ktl
 		}
 
         /**
-         * @brief Pushes a new element into the heap by copying it.
-         * @param value The element to copy into the heap.
+         * @brief Inserts a new element into the heap via perfect forwarding.
+         * @tparam V The type to insert.
+         * @param value The element to insert into the heap.
          * @return An iterator to the element that was added.
         */
-        iterator insert(const T& value) noexcept
+        template<typename V>
+        iterator insert(V&& value) noexcept
         {
             if (m_Size == m_Capacity)
                 expand(1);
 
             const size_t lastElement = m_Size;
             size_t hole = m_Size++;
-            while (hole != 0 && m_Comp(value, m_Begin[parent(hole)]))
+            while (hole != 0 && m_Comp(std::forward<V>(value), m_Begin[parent(hole)]))
             {
                 if (hole == lastElement)
                     Traits::construct(m_Alloc, m_Begin + hole, std::move(m_Begin[parent(hole)]));
@@ -200,38 +202,9 @@ namespace ktl
             }
 
             if (hole == lastElement)
-                Traits::construct(m_Alloc, m_Begin + hole, value);
+                Traits::construct(m_Alloc, m_Begin + hole, std::forward<V>(value));
             else
-                m_Begin[hole] = value;
-
-            return m_Begin + hole;
-        }
-
-        /**
-         * @brief Pushes a new element into the heap by moving it.
-         * @param value The element to move into the heap.
-         * @return An iterator to the element that was added.
-        */
-        iterator insert(T&& value) noexcept
-        {
-            if (m_Size == m_Capacity)
-                expand(1);
-
-            const size_t lastElement = m_Size;
-            size_t hole = m_Size++;
-            while (hole != 0 && m_Comp(value, m_Begin[parent(hole)]))
-            {
-                if (hole == lastElement)
-                    Traits::construct(m_Alloc, m_Begin + hole, std::move(m_Begin[parent(hole)]));
-                else
-                    m_Begin[hole] = std::move(m_Begin[parent(hole)]);
-                hole = parent(hole);
-            }
-
-            if (hole == lastElement)
-                Traits::construct(m_Alloc, m_Begin + hole, std::move(value));
-            else
-                m_Begin[hole] = std::move(value);
+                m_Begin[hole] = std::forward<V>(value);
 
             return m_Begin + hole;
         }
@@ -378,9 +351,10 @@ namespace ktl
 
     private:
         Alloc m_Alloc;
+        Comp m_Comp;
+
         size_t m_Size;
         size_t m_Capacity;
         T* m_Begin;
-        Comp m_Comp;
     };
 }
