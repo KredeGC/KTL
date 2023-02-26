@@ -97,6 +97,9 @@ namespace ktl
 
 			reference operator*() const noexcept
 			{
+				// This is undefined behaviour due to strict aliasing
+				// A better option may be unions, or using a different technique to open addressing
+
 				return *reinterpret_cast<pointer>(m_Current);
 			}
 

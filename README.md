@@ -18,10 +18,10 @@ Allocators are mostly based on a [Talk by Andrei Alexandrescu](https://www.youtu
 </div>
 
 # Status
-The interface is currently not in a stable state, so expect changes between updates to cause some disruption, as functions or types may not exist between versions.
+The interface is in a mostly stable state, so severe changes should rarely occur.
 In addition, most allocators presented are not thread-safe.
 For now thread safety is not on the roadmap as it would degrade performance on single-threaded applications.
-The functionality itself is fairly stable but should not be expected to be used in a production environment for the time being.
+The functionality is fairly stable but should not be expected to be used in a production environment for the time being.
 
 # Table of Content
 * [Compatibility](#compatibility)
@@ -39,13 +39,13 @@ The functionality itself is fairly stable but should not be expected to be used 
 * [Building and running tests](#building-and-running-tests)
 
 # Compatibility
-This library was made with C++17 in mind and may or may not be compatible with earlier versions.
-Backwards compatability is currently not on the roadmap, but pull requests which try to fix such issues are welcome.
+This library was made with C++17 in mind and is not compatible with earlier versions.
+Backwards compatability is currently not on the roadmap.
 
 # Installation
 As this is a header-only library, you can simply copy the header files directly into your project.
 The header files can either be downloaded from the [releases page](https://github.com/KredeGC/KTL/releases) or from the [`include/`](https://github.com/KredeGC/KTL/tree/master/include/ktl) directory on the master branch.
-The source and header files inside the `src/` directory are only tests and should not be included into your project.
+The source and header files inside the `src/` directory are only tests and should not be included into your project unless you want to run them yourself.
 
 # Usage
 The library has 3 main files that you can include into your application.
@@ -212,7 +212,7 @@ type_overflow_allocator<double, mallocator, std::cerr> alloc;
 double* p = alloc.allocate(1);
 // Write to the address before what was allocated, which is illegal
 *(p - 1) = 32;
-// When it deallocates it should give a message in the standard error stream
+// When it deallocates it should give a message in the standard error stream about corruption
 alloc.deallocate(p, 1);
 ```
 
@@ -274,7 +274,7 @@ alloc.deallocate(p1, 256);
 // Allocate and deallocate 256 bytes, which should reuse the previous allocation
 void* p2 = alloc.allocate(256);
 alloc.deallocate(p2, 256);
-// Allocate and deallocate 2048 bytes, which should use the cascading linear list
+// Allocate and deallocate 2048 bytes, which should use the cascading linear allocator
 void* p3 = alloc.allocate(2048);
 alloc.deallocate(p3, 2048);
 ```

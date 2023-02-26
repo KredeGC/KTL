@@ -17,25 +17,6 @@ namespace ktl
 
 	template<typename T, typename P, typename F>
 	using type_fallback_allocator = type_allocator<T, fallback<P, F>>;
-    
-    //namespace detail
-    //{
-    //    // Recursive helper struct for generating the fallback type
-    //    template<typename ...Ts>
-    //    struct fallback_builder;
-
-    //    template<typename Primary, typename Fallback>
-    //    struct fallback_builder<Primary, Fallback>
-    //    {
-    //        using type = fallback<Primary, Fallback>;
-    //    };
-
-    //    template<typename Alloc, typename ...Ts>
-    //    struct fallback_builder<Alloc, Ts...>
-    //    {
-    //        using type = fallback<Alloc, typename fallback_builder<Ts...>::type>;
-    //    };
-    //}
 
     namespace detail
     {

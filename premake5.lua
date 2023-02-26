@@ -69,6 +69,8 @@ project "Test"
     filter "system:windows"
         systemversion "latest"
         
+        conformancemode "on"
+        
         flags { "MultiProcessorCompile" }
 
     filter "system:linux"
