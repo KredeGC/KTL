@@ -4,8 +4,8 @@
 #include <string>
 
 #define KTL_ADD_TEST3(func_ptr, line) void func_ptr(); \
-	struct test_struct##line { test_struct##line() { ::ktl::test::unit::add_test(#func_ptr, func_ptr); } }; \
-	static test_struct##line test_##line; \
+	struct test_struct_##func_ptr##_##line { test_struct_##func_ptr##_##line() { ::ktl::test::unit::add_test(#func_ptr, func_ptr); } }; \
+	static test_struct_##func_ptr##_##line test_var_##func_ptr##_##line; \
 	void func_ptr()
 
 #define KTL_ADD_TEST2(func_ptr, line) KTL_ADD_TEST3(func_ptr, line)

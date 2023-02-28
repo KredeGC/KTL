@@ -33,8 +33,6 @@ The functionality is fairly stable but should not be expected to be used in a pr
   * [binary_heap interface](#binary_heap-interface)
   * [trivial_array interface](#trivial_array-interface)
   * [trivial_vector interface](#trivial_vector-interface)
-  * [unordered_map interface](#unordered_map-interface)
-  * [unordered_multimap interface](#unordered_multimap-interface)
 * [Allocator examples](#allocator-examples)
 * [Building and running tests](#building-and-running-tests)
 
