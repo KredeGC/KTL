@@ -4,7 +4,8 @@
 #include <string>
 
 #define KTL_ADD_TEST3(func_ptr, line) void func_ptr(); \
-	static int test_##line = (::ktl::test::unit::add_test(#func_ptr, func_ptr), 0); \
+	struct test_struct##line { test_struct##line() { ::ktl::test::unit::add_test(#func_ptr, func_ptr); } }; \
+	static test_struct##line test_##line; \
 	void func_ptr()
 
 #define KTL_ADD_TEST2(func_ptr, line) KTL_ADD_TEST3(func_ptr, line)
@@ -15,15 +16,18 @@ namespace ktl::test
 {
 	class unit
 	{
-	private:
-		inline constexpr static size_t MAX_TESTS = 1024;
+	public:
+		typedef void (*FuncPtr)();
 
-		inline static void (*s_TestFunctions[MAX_TESTS])();
-		inline static std::string s_TestNames[MAX_TESTS];
+		inline constexpr static size_t MAX_TESTS = 256;
+
+	private:
+		inline static FuncPtr s_TestFunctions[MAX_TESTS];
+		inline static const char* s_TestNames[MAX_TESTS];
 		inline static size_t s_TestCounter;
 
 	public:
-		static void add_test(const std::string& name, void (*func_ptr)());
+		static void add_test(const char* name, FuncPtr func_ptr);
 
 		static void run_all_tests();
 	};

@@ -12,7 +12,6 @@
 #include "ktl/allocators/stack_allocator.h"
 
 #include "ktl/containers/binary_heap.h"
-#include "ktl/containers/unordered_map.h"
 
 #include <iostream>
 #include <sstream>
@@ -65,30 +64,6 @@ namespace ktl::test::overflow_allocator
         {
             type_overflow_allocator<double, linked<4096, mallocator>, stringOut> alloc;
             assert_binary_heap<double>(3, alloc);
-        });
-    }
-
-    KTL_ADD_TEST(test_overflow_list_unordered_map_string_double)
-    {
-        using Alloc = type_overflow_allocator<std::pair<const std::string, double>, linked<4096, mallocator>, stringOut>;
-
-        assert_no_overflow([]()
-        {
-            Alloc alloc;
-            ktl::unordered_map<std::string, double, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
-            assert_unordered_map_values<double>(map);
-        });
-    }
-
-    KTL_ADD_TEST(test_overflow_list_unordered_map_string_complex)
-    {
-        using Alloc = type_overflow_allocator<std::pair<const std::string, complex_t>, linked<4096, mallocator>, stringOut>;
-
-        assert_no_overflow([]()
-        {
-            Alloc alloc;
-            ktl::unordered_map<std::string, complex_t, std::hash<std::string>, std::equal_to<std::string>, Alloc> map(alloc);
-            assert_unordered_map_values<complex_t>(map);
         });
     }
 }

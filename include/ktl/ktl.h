@@ -17,6 +17,3 @@
 #include "containers/binary_heap.h"
 #include "containers/trivial_array.h"
 #include "containers/trivial_vector.h"
-#include "containers/unordered_map.h"
-#include "containers/unordered_multimap.h"
-#include "containers/unordered_set.h"

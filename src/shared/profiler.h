@@ -16,7 +16,8 @@ namespace ktl::performance
 }
 
 #define KTL_ADD_BENCHMARK3(func_ptr, line) void func_ptr(); \
-	static int profile_##line = (::ktl::performance::profiler::add_benchmark(#func_ptr, func_ptr), 0); \
+	struct profile_struct##line { profile_struct##line() { ::ktl::performance::profiler::add_benchmark(#func_ptr, func_ptr); } }; \
+	static profile_struct##line profile_##line; \
 	void func_ptr()
 
 #define KTL_ADD_BENCHMARK2(func_ptr, line) KTL_ADD_BENCHMARK3(func_ptr, line)
@@ -28,17 +29,18 @@ namespace ktl::performance
 	class profiler
 	{
 	public:
+		typedef void (*FuncPtr)();
+
 		inline constexpr static size_t RUN_COUNT = 1000;
+		inline constexpr static size_t MAX_BENCHMARKS = 128;
 
 	private:
 		inline static std::chrono::steady_clock::time_point s_PausePoint;
 		inline static double* s_Duration;
 		inline static bool s_Paused;
 
-		inline constexpr static size_t MAX_BENCHMARKS = 1024;
-
-		inline static void (*s_ProfileFunctions[MAX_BENCHMARKS])();
-		inline static std::string s_ProfileNames[MAX_BENCHMARKS];
+		inline static FuncPtr s_ProfileFunctions[MAX_BENCHMARKS];
+		inline static const char* s_ProfileNames[MAX_BENCHMARKS];
 		inline static size_t s_ProfileCounter;
 
 	public:
@@ -72,7 +74,7 @@ namespace ktl::performance
 			s_Paused = false;
 		}
 
-		static void add_benchmark(const std::string& name, void (*func_ptr)());
+		static void add_benchmark(const char* name, FuncPtr func_ptr);
 		static void run_all_benchmarks();
 	};
 

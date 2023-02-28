@@ -63,6 +63,8 @@ This library contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
+Raw allocators always use an alignment of 8 bytes for 64-bit systems and 4 bytes for 32-bit systems.
+
 Both of these allocator types are not STL compliant, but can be made to be if used with the `type_allocator<T, Allocator>` type.<br/>
 This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, linear_allocator<1024>>`.<br/>
 All allocators also have a typedeffed version with a `type_` prefix as a shorthand, such as: `type_linear_allocator<int, 1024>`.
@@ -105,10 +107,8 @@ This library also contains various containers that are STL compliant.
 | Signature | Description | Notes |
 | --- | --- | --- |
 | [binary_heap<br/>\<T, Comp, Alloc\>](#binary_heap-interface) | A binary heap, sorted using the `Comp` and allocated using the given `Alloc` allocator. | `Comp` can be either `std::greater<T>` or `std::less<T>` or some other custom implementation.<br/>A shorthand version of both a min and a max heap can be used, via the `binary_min_heap<T, Alloc>` and `binary_max_heap<T, Alloc>` types. |
-| [trivial_array<br/>\<T, Alloc\>](#trivial_array-interface) | An array wrapper class, similar to `std::array`, but uses dynamic allocation and is optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors.<br/>Just like with the standard array, the container may invalidate iterators and references on insertion, but not on erasure. |
-| [trivial_vector<br/>\<T, Alloc\>](#trivial_vector-interface) | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors.<br/>Just like with the standard vector, the container may invalidate iterators and references on insertion, but not on erasure. |
-| [unordered_map<br/><K, V, Hash, EqualTo, Alloc>](#unordered_map-interface) | A hash map class similar to `std::unordered_map`, but optimized for cache locality using open addressing with linear probing. | The container uses a `Hash` struct, `EqualTo` struct and `Alloc` class passed in as template parameters, just like the standard unordered map.<br/>Unlike `std::unordered_map` iterator and reference invalidation may happen on insertion. However, only iterators and references to the erased object are invalidated on erasure. |
-| [unordered_multimap<br/><K, V, Hash, EqualTo, Alloc>](#unordered_multimap-interface) | A hash multimap class similar to `std::unordered_multimap`, but optimized for cache locality using open addressing with linear probing. | The container uses a `Hash` struct, `EqualTo` struct and `Alloc` class passed in as template parameters, just like the standard unordered map.<br/>Unlike `std::unordered_multimap` iterator and reference invalidation may happen on insertion. However, only iterators and references to the erased object are invalidated on erasure. |
+| [trivial_array<br/>\<T, Alloc\>](#trivial_array-interface) | An array wrapper class, similar to `std::array`, but uses dynamic allocation and is optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
+| [trivial_vector<br/>\<T, Alloc\>](#trivial_vector-interface) | A vector class, similar to `std::vector`, but optimized for trivial types. Takes a type `T` and an allocator `Alloc`. | The container uses a straight `memcpy` for most of its operations.<br/>It's not recommended to use this with non-trivial types, eg. types that have custom default, copy or move constructors or custom destructors. |
 
 ## binary_heap interface
 | Method | Description |
@@ -156,38 +156,6 @@ This library also contains various containers that are STL compliant.
 | `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
 | `void resize(size_t size)` | Resizes the vector to the given size. |
 | `size_t size() const` | Returns the current amount of elements in the vector. |
-
-## unordered_map interface
-| Method | Description |
-| --- | --- |
-| `V& operator[const K& index]` | Returns a reference to the element with the given key `index` and inserts one if it doesn't exist. |
-| `V& at(const K& index) const` | Returns a reference to the element with the given key and asserts if it doesn't exist. |
-| `size_t capacity() const` | Returns the current capacity of the map. Always a power of two. |
-| `void clear()` | Clear all elements in the map. |
-| `bool empty() const` | Returns whether or not the map is empty. |
-| `size_t erase(const K& index)` | Erase an element by its key. |
-| `iterator erase(iterator iter)` | Erase an element by an iterator pointing to it. |
-| `iterator insert(K&& index, V&& value)` | Inserts an element into the map with the key `index` and value `value`. Returns an iterator to the element. |
-| `iterator find(const K& index) const` | Attempts to find the value with the given key `index`. Returns `end()` if not found. |
-| `float load_factor() const` | Returns the load factor of the map, between 0 and 1. |
-| `void reserve(size_t size)` | Reserves a buffer of `size` elements, if the map isn't already this big. |
-| `size_t size() const` | Returns the current amount of elements in the map. |
-
-## unordered_multimap interface
-| Method | Description |
-| --- | --- |
-| `V& at(const K& index) const` | Returns a reference to the element with the given key and asserts if it doesn't exist. |
-| `size_t capacity() const` | Returns the current capacity of the map. Always a power of two. |
-| `void clear()` | Clear all elements in the map. |
-| `bool empty() const` | Returns whether or not the map is empty. |
-| `size_t erase(const K& index)` | Erase an element by its key. |
-| `iterator erase(iterator iter)` | Erase an element by an iterator pointing to it. |
-| `key_iterator erase(key_iterator iter)` | Erase an element by a key iterator pointing to it. |
-| `iterator insert(K&& index, V&& value)` | Inserts an element into the map with the key `index` and value `value`. Returns an iterator to the element. |
-| `key_iterator find(const K& index) const` | Attempts to find the value with the given key `index`. Returns `end()` if not found. |
-| `float load_factor() const` | Returns the load factor of the map, between 0 and 1. |
-| `void reserve(size_t size)` | Reserves a buffer of `size` elements, if the map isn't already this big. |
-| `size_t size() const` | Returns the current amount of elements in the map. |
 
 # Allocator Examples
 Create an allocator which will attempt to use a linked list allocator for allocation, but fall back on malloc when full.

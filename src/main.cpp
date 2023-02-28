@@ -11,9 +11,5 @@ int main(int argc, char* argv[])
 
 	ktl::performance::profiler::run_all_benchmarks();
 
-#ifdef _MSC_VER
-	system("pause");
-#endif
-
 	return 0;
 }
