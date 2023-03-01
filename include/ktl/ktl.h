@@ -16,4 +16,5 @@
 // Containers
 #include "containers/binary_heap.h"
 #include "containers/trivial_array.h"
+#include "containers/trivial_buffer.h"
 #include "containers/trivial_vector.h"

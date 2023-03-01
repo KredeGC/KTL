@@ -29,8 +29,6 @@ namespace ktl::test
         // Move constructor
         Container moveContainer(std::move(copyContainer));
 
-        KTL_TEST_ASSERT(copyContainer.empty());
-
         test(moveContainer, baseContainer);
 
         // Copy assignment operator
@@ -42,8 +40,6 @@ namespace ktl::test
         // Move assignment operator
         Container moveAssignmentContainer;
         moveAssignmentContainer = std::move(copyAssignmentContainer);
-
-        KTL_TEST_ASSERT(copyAssignmentContainer.empty());
 
         test(moveAssignmentContainer, baseContainer);
         

@@ -17,17 +17,17 @@ namespace ktl::test
 	class unit
 	{
 	public:
-		typedef void (*FuncPtr)();
+		typedef void (*test_ptr_t)();
 
 		inline constexpr static size_t MAX_TESTS = 256;
 
 	private:
-		inline static FuncPtr s_TestFunctions[MAX_TESTS];
+		inline static test_ptr_t s_TestFunctions[MAX_TESTS];
 		inline static const char* s_TestNames[MAX_TESTS];
 		inline static size_t s_TestCounter;
 
 	public:
-		static void add_test(const char* name, FuncPtr func_ptr);
+		static void add_test(const char* name, test_ptr_t func_ptr);
 
 		static void run_all_tests();
 	};
