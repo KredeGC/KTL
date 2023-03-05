@@ -15,6 +15,13 @@ namespace ktl
 	template<size_t Threshold, typename P, typename F>
 	class segragator;
 
+	/**
+	 * @brief An allocator which delegates allocations between 2 different allocators based on a size threshold.
+	 * @note The primary allocator must have an owns(*ptr) method if it also has a construct() method.
+	 * @tparam T The type to use with the allocator
+	 * @tparam P The primary allocator, which is used when size is less than or equal to Threshold
+	 * @tparam F The fallback allocator, which is used when size is bigger than Threshold
+	*/
 	template<typename T, size_t Threshold, typename P, typename F>
 	using type_segragator_allocator = type_allocator<T, segragator<Threshold, P, F>>;
 
@@ -60,13 +67,25 @@ namespace ktl
         };
     }
 
-    // Helper type without the tuple
+    /**
+     * @brief A type builder for a left-leaning segragator allocator
+     * @note The amount of thresholds must be 1 less than the amount of allocators
+     * @tparam ...Ts Various allocators and thresholds, in descending order
+    */
     template<typename ...Ts>
     using segragator_builder_min = typename detail::segragator_builder<false, std::tuple<Ts...>>::type;
 
+    /**
+     * @brief A type builder for a right-leaning segragator allocator
+     * @note The amount of thresholds must be 1 less than the amount of allocators
+     * @tparam ...Ts Various allocators and thresholds, in descending order
+    */
     template<typename ...Ts>
     using segragator_builder_max = typename detail::segragator_builder<true, std::tuple<Ts...>>::type;
 
+    /**
+     * @brief A shorthand way of writing std::integral_constant<size_t, N>
+    */
     template<size_t N>
     using threshold = std::integral_constant<size_t, N>;
 }

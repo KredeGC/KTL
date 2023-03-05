@@ -9,6 +9,12 @@
 
 namespace ktl
 {
+	/**
+	 * @brief An allocator which delegates allocations between 2 different allocators based on a size threshold.
+	 * @note The primary allocator must have an owns(*ptr) method if it also has a construct() method.
+	 * @tparam P The primary allocator, which is used when size is less than or equal to Threshold
+	 * @tparam F The fallback allocator, which is used when size is bigger than Threshold
+	*/
 	template<size_t Threshold, typename P, typename F>
 	class segragator
 	{

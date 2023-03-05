@@ -11,8 +11,9 @@
 namespace ktl
 {
 	/**
-	 * @brief An allocator which delegates allocations between 2 different allocators
+	 * @brief An allocator which delegates allocations between 2 different allocators.
 	 * It first attempts to allocate with the primary allocator, but upon failure will use the fallback allocator.
+	 * @note The primary allocator must have an owns(*ptr) method.
 	 * @tparam P The primary allocator
 	 * @tparam F The fallback allocator, which is used when the primary allocator fails
 	*/
