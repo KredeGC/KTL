@@ -10,6 +10,11 @@
 
 namespace ktl
 {
+	/**
+	 * @brief A dynamically alloacted array of trivial types
+	 * @tparam T The type to use. Must be trivially copyable and default constructible
+	 * @tparam Alloc The type of allocoator to use
+	*/
 	template<typename T, typename Alloc>
 	class trivial_array
 	{
@@ -27,16 +32,31 @@ namespace ktl
 		typedef std::reverse_iterator<const T*> const_reverse_iterator;
 
 	public:
+		/**
+		 * @brief Construct the array with the given allocator
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		trivial_array(const Alloc& allocator = Alloc()) noexcept :
 			m_Alloc(allocator),
 			m_Begin(nullptr),
 			m_End(nullptr) {}
 
+		/**
+		 * @brief Construct the array with the given allocator and size
+		 * @param n The size of the array
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		explicit trivial_array(size_t n, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, n)),
 			m_End(m_Begin + n) {}
 
+		/**
+		 * @brief Construct the array with the given allocator, size and default value
+		 * @param n The size of the array
+		 * @param value The value to initialize every element as
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		explicit trivial_array(size_t n, const T& value, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, n)),
@@ -45,6 +65,11 @@ namespace ktl
 			std::uninitialized_fill_n<T*, size_t>(m_Begin, n, value);
 		}
 
+		/**
+		 * @brief Construct the array with the allocator and range of values
+		 * @param initializer The initial set of values
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		trivial_array(std::initializer_list<T> initializer, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, initializer.size())),
@@ -58,6 +83,12 @@ namespace ktl
 			}
 		}
 
+		/**
+		 * @brief Construct the array with the allocator and range of values
+		 * @param first A pointer to the first element
+		 * @param last A pointer past the last element
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		explicit trivial_array(const T* first, const T* last, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, size_t(last - first))),

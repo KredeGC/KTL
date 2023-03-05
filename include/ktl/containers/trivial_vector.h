@@ -10,6 +10,11 @@
 
 namespace ktl
 {
+	/**
+	 * @brief A dynamically allocated vector or trivial types
+	 * @tparam T The type to use. Must be trivially copyable and default constructible
+	 * @tparam Alloc The type of allocoator to use
+	*/
 	template<typename T, typename Alloc>
 	class trivial_vector
 	{
@@ -27,18 +32,33 @@ namespace ktl
         typedef std::reverse_iterator<const T*> const_reverse_iterator;
 
 	public:
+		/**
+		 * @brief Construct the vector with the given allocator
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		trivial_vector(const Alloc& allocator = Alloc()) noexcept :
 			m_Alloc(allocator),
 			m_Begin(nullptr),
 			m_End(nullptr),
 			m_EndMax(nullptr) {}
 
+		/**
+		 * @brief Construct the vector with the given allocator and initial size
+		 * @param n The initial size of the vector
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		explicit trivial_vector(size_t n, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, n)),
 			m_End(m_Begin + n),
 			m_EndMax(m_End) {}
 
+		/**
+		 * @brief Construct the vector with the given allocator, initial size and default value
+		 * @param n The initial size of the vector
+		 * @param value The value to initialize every element as
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		explicit trivial_vector(size_t n, const T& value, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, n)),
@@ -48,6 +68,11 @@ namespace ktl
 			std::uninitialized_fill_n<T*, size_t>(m_Begin, n, value);
 		}
 
+		/**
+		 * @brief Construct the vector with the allocator and range of values
+		 * @param initializer The initial set of values
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		trivial_vector(std::initializer_list<T> initializer, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, initializer.size())),
@@ -62,6 +87,12 @@ namespace ktl
 			}
 		}
 
+		/**
+		 * @brief Construct the vector with the allocator and range of values
+		 * @param first A pointer to the first element
+		 * @param last A pointer past the last element
+		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		*/
 		explicit trivial_vector(const T* first, const T* last, const Alloc& allocator = Alloc()) :
 			m_Alloc(allocator),
 			m_Begin(Traits::allocate(m_Alloc, size_t(last - first))),
@@ -81,16 +112,6 @@ namespace ktl
             if (other.m_Begin != nullptr)
 			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
 		}
-        
-        trivial_vector(const trivial_vector& other, const Alloc& allocator) noexcept :
-			m_Alloc(allocator),
-			m_Begin(Traits::allocate(m_Alloc, other.size())),
-			m_End(m_Begin + other.size()),
-			m_EndMax(m_End)
-		{
-            if (other.m_Begin != nullptr)
-			    std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
-		}
 
 		trivial_vector(trivial_vector&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
@@ -101,6 +122,16 @@ namespace ktl
 			other.m_Begin = nullptr;
 			other.m_End = nullptr;
 			other.m_EndMax = nullptr;
+		}
+
+		trivial_vector(const trivial_vector& other, const Alloc& allocator) noexcept :
+			m_Alloc(allocator),
+			m_Begin(Traits::allocate(m_Alloc, other.size())),
+			m_End(m_Begin + other.size()),
+			m_EndMax(m_End)
+		{
+			if (other.m_Begin != nullptr)
+				std::memcpy(m_Begin, other.m_Begin, other.size() * sizeof(T));
 		}
 
 		trivial_vector(trivial_vector&& other, const Alloc& allocator) noexcept :

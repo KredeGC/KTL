@@ -7,6 +7,11 @@
 
 namespace ktl
 {
+	/**
+	 * @brief Wrapper class for making an untyped allocator into a typed allocator
+	 * @tparam T The type to use
+	 * @tparam Alloc The untyped allocator
+	*/
 	template<typename T, typename Alloc>
 	class type_allocator
 	{

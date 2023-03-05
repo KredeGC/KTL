@@ -10,10 +10,19 @@
 
 namespace ktl
 {
+    /**
+     * @brief A priority queue implemented as a binary heap
+     * @tparam T The type to use. Must be move constructible and move assignable
+     * @tparam Comp The comparison function. Usually std::greater<T> or std::less<T>
+     * @tparam Alloc The type of allocoator to use
+    */
     template<typename T, typename Comp, typename Alloc>
     class binary_heap
     {
     private:
+        static_assert(std::is_move_constructible_v<T>, "T must be move constructible");
+        static_assert(std::is_move_assignable_v<T>, "T must be move assignable");
+
         typedef std::allocator_traits<Alloc> Traits;
 
     public:
@@ -24,6 +33,11 @@ namespace ktl
         typedef std::reverse_iterator<const T*> const_reverse_iterator;
 
     public:
+        /**
+         * @brief Construct the binary heap with the given allocator and comparator
+         * @param allocator The allocator to use. Will be default constructed if unspecified
+         * @param comp The allocator to use. Will be default constructed if unspecified
+        */
         binary_heap(const Alloc& allocator = Alloc(), const Comp& comp = Comp()) noexcept :
             m_Alloc(allocator),
             m_Comp(comp),
@@ -31,6 +45,12 @@ namespace ktl
             m_Capacity(0),
             m_Begin(nullptr) {}
 
+        /**
+         * @brief Construct the binary heap with the given allocator, comparator and an initial capacity
+         * @param capacity The initial capacity to use
+         * @param allocator The allocator to use. Will be default constructed if unspecified
+         * @param comp The allocator to use. Will be default constructed if unspecified
+        */
         explicit binary_heap(size_t capacity, const Alloc& allocator = Alloc(), const Comp& comp = Comp()) noexcept :
             m_Alloc(allocator),
             m_Comp(comp),
@@ -38,6 +58,12 @@ namespace ktl
             m_Capacity(capacity),
             m_Begin(Traits::allocate(m_Alloc, capacity)) {}
 
+        /**
+         * @brief Construct the binary heap with the given allocator, comparator and an initial set of values
+         * @param initializer A list of values to insert into the binary heap
+         * @param allocator The allocator to use. Will be default constructed if unspecified
+         * @param comp The allocator to use. Will be default constructed if unspecified
+        */
         binary_heap(std::initializer_list<T> initializer, const Alloc& allocator = Alloc(), const Comp& comp = Comp()) :
             m_Alloc(allocator),
             m_Comp(comp),
@@ -380,7 +406,7 @@ namespace ktl
                 if (child == parent)
                     break;
 
-                const T temp = std::move(m_Begin[child]);
+                const T temp(std::move(m_Begin[child]));
                 m_Begin[child] = std::move(m_Begin[parent]);
                 m_Begin[parent] = std::move(temp);
 

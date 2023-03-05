@@ -9,6 +9,9 @@
 
 namespace ktl
 {
+	/**
+	 * @brief A stack object of a given @p Size
+	*/
 	template<size_t Size>
 	struct stack
 	{
@@ -22,6 +25,12 @@ namespace ktl
 			ObjectCount(0) {}
 	};
 
+	/**
+	 * @brief A linear allocator which gives out chunks of its allocated stack.
+	 * Increments a counter during allocation, which makes it very fast but also unlikely to deallocate it again.
+	 * Has a max allocation size of the @p Size given.
+	 * @note Cannot be default constructed because it needs a reference to a stack
+	*/
 	template<size_t Size>
 	class stack_allocator
 	{
@@ -89,8 +98,7 @@ namespace ktl
 
 		bool owns(void* p) const
 		{
-			char* ptr = reinterpret_cast<char*>(p);
-			return ptr >= m_Block->Data && ptr < m_Block->Data + Size;
+			return p >= m_Block->Data && p < m_Block->Data + Size;
 		}
 #pragma endregion
 
