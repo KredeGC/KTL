@@ -7,6 +7,11 @@
 
 namespace ktl
 {
+	/**
+	 * @brief An allocator which uses an aligned malloc for allocation.
+	 * @note Like std::allocator it holds no state, so any instance can de/allocate mememory from any other instance.
+	 * Similar to std::allocator, except it's untyped.
+	*/
 	class mallocator
 	{
 	public:

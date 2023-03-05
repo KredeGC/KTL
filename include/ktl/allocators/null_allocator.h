@@ -4,6 +4,10 @@
 
 namespace ktl
 {
+	/**
+	 * @brief An allocator which does nothing.
+	 * Useful for debugging composite allocators, like ensuring a specific path in a composite allocator is not used.
+	*/
 	class null_allocator
 	{
 	public:

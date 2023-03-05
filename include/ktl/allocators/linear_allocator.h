@@ -11,6 +11,12 @@
 
 namespace ktl
 {
+    /**
+     * @brief A linear allocator which gives out chunks of its internal stack.
+	 * Increments a counter during allocation, which makes it very fast but also unlikely to deallocate it again.
+	 * Has a max allocation size of the @p Size given.
+     * @tparam Atomic The atomic type to use for reference counting. Threading is not implemented, so this defaults to ktl::notomic<size_t>
+    */
     template<size_t Size, typename Atomic>
 	class linear_allocator
 	{

@@ -4,6 +4,10 @@
 
 namespace ktl
 {
+    /**
+     * @brief A wrapper type for the given T, which gives the same interface as std::atomic<T>
+     * @tparam T The type to wrap
+    */
     template<typename T>
     struct notomic
     {
