@@ -10,6 +10,12 @@
 
 namespace ktl
 {
+	/**
+	 * @brief An allocator which delegates allocations between 2 different allocators
+	 * It first attempts to allocate with the primary allocator, but upon failure will use the fallback allocator.
+	 * @tparam P The primary allocator
+	 * @tparam F The fallback allocator, which is used when the primary allocator fails
+	*/
 	template<typename P, typename F>
 	class fallback
 	{

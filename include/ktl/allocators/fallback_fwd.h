@@ -15,6 +15,13 @@ namespace ktl
 	template<typename P, typename F>
 	class fallback;
 
+	/**
+	 * @brief An allocator which delegates allocations between 2 different allocators
+	 * It first attempts to allocate with the primary allocator, but upon failure will use the fallback allocator.
+	 * @tparam T The type to use with the allocator
+	 * @tparam P The primary allocator
+	 * @tparam F The fallback allocator, which is used when the primary allocator fails
+	*/
 	template<typename T, typename P, typename F>
 	using type_fallback_allocator = type_allocator<T, fallback<P, F>>;
 
@@ -55,9 +62,17 @@ namespace ktl
         };
     }
     
+    /**
+     * @brief A type builder for a left-leaning fallback allocator
+     * @tparam ...Ts Various allocators, in descending order
+    */
     template<typename... Ts>
     using fallback_builder_min = typename detail::fallback_builder<false, std::tuple<Ts...>>::type;
 
+    /**
+     * @brief A type builder for a right-leaning fallback allocator
+     * @tparam ...Ts Various allocators, in descending order
+    */
     template<typename... Ts>
     using fallback_builder_max = typename detail::fallback_builder<true, std::tuple<Ts...>>::type;
 }
