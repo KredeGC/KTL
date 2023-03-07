@@ -25,11 +25,11 @@ namespace ktl
 	class cascading
 	{
 	private:
-		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(has_owns<Alloc>::value, "The allocator is required to have an 'owns(void*)' method");
+		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_owns<Alloc>::value, "The allocator is required to have an 'owns(void*)' method");
 
 	public:
-		typedef typename get_size_type<Alloc>::type size_type;
+		typedef typename detail::get_size_type<Alloc>::type size_type;
 
 	private:
 		struct node
@@ -113,7 +113,7 @@ namespace ktl
 			if (!m_Block->Node)
 				m_Block->Node = new node;
 
-			if constexpr (has_max_size<Alloc>::value)
+			if constexpr (detail::has_max_size<Alloc>::value)
 			{
 				if (n > m_Block->Node->Allocator.max_size())
 					return nullptr;
@@ -168,7 +168,7 @@ namespace ktl
 
 #pragma region Construction
 		template<typename T, typename... Args>
-		typename std::enable_if<has_construct<void, Alloc, T*, Args...>::value, void>::type
+		typename std::enable_if<detail::has_construct<void, Alloc, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
 		{
             node* next = m_Block->Node;
@@ -187,7 +187,7 @@ namespace ktl
 		}
 
 		template<typename T>
-		typename std::enable_if<has_destroy<Alloc, T*>::value, void>::type
+		typename std::enable_if<detail::has_destroy<Alloc, T*>::value, void>::type
 		destroy(T* p)
 		{
 			node* next = m_Block->Node;
@@ -208,7 +208,7 @@ namespace ktl
 
 #pragma region Utility
 		template<typename A = Alloc>
-		typename std::enable_if<has_max_size<A>::value, size_type>::type
+		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
 			return m_Block->Node->Allocator.max_size();

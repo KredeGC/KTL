@@ -11,6 +11,8 @@
 #include "allocators/overflow.h"
 #include "allocators/segragator.h"
 #include "allocators/stack_allocator.h"
+#include "allocators/stl_allocator.h"
+#include "allocators/threaded.h"
 #include "allocators/type_allocator.h"
 
 // Containers

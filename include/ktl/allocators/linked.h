@@ -15,10 +15,10 @@ namespace ktl
 	class linked
 	{
 	private:
-		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 
 	public:
-		typedef typename get_size_type<Alloc>::type size_type;
+		typedef typename detail::get_size_type<Alloc>::type size_type;
 
 	private:
 		struct footer
@@ -51,11 +51,7 @@ namespace ktl
 	public:
 		linked(const Alloc& alloc = Alloc()) noexcept
 		{
-            m_Block = reinterpret_cast<arena*>(const_cast<Alloc&>(alloc).allocate(sizeof(arena)));
-            if constexpr (has_construct<void, Alloc, arena*, const Alloc&>::value)
-                alloc.construct(m_Block, alloc);
-            else
-                ::new(m_Block) arena(alloc);
+			m_Block = new arena(alloc);
 		}
 
 		linked(const linked& other) noexcept :
@@ -265,13 +261,7 @@ namespace ktl
 		{
 			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
             {
-                Alloc alloc = std::move(m_Block->Allocator);
-                
-				if constexpr (has_destroy<Alloc, arena*>::value)
-                    alloc.destroy(m_Block);
-                else
-                    m_Block->~arena();
-                alloc.deallocate(m_Block, sizeof(arena));
+				delete m_Block;
             }
 		}
 

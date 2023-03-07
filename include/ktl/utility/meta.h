@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace ktl
+namespace ktl::detail
 {
 	// has value_type
 	template<typename Alloc, typename = void>

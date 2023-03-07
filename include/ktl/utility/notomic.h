@@ -19,6 +19,8 @@ namespace ktl
 		static_assert(std::is_move_assignable<T>::value, "Template class needs to be move assignable");
         
     public:
+        using value_type = T;
+
         notomic() noexcept = default;
         constexpr notomic(T value) noexcept : m_Value(value) {}
         
