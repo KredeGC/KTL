@@ -60,7 +60,7 @@ namespace ktl::test::trivial_buffer
         
     }
 
-    KTL_ADD_TEST(test_trivial_list_trivial)
+    KTL_ADD_TEST(test_trivial_linear_trivial)
     {
         ktl::trivial_buffer<trivial_t, 8> arr;
 

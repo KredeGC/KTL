@@ -5,7 +5,7 @@
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/cascading.h"
-#include "ktl/allocators/linked.h"
+#include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/segragator.h"
 #include "ktl/allocators/stack_allocator.h"
@@ -15,9 +15,9 @@
 
 namespace ktl::test::cascading_allocator
 {
-    KTL_ADD_TEST(test_cascading_list_unordered_double)
+    KTL_ADD_TEST(test_cascading_linear_unordered_double)
     {
-        type_cascading_allocator<double, linked<64, mallocator>> alloc;
+        type_cascading_allocator<double, linear_allocator<32>> alloc;
         assert_unordered_values<double>(alloc);
     }
 }

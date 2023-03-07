@@ -36,12 +36,12 @@ namespace ktl
 
 		bool operator==(const threaded& rhs) const noexcept
 		{
-			return m_Alloc == m_Alloc;
+			return m_Alloc == rhs.m_Alloc;
 		}
 
 		bool operator!=(const threaded& rhs) const noexcept
 		{
-			return m_Alloc != m_Alloc;
+			return m_Alloc != rhs.m_Alloc;
 		}
 
 #pragma region Allocation

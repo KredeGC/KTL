@@ -10,9 +10,10 @@
 #include "ktl/containers/trivial_array.h"
 
 #include "ktl/allocators/linear_allocator.h"
-#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
+#include "ktl/allocators/shared.h"
 #include "ktl/allocators/stack_allocator.h"
+#include "ktl/allocators/type_allocator.h"
 
 // Naming scheme: test_trivial_array_[Alloc]_[Type]
 // Contains tests that relate directly to the ktl::trivial_array
@@ -21,7 +22,7 @@ namespace ktl::test::trivial_array
 {
     KTL_ADD_TEST(test_trivial_array_construct)
     {
-        using Alloc = ktl::type_stl_linear_allocator<double, 2048>;
+        using Alloc = ktl::type_shared_linear_allocator<double, 2048>;
         using Container = ktl::trivial_array<double, Alloc>;
 
         constexpr size_t size = 4;
@@ -80,16 +81,16 @@ namespace ktl::test::trivial_array
         });
     }
 
-    KTL_ADD_TEST(test_trivial_array_list_double)
+    KTL_ADD_TEST(test_trivial_array_linear_double)
     {
-        ktl::trivial_array<double, type_linked_allocator<double, 4096, mallocator>> arr;
+        ktl::trivial_array<double, type_linear_allocator<double, 4096>> arr;
 
         assert_array_values<double>(arr);
     }
 
-    KTL_ADD_TEST(test_trivial_array_list_trivial)
+    KTL_ADD_TEST(test_trivial_array_linear_trivial)
     {
-        ktl::trivial_array<trivial_t, type_linked_allocator<trivial_t, 4096, mallocator>> arr;
+        ktl::trivial_array<trivial_t, type_linear_allocator<trivial_t, 4096>> arr;
 
         assert_array_values<trivial_t>(arr);
     }

@@ -6,7 +6,7 @@
 #include "ktl/ktl_alloc_fwd.h"
 
 #define KTL_DEBUG_ASSERT
-#include "ktl/allocators/linked.h"
+#include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/overflow.h"
 #include "ktl/allocators/stack_allocator.h"
@@ -49,20 +49,20 @@ namespace ktl::test::overflow_allocator
         });
     }
 
-    KTL_ADD_TEST(test_overflow_list_unordered_double)
+    KTL_ADD_TEST(test_overflow_linear_unordered_double)
     {
         assert_no_overflow([]()
         {
-            type_overflow_allocator<double, linked<4096, mallocator>, stringOut> alloc;
+            type_overflow_allocator<double, linear_allocator<4096>, stringOut> alloc;
             assert_unordered_values<double>(alloc);
         });
     }
 
-    KTL_ADD_TEST(test_overflow_list_binary_heap_double)
+    KTL_ADD_TEST(test_overflow_linear_binary_heap_double)
     {
         assert_no_overflow([]()
         {
-            type_overflow_allocator<double, linked<4096, mallocator>, stringOut> alloc;
+            type_overflow_allocator<double, linear_allocator<4096>, stringOut> alloc;
             assert_binary_heap<double>(3, alloc);
         });
     }
