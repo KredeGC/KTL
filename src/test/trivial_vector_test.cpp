@@ -10,9 +10,10 @@
 #include "ktl/containers/trivial_vector.h"
 
 #include "ktl/allocators/linear_allocator.h"
-#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
+#include "ktl/allocators/shared.h"
 #include "ktl/allocators/stack_allocator.h"
+#include "ktl/allocators/type_allocator.h"
 
 // Naming scheme: test_trivial_vector_[Alloc]_[Type]
 // Contains tests that relate directly to the ktl::trivial_vector
@@ -21,7 +22,7 @@ namespace ktl::test::trivial_vector
 {
     KTL_ADD_TEST(test_trivial_vector_construct)
     {
-        using Alloc = ktl::type_stl_linear_allocator<double, 2048>;
+        using Alloc = ktl::type_shared_linear_allocator<double, 2048>;
         using Container = ktl::trivial_vector<double, Alloc>;
 
         constexpr size_t size = 4;
@@ -78,15 +79,15 @@ namespace ktl::test::trivial_vector
         });
     }
 
-    KTL_ADD_TEST(test_trivial_vector_list_double)
+    KTL_ADD_TEST(test_trivial_vector_linear_double)
     {
-        ktl::trivial_vector<double, type_linked_allocator<double, 4096, mallocator>> vec;
+        ktl::trivial_vector<double, type_linear_allocator<double, 4096>> vec;
         assert_vector_values<double>(vec);
     }
 
-    KTL_ADD_TEST(test_trivial_vector_list_trivial)
+    KTL_ADD_TEST(test_trivial_vector_linear_trivial)
     {
-        ktl::trivial_vector<trivial_t, type_linked_allocator<trivial_t, 4096, mallocator>> vec;
+        ktl::trivial_vector<trivial_t, type_linear_allocator<trivial_t, 4096>> vec;
         assert_vector_values<trivial_t>(vec);
     }
 

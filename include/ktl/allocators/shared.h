@@ -7,8 +7,8 @@
 
 namespace ktl
 {
-	template<typename Alloc>
-	class stl_allocator
+	template<typename Alloc, typename Atomic>
+	class shared
 	{
 	private:
 		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
@@ -16,7 +16,7 @@ namespace ktl
 		struct block
 		{
 			Alloc Allocator;
-			size_t UseCount;
+			Atomic UseCount;
 
 			block() noexcept :
 				Allocator(),
@@ -34,33 +34,33 @@ namespace ktl
 	public:
 		typedef typename detail::get_size_type<Alloc>::type size_type;
 
-		stl_allocator() noexcept :
+		shared() noexcept :
 			m_Block(new block) {}
 
-		explicit stl_allocator(const Alloc& alloc) noexcept :
+		explicit shared(const Alloc& alloc) noexcept :
 			m_Block(new block(alloc)) {}
 
-		explicit stl_allocator(Alloc&& alloc) noexcept :
+		explicit shared(Alloc&& alloc) noexcept :
 			m_Block(new block(std::move(alloc))) {}
 
-		stl_allocator(const stl_allocator& other) noexcept :
+		shared(const shared& other) noexcept :
 			m_Block(other.m_Block)
 		{
 			increment();
 		}
 
-		stl_allocator(stl_allocator&& other) noexcept :
+		shared(shared&& other) noexcept :
 			m_Block(std::move(other.m_Block))
 		{
 			other.m_Block = nullptr;
 		}
 
-		~stl_allocator()
+		~shared()
 		{
 			decrement();
 		}
 
-		stl_allocator& operator=(const stl_allocator& rhs) noexcept
+		shared& operator=(const shared& rhs) noexcept
 		{
 			decrement();
 
@@ -71,7 +71,7 @@ namespace ktl
 			return *this;
 		}
 
-		stl_allocator& operator=(stl_allocator&& rhs) noexcept
+		shared& operator=(shared&& rhs) noexcept
 		{
 			decrement();
 
@@ -82,14 +82,14 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const stl_allocator& rhs) const noexcept
+		bool operator==(const shared& rhs) const noexcept
 		{
-			return m_Block == m_Block;
+			return m_Block == rhs.m_Block;
 		}
 
-		bool operator!=(const stl_allocator& rhs) const noexcept
+		bool operator!=(const shared& rhs) const noexcept
 		{
-			return m_Block != m_Block;
+			return m_Block != rhs.m_Block;
 		}
 
 #pragma region Allocation
@@ -158,9 +158,7 @@ namespace ktl
 		{
 			if (!m_Block) return;
 
-			size_t count = --m_Block->UseCount;
-
-			if (count == 0)
+			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
 				delete m_Block;
 		}
 

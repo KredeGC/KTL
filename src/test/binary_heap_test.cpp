@@ -10,9 +10,10 @@
 #include "ktl/containers/binary_heap.h"
 
 #include "ktl/allocators/linear_allocator.h"
-#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
+#include "ktl/allocators/shared.h"
 #include "ktl/allocators/stack_allocator.h"
+#include "ktl/allocators/type_allocator.h"
 
 // Naming scheme: test_binary_heap_[Alloc]_[Type]
 // Contains tests that use the ktl::binary_heap container, both min and max
@@ -21,7 +22,7 @@ namespace ktl::test::binary_heap
 {
     KTL_ADD_TEST(test_binary_heap_array_construct)
     {
-        using Alloc = ktl::type_stl_linear_allocator<double, 2048>;
+        using Alloc = ktl::type_shared_linear_allocator<double, 2048>;
         using Container = ktl::binary_min_heap<double, Alloc>;
 
         constexpr size_t size = 4;
@@ -130,28 +131,28 @@ namespace ktl::test::binary_heap
     }
 #pragma endregion
 
-#pragma region ktl::linked
-    KTL_ADD_TEST(test_binary_heap_list_double)
+#pragma region ktl::linear
+    KTL_ADD_TEST(test_binary_heap_linear_double)
     {
-        type_linked_allocator<double, 4096, mallocator> alloc;
+        type_linear_allocator<double, 4096> alloc;
         assert_binary_heap<double>(3, alloc);
     }
 
-    KTL_ADD_TEST(test_binary_heap_list_trivial)
+    KTL_ADD_TEST(test_binary_heap_linear_trivial)
     {
-        type_linked_allocator<trivial_t, 4096, mallocator> alloc;
+        type_linear_allocator<trivial_t, 4096> alloc;
         assert_binary_heap<trivial_t>(3, alloc);
     }
 
-    KTL_ADD_TEST(test_binary_heap_list_packed)
+    KTL_ADD_TEST(test_binary_heap_linear_packed)
     {
-        type_linked_allocator<packed_t, 4096, mallocator> alloc;
+        type_linear_allocator<packed_t, 4096> alloc;
         assert_binary_heap<packed_t>(3, alloc);
     }
 
-    KTL_ADD_TEST(test_binary_heap_list_complex)
+    KTL_ADD_TEST(test_binary_heap_linear_complex)
     {
-        type_linked_allocator<complex_t, 4096, mallocator> alloc;
+        type_linear_allocator<complex_t, 4096> alloc;
         assert_binary_heap<complex_t>(3, alloc);
     }
 #pragma endregion

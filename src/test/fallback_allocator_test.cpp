@@ -6,7 +6,6 @@
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/fallback.h"
 #include "ktl/allocators/linear_allocator.h"
-#include "ktl/allocators/linked.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/stack_allocator.h"
 
@@ -88,12 +87,10 @@ namespace ktl::test::fallback_allocator
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_fallback_stack_list_unordered_double)
+    KTL_ADD_TEST(test_fallback_stack_linear_unordered_double)
     {
-        constexpr size_t size = list_min_size<4096, linear_allocator<4096>>::value;
-        
         stack<16> primaryStack;
-        type_fallback_allocator<double, stack_allocator<16>, linked<4096, linear_allocator<size>>> alloc({ primaryStack });
+        type_fallback_allocator<double, stack_allocator<16>, linear_allocator<4096>> alloc({ primaryStack });
         assert_unordered_values<double>(alloc);
     }
 
@@ -104,9 +101,9 @@ namespace ktl::test::fallback_allocator
         assert_unordered_values<double>(alloc);
     }
 
-    KTL_ADD_TEST(test_fallback_list_list_unordered_double)
+    KTL_ADD_TEST(test_fallback_linear_linear_unordered_double)
     {
-        type_fallback_allocator<double, linked<64, mallocator>, linked<4096, mallocator>> alloc;
+        type_fallback_allocator<double, linear_allocator<32>, linear_allocator<4096>> alloc;
         assert_unordered_values<double>(alloc);
     }
 }

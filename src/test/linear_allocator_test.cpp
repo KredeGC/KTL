@@ -7,6 +7,8 @@
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/linear_allocator.h"
+#include "ktl/allocators/shared.h"
+#include "ktl/allocators/type_allocator.h"
 
 #include <vector>
 
@@ -30,25 +32,25 @@ namespace ktl::test::linear_allocator
 #pragma region std::vector
     KTL_ADD_TEST(test_linear_allocator_std_vector_double)
     {
-        std::vector<double, type_stl_linear_allocator<double, 4096>> vec;
+        std::vector<double, type_shared_linear_allocator<double, 4096>> vec;
         assert_vector_values<double>(vec);
     }
 
     KTL_ADD_TEST(test_linear_allocator_std_vector_trivial)
     {
-        std::vector<trivial_t, type_stl_linear_allocator<trivial_t, 4096>> vec;
+        std::vector<trivial_t, type_shared_linear_allocator<trivial_t, 4096>> vec;
         assert_vector_values<trivial_t>(vec);
     }
 
     KTL_ADD_TEST(test_linear_allocator_std_vector_packed)
     {
-        std::vector<packed_t, type_stl_linear_allocator<packed_t, 4096>> vec;
+        std::vector<packed_t, type_shared_linear_allocator<packed_t, 4096>> vec;
         assert_vector_values<packed_t>(vec);
     }
 
     KTL_ADD_TEST(test_linear_allocator_std_vector_complex)
     {
-        std::vector<complex_t, type_stl_linear_allocator<complex_t, 4096>> vec;
+        std::vector<complex_t, type_shared_linear_allocator<complex_t, 4096>> vec;
         assert_vector_values<complex_t>(vec);
     }
 #pragma endregion
