@@ -21,7 +21,7 @@ namespace ktl::test::trivial_array
 {
     KTL_ADD_TEST(test_trivial_array_construct)
     {
-        using Alloc = ktl::type_linear_allocator<double, 2048>;
+        using Alloc = ktl::type_stl_linear_allocator<double, 2048>;
         using Container = ktl::trivial_array<double, Alloc>;
 
         constexpr size_t size = 4;

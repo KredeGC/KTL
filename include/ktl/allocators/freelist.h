@@ -16,11 +16,11 @@ namespace ktl
 	class freelist
 	{
 	private:
-		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(Max >= sizeof(void*), "The freelist allocator requires a Max of at least 8 bytes");
 
 	public:
-		typedef typename get_size_type<Alloc>::type size_type;
+		typedef typename detail::get_size_type<Alloc>::type size_type;
 
 	private:
         struct link
@@ -47,7 +47,7 @@ namespace ktl
 			if constexpr (sizeof(stats) > Min && sizeof(stats) <= Max)
 			{
 				m_Stats = reinterpret_cast<stats*>(const_cast<Alloc&>(alloc).allocate(sizeof(stats)));
-				if constexpr (has_construct<void, Alloc, stats*, const Alloc&>::value)
+				if constexpr (detail::has_construct<void, Alloc, stats*, const Alloc&>::value)
 					alloc.construct(m_Stats, alloc);
 				else
 					::new(m_Stats) stats(alloc);
@@ -142,14 +142,14 @@ namespace ktl
 
 #pragma region Construction
 		template<typename T, typename... Args>
-		typename std::enable_if<has_construct<void, Alloc, T*, Args...>::value, void>::type
+		typename std::enable_if<detail::has_construct<void, Alloc, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
 		{
 			m_Stats->Allocator.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		typename std::enable_if<has_destroy<Alloc, T*>::value, void>::type
+		typename std::enable_if<detail::has_destroy<Alloc, T*>::value, void>::type
 		destroy(T* p)
 		{
 			m_Stats->Allocator.destroy(p);
@@ -158,14 +158,14 @@ namespace ktl
 
 #pragma region Utility
 		template<typename A = Alloc>
-		typename std::enable_if<has_max_size<A>::value, size_type>::type
+		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
 			return m_Stats->Allocator.max_size();
 		}
 
 		template<typename A = Alloc>
-		typename std::enable_if<has_owns<A>::value, bool>::type
+		typename std::enable_if<detail::has_owns<A>::value, bool>::type
 		owns(void* p) const
 		{
 			return m_Stats->Allocator.owns(p);
@@ -199,7 +199,7 @@ namespace ktl
 				{
 					Alloc alloc = std::move(m_Stats->Allocator);
 
-					if constexpr (has_destroy<Alloc, stats*>::value)
+					if constexpr (detail::has_destroy<Alloc, stats*>::value)
 						alloc.destroy(m_Stats);
 					else
 						m_Stats->~stats();

@@ -2,9 +2,9 @@
 
 #include "../utility/assert.h"
 #include "../utility/alignment.h"
-#include "../utility/notomic.h"
 #include "linear_allocator_fwd.h"
 #include "type_allocator.h"
+#include "stl_allocator.h"
 
 #include <memory>
 #include <type_traits>
@@ -15,81 +15,62 @@ namespace ktl
      * @brief A linear allocator which gives out chunks of its internal stack.
 	 * Increments a counter during allocation, which makes it very fast but also unlikely to deallocate it again.
 	 * Has a max allocation size of the @p Size given.
-     * @tparam Atomic The atomic type to use for reference counting. Threading is not implemented, so this defaults to ktl::notomic<size_t>
     */
-    template<size_t Size, typename Atomic>
+    template<size_t Size>
 	class linear_allocator
 	{
-	private:
-		struct arena
-		{
-			alignas(ALIGNMENT) char Data[Size];
-			Atomic UseCount;
-			char* Free;
-			size_t ObjectCount;
-
-			arena() noexcept :
-				Data{},
-				UseCount(1),
-				Free(Data),
-				ObjectCount(0) {}
-		};
-
 	public:
-		linear_allocator() noexcept
-		{
-			m_Block = new arena;
-		}
+		linear_allocator() noexcept :
+			m_Data{},
+			m_Free(m_Data),
+			m_ObjectCount(0) {}
 
 		linear_allocator(const linear_allocator& other) noexcept :
-			m_Block(other.m_Block)
+			m_Data{},
+			m_Free(m_Data),
+			m_ObjectCount(0)
 		{
-			m_Block->UseCount++;
+			// Copying / moving allocators in use is undefined
+			KTL_ASSERT(other.m_ObjectCount == 0);
 		}
 
 		linear_allocator(linear_allocator&& other) noexcept :
-			m_Block(other.m_Block)
+			m_Data{},
+			m_Free(m_Data),
+			m_ObjectCount(0)
 		{
-			other.m_Block = nullptr;
-		}
-
-		~linear_allocator()
-		{
-			if (m_Block)
-				decrement();
+			// Copying / moving allocators in use is undefined
+			KTL_ASSERT(other.m_ObjectCount == 0);
 		}
 
 		linear_allocator& operator=(const linear_allocator& rhs) noexcept
 		{
-			if (m_Block)
-				decrement();
+			m_Free = m_Data;
 
-			m_Block = rhs.m_Block;
-			m_Block->UseCount++;
+			// Copying / moving allocators in use is undefined
+			KTL_ASSERT(rhs.m_ObjectCount == 0);
 
 			return *this;
 		}
 
 		linear_allocator& operator=(linear_allocator&& rhs) noexcept
 		{
-			if (m_Block)
-				decrement();
+			m_Free = m_Data;
 
-			m_Block = rhs.m_Block;
-
-			rhs.m_Block = nullptr;
+			// Copying / moving allocators in use is undefined
+			KTL_ASSERT(rhs.m_ObjectCount == 0);
 
 			return *this;
 		}
 
 		bool operator==(const linear_allocator& rhs) const noexcept
 		{
-			return m_Block == rhs.m_Block;
+			return true;
 		}
 
 		bool operator!=(const linear_allocator& rhs) const noexcept
 		{
-			return m_Block != rhs.m_Block;
+			return false;
 		}
 
 #pragma region Allocation
@@ -97,13 +78,13 @@ namespace ktl
 		{
 			size_t totalSize = n + align_to_architecture(n);
 
-			if ((size_t(m_Block->Free - m_Block->Data) + totalSize) > Size)
+			if ((size_t(m_Free - m_Data) + totalSize) > Size)
 				return nullptr;
 
-			char* current = m_Block->Free;
+			char* current = m_Free;
 
-			m_Block->Free += totalSize;
-			m_Block->ObjectCount += totalSize;
+			m_Free += totalSize;
+			m_ObjectCount += totalSize;
 
 			return current;
 		}
@@ -114,14 +95,14 @@ namespace ktl
 
 			size_t totalSize = n + align_to_architecture(n);
 
-			if (m_Block->Free - totalSize == p)
-				m_Block->Free -= totalSize;
+			if (m_Free - totalSize == p)
+				m_Free -= totalSize;
 
-			m_Block->ObjectCount -= totalSize;
+			m_ObjectCount -= totalSize;
 
 			// Assumes that people don't deallocate the same memory twice
-			if (m_Block->ObjectCount == 0)
-				m_Block->Free = m_Block->Data;
+			if (m_ObjectCount == 0)
+				m_Free = m_Data;
 		}
 #pragma endregion
 
@@ -133,18 +114,13 @@ namespace ktl
 
 		bool owns(void* p) const
 		{
-			char* ptr = reinterpret_cast<char*>(p);
-			return ptr >= m_Block->Data && ptr < m_Block->Data + Size;
+			return p >= m_Data && p < m_Data + Size;
 		}
 #pragma endregion
 
 	private:
-		void decrement()
-		{
-			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-				delete m_Block;
-		}
-
-		arena* m_Block;
+		alignas(ALIGNMENT) char m_Data[Size];
+		char* m_Free;
+		size_t m_ObjectCount;
 	};
 }

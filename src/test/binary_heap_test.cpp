@@ -21,7 +21,7 @@ namespace ktl::test::binary_heap
 {
     KTL_ADD_TEST(test_binary_heap_array_construct)
     {
-        using Alloc = ktl::type_linear_allocator<double, 2048>;
+        using Alloc = ktl::type_stl_linear_allocator<double, 2048>;
         using Container = ktl::binary_min_heap<double, Alloc>;
 
         constexpr size_t size = 4;

@@ -16,7 +16,7 @@ namespace ktl
 	class type_allocator
 	{
 	private:
-		static_assert(has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(!std::is_const<T>::value, "Using an allocator of const T is ill-formed");
 
 		template<typename U, typename A>
@@ -24,7 +24,7 @@ namespace ktl
 
 	public:
 		typedef T value_type;
-		typedef typename get_size_type<Alloc>::type size_type;
+		typedef typename detail::get_size_type<Alloc>::type size_type;
 		typedef std::false_type is_always_equal;
 
 		template<typename U>
@@ -85,7 +85,7 @@ namespace ktl
 		 * @param ...args A range of arguments to use to construct the object
 		*/
 		template<typename... Args>
-		typename std::enable_if<has_construct<void, Alloc, value_type*, Args...>::value, void>::type
+		typename std::enable_if<detail::has_construct<void, Alloc, value_type*, Args...>::value, void>::type
 		construct(value_type* p, Args&&... args)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
@@ -97,7 +97,7 @@ namespace ktl
 		 * @param p The location of the object in memory
 		*/
 		template<typename A = Alloc>
-		typename std::enable_if<has_destroy<A, value_type*>::value, void>::type
+		typename std::enable_if<detail::has_destroy<A, value_type*>::value, void>::type
 		destroy(value_type* p)
 		{
 			m_Alloc.destroy(p);
@@ -111,7 +111,7 @@ namespace ktl
 		 * @return The maximum size an allocation may be
 		*/
 		template<typename A = Alloc>
-		typename std::enable_if<has_max_size<A>::value, size_type>::type
+		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
 			return m_Alloc.max_size() / sizeof(T);
@@ -124,7 +124,7 @@ namespace ktl
 		 * @return Whether the allocator owns @p p
 		*/
 		template<typename A = Alloc>
-		typename std::enable_if<has_owns<A>::value, bool>::type
+		typename std::enable_if<detail::has_owns<A>::value, bool>::type
 		owns(value_type* p) const
 		{
 			return m_Alloc.owns(p);

@@ -77,11 +77,11 @@ namespace ktl::test::segragator_allocator
         Alloc4 alloc4;
         Alloc5 alloc5;
 
-        static_assert(has_no_value_type<Alloc1>::value);
-        static_assert(has_no_value_type<Alloc2>::value);
-        static_assert(has_no_value_type<Alloc3>::value);
-        static_assert(has_no_value_type<Alloc4>::value);
-        static_assert(has_no_value_type<Alloc5>::value);
+        static_assert(detail::has_no_value_type<Alloc1>::value);
+        static_assert(detail::has_no_value_type<Alloc2>::value);
+        static_assert(detail::has_no_value_type<Alloc3>::value);
+        static_assert(detail::has_no_value_type<Alloc4>::value);
+        static_assert(detail::has_no_value_type<Alloc5>::value);
         
         static_assert(!std::is_same_v<Alloc1, Alloc2>, "The allocator types shouldn't match");
         static_assert(std::is_same_v<Alloc3, Alloc4>, "The allocator types don't match");
