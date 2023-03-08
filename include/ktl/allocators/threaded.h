@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utility/meta.h"
+#include "threaded_fwd.h"
 
 #include <memory>
 #include <mutex>

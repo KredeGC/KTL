@@ -33,10 +33,19 @@ namespace ktl
 
 	public:
 		/**
-		 * @brief Construct the vector with the given allocator
-		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		 * @brief Construct the vector with a default constructed allocator
 		*/
-		trivial_vector(const Alloc& allocator = Alloc()) noexcept :
+		trivial_vector() noexcept :
+			m_Alloc(),
+			m_Begin(nullptr),
+			m_End(nullptr),
+			m_EndMax(nullptr) {}
+
+		/**
+		 * @brief Construct the vector with the given allocator
+		 * @param allocator The allocator to use
+		*/
+		trivial_vector(const Alloc& allocator) noexcept :
 			m_Alloc(allocator),
 			m_Begin(nullptr),
 			m_End(nullptr),

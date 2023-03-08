@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../utility/meta.h"
+#include "../utility/notomic.h"
+#include "shared_fwd.h"
 
 #include <memory>
 #include <type_traits>
@@ -84,12 +86,12 @@ namespace ktl
 
 		bool operator==(const shared& rhs) const noexcept
 		{
-			return m_Block == rhs.m_Block;
+			return m_Block == rhs.m_Block && m_Block->Allocator == rhs.m_Block->Allocator;
 		}
 
 		bool operator!=(const shared& rhs) const noexcept
 		{
-			return m_Block != rhs.m_Block;
+			return m_Block != rhs.m_Block || m_Block->Allocator != rhs.m_Block->Allocator;
 		}
 
 #pragma region Allocation

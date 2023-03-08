@@ -35,10 +35,21 @@ namespace ktl
     public:
         /**
          * @brief Construct the binary heap with the given allocator and comparator
-         * @param allocator The allocator to use. Will be default constructed if unspecified
          * @param comp The allocator to use. Will be default constructed if unspecified
         */
-        binary_heap(const Alloc& allocator = Alloc(), const Comp& comp = Comp()) noexcept :
+        binary_heap(const Comp& comp = Comp()) noexcept :
+            m_Alloc(),
+            m_Comp(comp),
+            m_Size(0),
+            m_Capacity(0),
+            m_Begin(nullptr) {}
+
+        /**
+         * @brief Construct the binary heap with the given allocator and comparator
+         * @param allocator The allocator to use
+         * @param comp The allocator to use. Will be default constructed if unspecified
+        */
+        binary_heap(const Alloc& allocator, const Comp& comp = Comp()) noexcept :
             m_Alloc(allocator),
             m_Comp(comp),
             m_Size(0),
