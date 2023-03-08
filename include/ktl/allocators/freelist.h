@@ -12,12 +12,20 @@
 
 namespace ktl
 {
-	template<size_t Min, size_t Max, typename Alloc, typename Atomic>
+	/**
+	 * @brief An allocator which allocates using its underlying allocator.
+	 * Only allocates if the requested size is within the @p Min and @p Max range
+	 * When deallocating it chains the memory in a linked list, which can then be reused.
+	 * @note The memory is only completely dealloacated when the allocator is destroyed.
+	 * The value of @p Max must be at least the size of a pointer, otherwise it cannot chain deallocations.
+	 * @tparam Alloc The allocator to wrap around
+	*/
+	template<size_t Min, size_t Max, typename Alloc>
 	class freelist
 	{
 	private:
 		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(Max >= sizeof(void*), "The freelist allocator requires a Max of at least 8 bytes");
+		static_assert(Max >= sizeof(void*), "The freelist allocator requires a Max of at least the size of a pointer");
 
 	public:
 		typedef typename detail::get_size_type<Alloc>::type size_type;
@@ -28,85 +36,61 @@ namespace ktl
             link* Next;
         };
         
-		struct stats
-		{
-			Alloc Allocator;
-			Atomic UseCount;
-			link* Free;
-
-			stats(const Alloc& alloc) :
-				Allocator(alloc),
-				UseCount(1),
-				Free(nullptr) {}
-		};
-
 	public:
-		freelist(const Alloc& alloc = Alloc()) noexcept
-		{
-			// Allocate the control block with the allocator, if we fit
-			if constexpr (sizeof(stats) > Min && sizeof(stats) <= Max)
-			{
-				m_Stats = reinterpret_cast<stats*>(const_cast<Alloc&>(alloc).allocate(sizeof(stats)));
-				if constexpr (detail::has_construct<void, Alloc, stats*, const Alloc&>::value)
-					alloc.construct(m_Stats, alloc);
-				else
-					::new(m_Stats) stats(alloc);
-			}
-			else
-			{
-				m_Stats = new stats(alloc);
-			}
-		}
+		freelist() noexcept :
+			m_Alloc(),
+			m_Free(nullptr) {}
 
-		freelist(const freelist& other) noexcept :
-            m_Stats(other.m_Stats)
-		{
-			m_Stats->UseCount++;
-		}
+		freelist(const Alloc& alloc) noexcept :
+			m_Alloc(alloc),
+			m_Free(nullptr) {}
+
+		freelist(Alloc&& alloc) noexcept :
+			m_Alloc(std::move(alloc)),
+			m_Free(nullptr) {}
+
+		freelist(const freelist&) noexcept = delete;
 
 		freelist(freelist&& other) noexcept :
-			m_Stats(other.m_Stats)
+			m_Alloc(std::move(other.m_Alloc)),
+			m_Free(other.m_Free)
 		{
-			other.m_Stats = nullptr;
+			// Moving raw allocators in use is undefined
+			KTL_ASSERT(m_Alloc == other.m_Alloc || other.m_Free == nullptr);
+
+			other.m_Free = nullptr;
 		}
 
         ~freelist()
         {
-			if (m_Stats)
-				decrement();
+			release();
         }
 
-		freelist& operator=(const freelist& rhs)
+		freelist& operator=(const freelist&) noexcept = delete;
+
+		freelist& operator=(freelist&& rhs) noexcept
 		{
-			if (m_Stats)
-				decrement();
+			release();
 
-			m_Stats = rhs.m_Stats;
-			m_Stats->UseCount++;
+			m_Alloc = std::move(rhs.m_Alloc);
+			m_Free = rhs.m_Free;
 
-			return *this;
-		}
+			// Moving raw allocators in use is undefined
+			KTL_ASSERT(m_Alloc == rhs.m_Alloc || rhs.m_Free == nullptr);
 
-		freelist& operator=(freelist&& rhs)
-		{
-			if (m_Stats)
-				decrement();
-
-			m_Stats = rhs.m_Stats;
-
-			rhs.m_Stats = nullptr;
+			rhs.m_Free = nullptr;
 
 			return *this;
 		}
 
 		bool operator==(const freelist& rhs) const noexcept
 		{
-			return m_Stats->Allocator == rhs.m_Stats->Allocator;
+			return m_Alloc == rhs.m_Alloc && m_Free == rhs.m_Free;
 		}
 
 		bool operator!=(const freelist& rhs) const noexcept
 		{
-			return m_Stats->Allocator != rhs.m_Stats->Allocator;
+			return m_Alloc != rhs.m_Alloc || m_Free != rhs.m_Free;
 		}
 
 #pragma region Allocation
@@ -114,14 +98,14 @@ namespace ktl
 		{
 			if (n > Min && n <= Max)
 			{
-				link* next = m_Stats->Free;
+				link* next = m_Free;
 				if (next)
 				{
-					m_Stats->Free = next->Next;
+					m_Free = next->Next;
 					return next;
 				}
 
-				return m_Stats->Allocator.allocate(Max);
+				return m_Alloc.allocate(Max);
 			}
 
 			return nullptr;
@@ -134,8 +118,8 @@ namespace ktl
 			if (n > Min && n <= Max && p)
 			{
 				link* next = reinterpret_cast<link*>(p);
-				next->Next = m_Stats->Free;
-				m_Stats->Free = next;
+				next->Next = m_Free;
+				m_Free = next;
 			}
 		}
 #pragma endregion
@@ -145,14 +129,14 @@ namespace ktl
 		typename std::enable_if<detail::has_construct<void, Alloc, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
 		{
-			m_Stats->Allocator.construct(p, std::forward<Args>(args)...);
+			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		typename std::enable_if<detail::has_destroy<Alloc, T*>::value, void>::type
 		destroy(T* p)
 		{
-			m_Stats->Allocator.destroy(p);
+			m_Alloc.destroy(p);
 		}
 #pragma endregion
 
@@ -161,57 +145,41 @@ namespace ktl
 		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
-			return m_Stats->Allocator.max_size();
+			return m_Alloc.max_size();
 		}
 
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns<A>::value, bool>::type
 		owns(void* p) const
 		{
-			return m_Stats->Allocator.owns(p);
+			return m_Alloc.owns(p);
 		}
 #pragma endregion
 
 		Alloc& get_allocator()
 		{
-			return m_Stats->Allocator;
+			return m_Alloc;
 		}
 
 		const Alloc& get_allocator() const
 		{
-			return m_Stats->Allocator;
+			return m_Alloc;
 		}
 
 	private:
-		void decrement()
+		void release() noexcept
 		{
-			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+			link* next = m_Free;
+			while (next)
 			{
-				link* next = m_Stats->Free;
-				while (next)
-				{
-					link* prev = next;
-					next = next->Next;
-					m_Stats->Allocator.deallocate(prev, Max);
-				}
-
-				if constexpr (sizeof(stats) > Min && sizeof(stats) <= Max)
-				{
-					Alloc alloc = std::move(m_Stats->Allocator);
-
-					if constexpr (detail::has_destroy<Alloc, stats*>::value)
-						alloc.destroy(m_Stats);
-					else
-						m_Stats->~stats();
-					alloc.deallocate(m_Stats, sizeof(stats));
-				}
-				else
-				{
-					delete m_Stats;
-				}
+				link* prev = next;
+				next = next->Next;
+				m_Alloc.deallocate(prev, Max);
 			}
 		}
 
-        stats* m_Stats;
+	private:
+		Alloc m_Alloc;
+		link* m_Free;
 	};
 }

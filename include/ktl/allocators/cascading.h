@@ -21,7 +21,7 @@ namespace ktl
 	 * @tparam Alloc The allocator type to create instances from
      * @tparam Atomic The atomic type to use for reference counting. Threading is not implemented, so this defaults to ktl::notomic<size_t>
 	*/
-	template<typename Alloc, typename Atomic>
+	template<typename Alloc>
 	class cascading
 	{
 	private:
@@ -39,100 +39,73 @@ namespace ktl
 			node* Next = nullptr;
 		};
 
-		struct block
-		{
-			Atomic UseCount;
-			node* Node;
-
-			block() noexcept :
-				UseCount(1),
-				Node(nullptr) {}
-		};
-
 	public:
-		cascading() noexcept
-		{
-			m_Block = new block;
-		}
+		cascading() noexcept :
+			m_Node(nullptr) {}
 
-		cascading(const cascading& other) noexcept :
-			m_Block(other.m_Block)
-		{
-			m_Block->UseCount++;
-		}
+		cascading(const cascading&) noexcept = delete;
 
 		cascading(cascading&& other) noexcept :
-			m_Block(other.m_Block)
+			m_Node(other.m_Node)
 		{
-			other.m_Block = nullptr;
+			other.m_Node = nullptr;
 		}
 
 		~cascading()
 		{
-			if (m_Block)
-				decrement();
+			release();
 		}
 
-		cascading& operator=(const cascading& rhs) noexcept
-		{
-			if (m_Block)
-				decrement();
-
-			m_Block = rhs.m_Block;
-			m_Block->UseCount++;
-
-			return *this;
-		}
+		cascading& operator=(const cascading&) noexcept = delete;
 
 		cascading& operator=(cascading&& rhs) noexcept
 		{
-			if (m_Block)
-				decrement();
+			release();
 
-			m_Block = rhs.m_Block;
+			m_Node = rhs.m_Node;
 
-			rhs.m_Block = nullptr;
+			rhs.m_Node = nullptr;
 
 			return *this;
 		}
 
 		bool operator==(const cascading& rhs) const noexcept
 		{
-			return m_Block == rhs.m_Block;
+			return m_Node == rhs.m_Node;
 		}
 
 		bool operator!=(const cascading& rhs) const noexcept
 		{
-			return m_Block != rhs.m_Block;
+			return m_Node != rhs.m_Node;
 		}
 
 #pragma region Allocation
 		void* allocate(size_type n)
 		{
 			// Add an initial allocator
-			if (!m_Block->Node)
-				m_Block->Node = new node;
+			if (!m_Node)
+				m_Node = new node;
 
 			if constexpr (detail::has_max_size<Alloc>::value)
 			{
-				if (n > m_Block->Node->Allocator.max_size())
+				if (n > m_Node->Allocator.max_size())
 					return nullptr;
 			}
 
-			void* p = m_Block->Node->Allocator.allocate(n);
+			void* p = m_Node->Allocator.allocate(n);
 
 			// If the allocator was unable to allocate it, create a new one
 			if (p == nullptr)
 			{
-				node* next = m_Block->Node;
-				m_Block->Node = new node;
-				m_Block->Node->Next = next;
+				node* next = m_Node;
+				m_Node = new node;
+				m_Node->Next = next;
 
-				p = m_Block->Node->Allocator.allocate(n);
+				p = m_Node->Allocator.allocate(n);
 			}
 
 			if (p)
-				m_Block->Node->Allocations++;
+				m_Node->Allocations++;
 
 			return p;
 		}
@@ -142,7 +115,7 @@ namespace ktl
 			KTL_ASSERT(p != nullptr);
 
 			node* prev = nullptr;
-			node* next = m_Block->Node;
+			node* next = m_Node;
 			while (next)
 			{
 				if (next->Allocator.owns(p))
@@ -171,7 +144,7 @@ namespace ktl
 		typename std::enable_if<detail::has_construct<void, Alloc, T*, Args...>::value, void>::type
 		construct(T* p, Args&&... args)
 		{
-            node* next = m_Block->Node;
+            node* next = m_Node;
 			while (next)
 			{
 				if (next->Allocator.owns(p))
@@ -190,7 +163,7 @@ namespace ktl
 		typename std::enable_if<detail::has_destroy<Alloc, T*>::value, void>::type
 		destroy(T* p)
 		{
-			node* next = m_Block->Node;
+			node* next = m_Node;
 			while (next)
 			{
 				if (next->Allocator.owns(p))
@@ -211,12 +184,12 @@ namespace ktl
 		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
 		max_size() const noexcept
 		{
-			return m_Block->Node->Allocator.max_size();
+			return m_Node->Allocator.max_size();
 		}
 
 		bool owns(void* p) const
 		{
-			node* next = m_Block->Node;
+			node* next = m_Node;
 			while (next)
 			{
 				if (next->Allocator.owns(p))
@@ -230,27 +203,25 @@ namespace ktl
 #pragma endregion
 
 	private:
-		void decrement()
+		void release() noexcept
 		{
-			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+			node* next = m_Node;
+			while (next)
 			{
-				node* next = m_Block->Node;
-				while (next)
-				{
-					// Assert that we only have a single allocator left
-					// Otherwise someone forgot to deallocate memory
-					// This isn't a hard-error though
-					KTL_ASSERT(next == m_Block->Node);
+				// Assert that we only have a single allocator left
+				// Otherwise someone forgot to deallocate memory
+				// This isn't a hard-error though
+				KTL_ASSERT(next == m_Node);
 
-					node* current = next;
+				node* current = next;
 
-					next = current->Next;
+				next = current->Next;
 
-					delete current;
-				}
+				delete current;
 			}
 		}
 
-		block* m_Block;
+	private:
+		node* m_Node;
 	};
 }

@@ -33,10 +33,18 @@ namespace ktl
 
 	public:
 		/**
-		 * @brief Construct the array with the given allocator
-		 * @param allocator The allocator to use. Will be default constructed if unspecified
+		 * @brief Construct the array with a default constructed allocator
 		*/
-		trivial_array(const Alloc& allocator = Alloc()) noexcept :
+		trivial_array() noexcept :
+			m_Alloc(),
+			m_Begin(nullptr),
+			m_End(nullptr) {}
+
+		/**
+		 * @brief Construct the array with the given allocator
+		 * @param allocator The allocator to use
+		*/
+		trivial_array(const Alloc& allocator) noexcept :
 			m_Alloc(allocator),
 			m_Begin(nullptr),
 			m_End(nullptr) {}

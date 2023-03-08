@@ -8,13 +8,10 @@
 #include "allocators/overflow_fwd.h"
 #include "allocators/segragator_fwd.h"
 #include "allocators/stack_allocator_fwd.h"
+#include "allocators/type_allocator_fwd.h"
 
 namespace ktl
 {
-    // type_allocator
-	template<typename T, typename Alloc>
-    class type_allocator;
-
 	// null_allocator
 	class null_allocator;
 }

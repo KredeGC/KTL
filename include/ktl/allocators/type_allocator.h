@@ -2,6 +2,8 @@
 
 #include "../utility/meta.h"
 
+#include "type_allocator_fwd.h"
+
 #include <memory>
 #include <type_traits>
 

@@ -28,7 +28,7 @@ namespace ktl
 			m_Free(m_Data),
 			m_ObjectCount(0)
 		{
-			// Copying / moving allocators in use is undefined
+			// Copying / moving raw allocators in use is undefined
 			KTL_ASSERT(other.m_ObjectCount == 0);
 		}
 
@@ -37,7 +37,7 @@ namespace ktl
 			m_Free(m_Data),
 			m_ObjectCount(0)
 		{
-			// Copying / moving allocators in use is undefined
+			// Moving raw allocators in use is undefined
 			KTL_ASSERT(other.m_ObjectCount == 0);
 		}
 
@@ -45,7 +45,7 @@ namespace ktl
 		{
 			m_Free = m_Data;
 
-			// Copying / moving allocators in use is undefined
+			// Copying / moving raw allocators in use is undefined
 			KTL_ASSERT(rhs.m_ObjectCount == 0);
 
 			return *this;
@@ -55,7 +55,7 @@ namespace ktl
 		{
 			m_Free = m_Data;
 
-			// Copying / moving allocators in use is undefined
+			// Moving raw allocators in use is undefined
 			KTL_ASSERT(rhs.m_ObjectCount == 0);
 
 			return *this;
@@ -63,12 +63,12 @@ namespace ktl
 
 		bool operator==(const linear_allocator& rhs) const noexcept
 		{
-			return true;
+			return m_Data == rhs.m_Data;
 		}
 
 		bool operator!=(const linear_allocator& rhs) const noexcept
 		{
-			return false;
+			return m_Data != rhs.m_Data;
 		}
 
 #pragma region Allocation
