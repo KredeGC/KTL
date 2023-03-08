@@ -30,13 +30,16 @@ namespace ktl
 			m_Primary(),
 			m_Fallback() {}
 
-		segragator(const P& primary) noexcept :
-			m_Primary(primary),
+		template<typename Primary, typename = std::enable_if_t<std::is_convertible_v<Primary, P>>>
+		segragator(Primary&& primary) noexcept :
+			m_Primary(std::forward<Primary>(primary)),
 			m_Fallback() {}
 
-		segragator(const P& primary, const F& fallback) noexcept :
-			m_Primary(primary),
-			m_Fallback(fallback) {}
+		template<typename Primary, typename Fallback,
+			typename = std::enable_if_t<std::is_convertible_v<Primary, P> && std::is_convertible_v<Fallback, F>>>
+		segragator(Primary&& primary, Fallback&& fallback) noexcept :
+			m_Primary(std::forward<Primary>(primary)),
+			m_Fallback(std::forward<Fallback>(fallback)) {}
 
 		segragator(const segragator&) noexcept = default;
 

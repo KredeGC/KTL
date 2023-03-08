@@ -35,14 +35,11 @@ namespace ktl
 			typedef type_allocator<U, Alloc> other;
 		};
 
-		type_allocator() noexcept :
-			m_Alloc(Alloc()) {}
-
-		explicit type_allocator(const Alloc& alloc) noexcept :
-			m_Alloc(alloc) {}
-
-		explicit type_allocator(Alloc&& alloc) noexcept :
-			m_Alloc(std::move(alloc)) {}
+		// This is a mess, but it works unreasonably well
+		template<typename ...Args,
+			typename = std::enable_if_t<std::is_convertible_v<decltype(Alloc(std::declval<Args>()...)), Alloc>>> // Args must be able to construct an Alloc
+		type_allocator(Args&& ...alloc) noexcept :
+			m_Alloc(std::forward<Args>(alloc)...) {}
 
 		type_allocator(const type_allocator&) noexcept = default;
 

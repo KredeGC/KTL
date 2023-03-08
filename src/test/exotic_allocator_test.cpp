@@ -28,7 +28,9 @@ namespace ktl::test::exotic_allocator
     {
         // TODO: More tests with exotic allocator arrangements
         stack<1024> block;
-        type_segragator_allocator<double, 32, stack_allocator<1024>, cascading<linear_allocator<1024>>> alloc2({ block });
+        type_segragator_allocator<double, 32, stack_allocator<1024>, cascading<linear_allocator<1024>>> alloc({ block });
+
+        type_segragator_allocator<double, 32, stack_allocator<1024>, cascading<linear_allocator<1024>>> alloc2(std::move(alloc));
     }
 
     KTL_ADD_TEST(test_exotic_allocator_1)
