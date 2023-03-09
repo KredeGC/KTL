@@ -12,7 +12,21 @@ namespace ktl
 	template<typename Alloc>
 	class cascading;
 
-
+	/**
+	 * @brief Shorthand for a typed cascading allocator
+	*/
 	template<typename T, typename Alloc>
 	using type_cascading_allocator = type_allocator<T, cascading<Alloc>>;
+
+	/**
+	 * @brief Shorthand for a typed, ref-counted cascading allocator
+	*/
+	template<typename T, typename Alloc>
+	using type_shared_cascading_allocator = type_allocator<T, shared<cascading<Alloc>>>;
+
+	/**
+	 * @brief Shorthand for a typed, thread-safe, ref-counted cascading allocator
+	*/
+	template<typename T, typename Alloc>
+	using type_threaded_cascading_allocator = type_allocator<T, shared_threaded<cascading<Alloc>>>;
 }

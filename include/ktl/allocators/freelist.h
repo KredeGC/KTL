@@ -24,11 +24,11 @@ namespace ktl
 	class freelist
 	{
 	private:
-		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_no_value_type_v<Alloc>, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(Max >= sizeof(void*), "The freelist allocator requires a Max of at least the size of a pointer");
 
 	public:
-		typedef typename detail::get_size_type<Alloc>::type size_type;
+		typedef typename detail::get_size_type_t<Alloc> size_type;
 
 	private:
         struct link
@@ -37,11 +37,13 @@ namespace ktl
         };
         
 	public:
-		// This is a mess, but it works unreasonably well
-		// It can forward any constructor arguments to the underlying allocator
-		template<typename ...Args,
-			typename = std::enable_if_t<std::is_convertible_v<decltype(Alloc(std::declval<Args>()...)), Alloc>>> // Args must be able to construct an Alloc
-		freelist(Args&& ...alloc) noexcept :
+		/**
+		 * @brief Constructor for forwarding any arguments to the underlying allocator
+		*/
+		template<typename... Args,
+			typename = std::enable_if_t<
+			detail::can_construct_v<Alloc, Args...>>>
+		freelist(Args&&... alloc) noexcept :
 			m_Alloc(std::forward<Args>(alloc)...),
 			m_Free(nullptr) {}
 
@@ -122,14 +124,14 @@ namespace ktl
 
 #pragma region Construction
 		template<typename T, typename... Args>
-		typename std::enable_if<detail::has_construct<void, Alloc, T*, Args...>::value, void>::type
+		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		typename std::enable_if<detail::has_destroy<Alloc, T*>::value, void>::type
+		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
 		{
 			m_Alloc.destroy(p);
@@ -138,14 +140,14 @@ namespace ktl
 
 #pragma region Utility
 		template<typename A = Alloc>
-		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
+		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const noexcept
 		{
 			return m_Alloc.max_size();
 		}
 
 		template<typename A = Alloc>
-		typename std::enable_if<detail::has_owns<A>::value, bool>::type
+		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
 		{
 			return m_Alloc.owns(p);

@@ -95,7 +95,7 @@ namespace ktl::test::segragator_allocator
 
         stack<1024> primaryStack;
         stack<1024> fallbackStack;
-        AllocDouble double_alloc({ primaryStack, fallbackStack });
+        AllocDouble double_alloc(std::forward_as_tuple(primaryStack), std::forward_as_tuple(fallbackStack));
 
         assert_unordered_values<double>(double_alloc);
 
