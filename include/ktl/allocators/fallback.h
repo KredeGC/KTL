@@ -21,12 +21,12 @@ namespace ktl
 	class fallback
 	{
 	private:
-		static_assert(detail::has_no_value_type<P>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(detail::has_no_value_type<F>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(detail::has_owns<P>::value, "The primary allocator is required to have an 'owns(void*)' method");
+		static_assert(detail::has_no_value_type_v<P>, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_no_value_type_v<F>, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(detail::has_owns_v<P>, "The primary allocator is required to have an 'owns(void*)' method");
 
 	public:
-		typedef typename detail::get_size_type<P>::type size_type;
+		typedef typename detail::get_size_type_t<P> size_type;
 
 		fallback() noexcept :
 			m_Primary(),
@@ -81,12 +81,12 @@ namespace ktl
 
 #pragma region Construction
 		template<typename T, typename... Args>
-		typename std::enable_if<detail::has_construct<void, P, T*, Args...>::value || detail::has_construct<void, F, T*, Args...>::value, void>::type
+		typename std::enable_if<detail::has_construct_v<P, T*, Args...> || detail::has_construct_v<F, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
 		{
 			bool owned = m_Primary.owns(p);
 
-			if constexpr (detail::has_construct<void, P, T*, Args...>::value)
+			if constexpr (detail::has_construct_v<P, T*, Args...>)
 			{
 				if (owned)
 				{
@@ -95,7 +95,7 @@ namespace ktl
 				}
 			}
 
-			if constexpr (detail::has_construct<void, F, T*, Args...>::value)
+			if constexpr (detail::has_construct_v<F, T*, Args...>)
 			{
 				if (!owned)
 				{
@@ -108,12 +108,12 @@ namespace ktl
 		}
 
 		template<typename T>
-		typename std::enable_if<detail::has_destroy<P, T*>::value || detail::has_destroy<F, T*>::value, void>::type
+		typename std::enable_if<detail::has_destroy_v<P, T*> || detail::has_destroy_v<F, T*>, void>::type
 		destroy(T* p)
 		{
 			bool owned = m_Primary.owns(p);
 
-			if constexpr (detail::has_destroy<P, T*>::value)
+			if constexpr (detail::has_destroy_v<P, T*>)
 			{
 				if (owned)
 				{
@@ -122,7 +122,7 @@ namespace ktl
 				}
 			}
 
-			if constexpr (detail::has_destroy<F, T*>::value)
+			if constexpr (detail::has_destroy_v<F, T*>)
 			{
 				if (!owned)
 				{
@@ -137,14 +137,14 @@ namespace ktl
 
 #pragma region Utility
 		template<typename Primary = P, typename Fallback = F>
-		typename std::enable_if<detail::has_max_size<Primary>::value && detail::has_max_size<Fallback>::value, size_type>::type
+		typename std::enable_if<detail::has_max_size_v<Primary> && detail::has_max_size_v<Fallback>, size_type>::type
 		max_size() const noexcept
 		{
 			return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 		}
 
 		template<typename Primary = P, typename Fallback = F>
-		typename std::enable_if<detail::has_owns<Primary>::value && detail::has_owns<Fallback>::value, bool>::type
+		typename std::enable_if<detail::has_owns_v<Primary> && detail::has_owns_v<Fallback>, bool>::type
 		owns(void* p) const
 		{
 			if (m_Primary.owns(p))

@@ -7,7 +7,9 @@
 #include "allocators/mallocator_fwd.h"
 #include "allocators/overflow_fwd.h"
 #include "allocators/segragator_fwd.h"
+#include "allocators/shared_fwd.h"
 #include "allocators/stack_allocator_fwd.h"
+#include "allocators/threaded_fwd.h"
 #include "allocators/type_allocator_fwd.h"
 
 namespace ktl
