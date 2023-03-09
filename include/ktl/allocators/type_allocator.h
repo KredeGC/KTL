@@ -18,15 +18,15 @@ namespace ktl
 	class type_allocator
 	{
 	private:
-		static_assert(detail::has_no_value_type<Alloc>::value, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(!std::is_const<T>::value, "Using an allocator of const T is ill-formed");
+		static_assert(detail::has_no_value_type_v<Alloc>, "Building on top of typed allocators is not allowed. Use allocators without a type");
+		static_assert(!std::is_const_v<T>, "Using an allocator of const T is ill-formed");
 
 		template<typename U, typename A>
 		friend class type_allocator;
 
 	public:
 		typedef T value_type;
-		typedef typename detail::get_size_type<Alloc>::type size_type;
+		typedef typename detail::get_size_type_t<Alloc> size_type;
 		typedef std::false_type is_always_equal;
 
 		template<typename U>
@@ -35,10 +35,13 @@ namespace ktl
 			typedef type_allocator<U, Alloc> other;
 		};
 
-		// This is a mess, but it works unreasonably well
-		template<typename ...Args,
-			typename = std::enable_if_t<std::is_convertible_v<decltype(Alloc(std::declval<Args>()...)), Alloc>>> // Args must be able to construct an Alloc
-		type_allocator(Args&& ...alloc) noexcept :
+		/**
+		 * @brief Constructor for forwarding any arguments to the underlying allocator
+		*/
+		template<typename... Args,
+			typename = std::enable_if_t<
+			detail::can_construct_v<Alloc, Args...>>>
+		type_allocator(Args&&... alloc) noexcept :
 			m_Alloc(std::forward<Args>(alloc)...) {}
 
 		type_allocator(const type_allocator&) noexcept = default;
@@ -84,7 +87,7 @@ namespace ktl
 		 * @param ...args A range of arguments to use to construct the object
 		*/
 		template<typename... Args>
-		typename std::enable_if<detail::has_construct<void, Alloc, value_type*, Args...>::value, void>::type
+		typename std::enable_if<detail::has_construct_v<Alloc, value_type*, Args...>, void>::type
 		construct(value_type* p, Args&&... args)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
@@ -96,7 +99,7 @@ namespace ktl
 		 * @param p The location of the object in memory
 		*/
 		template<typename A = Alloc>
-		typename std::enable_if<detail::has_destroy<A, value_type*>::value, void>::type
+		typename std::enable_if<detail::has_destroy_v<A, value_type*>, void>::type
 		destroy(value_type* p)
 		{
 			m_Alloc.destroy(p);
@@ -110,7 +113,7 @@ namespace ktl
 		 * @return The maximum size an allocation may be
 		*/
 		template<typename A = Alloc>
-		typename std::enable_if<detail::has_max_size<A>::value, size_type>::type
+		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const noexcept
 		{
 			return m_Alloc.max_size() / sizeof(T);
@@ -123,7 +126,7 @@ namespace ktl
 		 * @return Whether the allocator owns @p p
 		*/
 		template<typename A = Alloc>
-		typename std::enable_if<detail::has_owns<A>::value, bool>::type
+		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(value_type* p) const
 		{
 			return m_Alloc.owns(p);
