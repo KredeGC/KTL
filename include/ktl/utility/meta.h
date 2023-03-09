@@ -44,8 +44,8 @@ namespace ktl::detail
 	template<typename Void, typename... Types>
 	struct has_construct : std::false_type {};
 
-	template<typename Alloc, typename Ptr, typename... Args>
-	struct has_construct<std::void_t<decltype(std::declval<Alloc&>().construct(std::declval<Ptr>(), std::declval<Args>()...))>, Alloc, Ptr, Args...> : std::true_type {};
+	template<typename Alloc, typename... Args>
+	struct has_construct<std::void_t<decltype(std::declval<Alloc&>().construct(std::declval<Args>()...))>, Alloc, Args...> : std::true_type {};
 
 	template<typename Alloc, typename... Args>
 	constexpr bool has_construct_v = has_construct<void, Alloc, Args...>::value;
