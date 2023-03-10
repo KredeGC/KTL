@@ -1,13 +1,13 @@
 #pragma once
 
+#include "shared_fwd.h"
+#include "threaded_fwd.h"
+#include "type_allocator_fwd.h"
+
 #include <cstddef>
 
 namespace ktl
 {
-    // type_allocator
-	template<typename T, typename Alloc>
-	class type_allocator;
-    
 	// stack
 	template<size_t Size>
 	struct stack;
@@ -17,12 +17,20 @@ namespace ktl
 	class stack_allocator;
 
 	/**
-	 * @brief A linear allocator which gives out chunks of its allocated stack.
-	 * Increments a counter during allocation, which makes it very fast but also unlikely to deallocate it again.
-	 * Has a max allocation size of the @p Size given.
-	 * @note Cannot be default constructed because it needs a reference to a stack
-	 * @tparam T The type to use with the allocator
+	 * @brief Shorthand for a typed stack allocator
 	*/
 	template<typename T, size_t Size>
 	using type_stack_allocator = type_allocator<T, stack_allocator<Size>>;
+
+	/**
+	 * @brief Shorthand for a typed, ref-counted stack allocator
+	*/
+	template<typename T, size_t Size>
+	using type_shared_stack_allocator = type_allocator<T, shared<stack_allocator<Size>>>;
+
+	/**
+	 * @brief Shorthand for a typed, thread-safe, ref-counted stack allocator
+	*/
+	template<typename T, size_t Size>
+	using type_threaded_stack_allocator = type_allocator<T, threaded<stack_allocator<Size>>>;
 }

@@ -1,5 +1,9 @@
 #pragma once
 
+#include "shared_fwd.h"
+#include "threaded_fwd.h"
+#include "type_allocator_fwd.h"
+
 #include "../utility/builder.h"
 
 #include <cstddef>
@@ -14,17 +18,6 @@ namespace ktl
 	// fallback
 	template<typename P, typename F>
 	class fallback;
-
-	/**
-	 * @brief An allocator which delegates allocations between 2 different allocators.
-	 * It first attempts to allocate with the primary allocator, but upon failure will use the fallback allocator.
-	 * @note The primary allocator must have an owns(*ptr) method.
-	 * @tparam T The type to use with the allocator
-	 * @tparam P The primary allocator
-	 * @tparam F The fallback allocator, which is used when the primary allocator fails
-	*/
-	template<typename T, typename P, typename F>
-	using type_fallback_allocator = type_allocator<T, fallback<P, F>>;
 
     namespace detail
     {
@@ -76,4 +69,22 @@ namespace ktl
     */
     template<typename... Ts>
     using fallback_builder_max = typename detail::fallback_builder<true, std::tuple<Ts...>>::type;
+
+    /**
+     * @brief Shorthand for a typed fallback allocator
+    */
+    template<typename T, typename P, typename F>
+    using type_fallback_allocator = type_allocator<T, fallback<P, F>>;
+
+    /**
+     * @brief Shorthand for a typed, ref-counted fallback allocator
+    */
+    template<typename T, typename P, typename F>
+    using type_shared_fallback_allocator = type_allocator<T, shared<fallback<P, F>>>;
+
+    /**
+     * @brief Shorthand for a typed, thread-safe, ref-counted fallback allocator
+    */
+    template<typename T, typename P, typename F>
+    using type_threaded_fallback_allocator = type_allocator<T, threaded<fallback<P, F>>>;
 }
