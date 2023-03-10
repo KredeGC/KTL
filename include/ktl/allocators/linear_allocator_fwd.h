@@ -28,5 +28,5 @@ namespace ktl
 	 * @brief Shorthand for a typed, thread-safe, ref-counted linear allocator
 	*/
 	template<typename T, size_t Size>
-	using type_threaded_linear_allocator = type_allocator<T, shared_threaded<linear_allocator<Size>>>;
+	using type_threaded_linear_allocator = type_allocator<T, threaded<linear_allocator<Size>>>;
 }
