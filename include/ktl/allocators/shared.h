@@ -9,7 +9,7 @@
 
 namespace ktl
 {
-	template<typename Alloc, typename Atomic>
+	template<typename Alloc>
 	class shared
 	{
 	private:
@@ -18,7 +18,7 @@ namespace ktl
 		struct block
 		{
 			Alloc Allocator;
-			Atomic UseCount;
+			detail::get_size_type_t<Alloc> UseCount;
 
 			template<typename... Args,
 				typename = std::enable_if_t<
@@ -155,7 +155,7 @@ namespace ktl
 		{
 			if (!m_Block) return;
 
-			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+			if (--m_Block->UseCount == 0)
 				delete m_Block;
 		}
 

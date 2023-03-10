@@ -3,6 +3,7 @@
 #include "../utility/meta.h"
 #include "threaded_fwd.h"
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <type_traits>
@@ -15,6 +16,21 @@ namespace ktl
 	private:
 		static_assert(detail::has_no_value_type_v<Alloc>, "Building on top of typed allocators is not allowed. Use allocators without a type");
 
+		struct block
+		{
+			Alloc Allocator;
+			std::atomic<detail::get_size_type_t<Alloc>> UseCount;
+			std::mutex Lock;
+
+			template<typename... Args,
+				typename = std::enable_if_t<
+				detail::can_construct_v<Alloc, Args...>>>
+			block(Args&&... alloc) noexcept :
+				Allocator(std::forward<Args>(alloc)...),
+				UseCount(1),
+				Lock() {}
+		};
+
 	public:
 		typedef typename detail::get_size_type_t<Alloc> size_type;
 
@@ -25,39 +41,70 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		threaded(Args&&... alloc) noexcept :
-			m_Alloc(std::forward<Args>(alloc)...) {}
+			m_Block(new block(std::forward<Args>(alloc)...)) {}
 
-		threaded(const threaded& other) noexcept = default;
+		threaded(const threaded& other) noexcept :
+			m_Block(other.m_Block)
+		{
+			increment();
+		}
 
-		threaded(threaded&& other) noexcept = default;
+		threaded(threaded&& other) noexcept :
+			m_Block(std::move(other.m_Block))
+		{
+			other.m_Block = nullptr;
+		}
 
-		threaded& operator=(const threaded& rhs) noexcept = default;
+		~threaded()
+		{
+			decrement();
+		}
 
-		threaded& operator=(threaded&& rhs) noexcept = default;
+		threaded& operator=(const threaded& rhs) noexcept
+		{
+			decrement();
+
+			m_Block = rhs.m_Block;
+
+			increment();
+
+			return *this;
+		}
+
+		threaded& operator=(threaded&& rhs) noexcept
+		{
+			decrement();
+
+			m_Block = rhs.m_Block;
+
+			rhs.m_Block = nullptr;
+
+			return *this;
+		}
 
 		bool operator==(const threaded& rhs) const noexcept
 		{
-			return m_Alloc == rhs.m_Alloc;
+			return m_Block == rhs.m_Block && m_Block->Allocator == rhs.m_Block->Allocator;
 		}
 
 		bool operator!=(const threaded& rhs) const noexcept
 		{
-			return m_Alloc != rhs.m_Alloc;
+			return m_Block != rhs.m_Block || m_Block->Allocator != rhs.m_Block->Allocator;
 		}
 
 #pragma region Allocation
 		void* allocate(size_t n)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
-			return m_Alloc.allocate(n);
+			return m_Block->Allocator.allocate(n);
 		}
 
 		void deallocate(void* p, size_t n)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
-			m_Alloc.deallocate(p, n);
+			m_Block->Allocator.deallocate(p, n);
 		}
 #pragma endregion
 
@@ -66,18 +113,18 @@ namespace ktl
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
-			m_Alloc.construct(p, std::forward<Args>(args)...);
+			m_Block->Allocator.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
-			m_Alloc.destroy(p);
+			m_Block->Allocator.destroy(p);
 		}
 #pragma endregion
 
@@ -86,29 +133,44 @@ namespace ktl
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const noexcept
 		{
-			return m_Alloc.max_size();
+			return m_Block->Allocator.max_size();
 		}
 
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
 		{
-			return m_Alloc.owns(p);
+			return m_Block->Allocator.owns(p);
 		}
 #pragma endregion
 
 		Alloc& get_allocator()
 		{
-			return m_Alloc;
+			return m_Block->Allocator;
 		}
 
 		const Alloc& get_allocator() const
 		{
-			return m_Alloc;
+			return m_Block->Allocator;
 		}
 
 	private:
-		Alloc m_Alloc;
-		std::mutex m_Lock;
+		void increment()
+		{
+			if (!m_Block) return;
+
+			m_Block->UseCount++;
+		}
+
+		void decrement()
+		{
+			if (!m_Block) return;
+
+			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+				delete m_Block;
+		}
+
+	private:
+		block* m_Block;
 	};
 }

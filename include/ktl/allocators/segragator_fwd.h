@@ -1,5 +1,9 @@
 #pragma once
 
+#include "shared_fwd.h"
+#include "threaded_fwd.h"
+#include "type_allocator_fwd.h"
+
 #include "../utility/builder.h"
 
 #include <cstddef>
@@ -7,23 +11,9 @@
 
 namespace ktl
 {
-    // type_allocator
-	template<typename T, typename Alloc>
-	class type_allocator;
-    
     // segragator
 	template<size_t Threshold, typename P, typename F>
 	class segragator;
-
-	/**
-	 * @brief An allocator which delegates allocations between 2 different allocators based on a size threshold.
-	 * @note The primary allocator must have an owns(*ptr) method if it also has a construct() method.
-	 * @tparam T The type to use with the allocator
-	 * @tparam P The primary allocator, which is used when size is less than or equal to Threshold
-	 * @tparam F The fallback allocator, which is used when size is bigger than Threshold
-	*/
-	template<typename T, size_t Threshold, typename P, typename F>
-	using type_segragator_allocator = type_allocator<T, segragator<Threshold, P, F>>;
 
     namespace detail
     {
@@ -88,4 +78,22 @@ namespace ktl
     */
     template<size_t N>
     using threshold = std::integral_constant<size_t, N>;
+
+    /**
+	 * @brief Shorthand for a typed segragator allocator
+    */
+    template<typename T, size_t Threshold, typename P, typename F>
+    using type_segragator_allocator = type_allocator<T, segragator<Threshold, P, F>>;
+
+    /**
+     * @brief Shorthand for a typed, ref-counted freelist allocator
+    */
+    template<typename T, size_t Threshold, typename P, typename F>
+    using type_shared_segragator_allocator = type_allocator<T, shared<segragator<Threshold, P, F>>>;
+
+    /**
+     * @brief Shorthand for a typed, thread-safe, ref-counted freelist allocator
+    */
+    template<typename T, size_t Threshold, typename P, typename F>
+    using type_threaded_segragator_allocator = type_allocator<T, threaded<segragator<Threshold, P, F>>>;
 }
