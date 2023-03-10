@@ -54,9 +54,9 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct<void, P, Args...>::value>>
+			detail::can_construct_v<P, Args...>>>
 		segragator(std::tuple<Args...>&& primary) noexcept :
-			m_Primary(std::forward<Args>(std::get<Args>(primary))...),
+			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<Args...>>(primary))),
 			m_Fallback() {}
 
 		/**
@@ -64,11 +64,11 @@ namespace ktl
 		*/
 		template<typename... ArgsP, typename... ArgsF,
 			typename = std::enable_if_t<
-			detail::can_construct<void, P, ArgsP...>::value &&
-			detail::can_construct<void, F, ArgsF...>::value>>
+			detail::can_construct_v<P, ArgsP...> &&
+			detail::can_construct_v<F, ArgsF...>>>
 		segragator(std::tuple<ArgsP...>&& primary, std::tuple<ArgsF...>&& fallback) noexcept :
-			m_Primary(std::forward<ArgsP>(std::get<ArgsP>(primary))...),
-			m_Fallback(std::forward<ArgsF>(std::get<ArgsF>(fallback))...) {}
+			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<ArgsP...>>(primary))),
+			m_Fallback(std::make_from_tuple<F>(std::forward<std::tuple<ArgsF...>>(fallback))) {}
 
 		segragator(const segragator&) noexcept = default;
 

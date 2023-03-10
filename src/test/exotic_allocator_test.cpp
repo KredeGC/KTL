@@ -137,4 +137,39 @@ namespace ktl::test::exotic_allocator
         KTL_TEST_ASSERT(p1 == p2);
         KTL_TEST_ASSERT(p2 != p3);
     }
+
+    KTL_ADD_TEST(test_exotic_allocator_6)
+    {
+        stack<1024> block1;
+        stack<1024> block2;
+
+        // Create the allocator from various thresholded freelists, backed by a cascading linear allocator and malloc
+        using Alloc = segragator_builder_max<
+            stack_allocator<1024>,
+            threshold<8>,
+            stack_allocator<1024>,
+            threshold<128>,
+            FList<512>,
+            threshold<512>,
+            FList<1024>,
+            threshold<1024>,
+            cascading<linear_allocator<4096>>,
+            threshold<4096>,
+            mallocator>;
+
+        Alloc alloc(std::forward_as_tuple(std::forward_as_tuple(block1), std::forward_as_tuple(block2)), std::make_tuple());
+
+        // Allocate and deallocate 256 bytes, which should use the third freelist
+        void* p1 = alloc.allocate(256);
+        alloc.deallocate(p1, 256);
+        // Allocate and deallocate 256 bytes, which should reuse the previous allocation
+        void* p2 = alloc.allocate(256);
+        alloc.deallocate(p2, 256);
+        // Allocate and deallocate 2048 bytes, which should use the cascading linear allocator
+        void* p3 = alloc.allocate(2048);
+        alloc.deallocate(p3, 2048);
+
+        KTL_TEST_ASSERT(p1 == p2);
+        KTL_TEST_ASSERT(p2 != p3);
+    }
 }
