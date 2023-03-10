@@ -1,22 +1,33 @@
 #pragma once
 
+#include "shared_fwd.h"
+#include "threaded_fwd.h"
+#include "type_allocator_fwd.h"
+
 #include <cstddef>
 #include <ostream>
 
 namespace ktl
 {
-    // type_allocator
-	template<typename T, typename Alloc>
-	class type_allocator;
-    
-    // notomic
-    template<typename T>
-    struct notomic;
-    
     // overflow
-	template<typename Alloc, std::ostream& Stream, typename Atomic = notomic<size_t>>
+	template<typename Alloc, std::ostream& Stream>
 	class overflow;
 
-	template<typename T, typename A, std::ostream& Stream, typename Atomic = notomic<size_t>>
-	using type_overflow_allocator = type_allocator<T, overflow<A, Stream, Atomic>>;
+	/**
+	 * @brief Shorthand for a typed overflow allocator
+	*/
+	template<typename T, typename Alloc, std::ostream& Stream>
+	using type_overflow_allocator = type_allocator<T, overflow<Alloc, Stream>>;
+
+	/**
+	 * @brief Shorthand for a typed, ref-counted overflow allocator
+	*/
+	template<typename T, typename Alloc, std::ostream& Stream>
+	using type_shared_overflow_allocator = type_allocator<T, shared<overflow<Alloc, Stream>>>;
+
+	/**
+	 * @brief Shorthand for a typed, thread-safe, ref-counted overflow allocator
+	*/
+	template<typename T, typename Alloc, std::ostream& Stream>
+	using type_threaded_overflow_allocator = type_allocator<T, threaded<overflow<Alloc, Stream>>>;
 }

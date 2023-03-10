@@ -13,7 +13,7 @@
 
 namespace ktl
 {
-	template<typename Alloc, std::ostream& Stream, typename Atomic>
+	template<typename Alloc, std::ostream& Stream>
 	class overflow
 	{
 	private:
@@ -27,96 +27,60 @@ namespace ktl
 		static constexpr int64_t OVERFLOW_TEST = 0b0101010101010101010101010101010101010101010101010101010101010101;
 		static constexpr size_t OVERFLOW_SIZE = 8;
 
-		struct stats
-		{
-			Alloc Allocator;
-			Atomic UseCount;
-			int64_t Allocs;
-			int64_t Constructs;
-
-			stats(const Alloc& alloc) :
-				Allocator(alloc),
-				UseCount(1),
-				Allocs(0),
-				Constructs(0) {}
-		};
-
 	public:
-		overflow(const Alloc& alloc = Alloc()) noexcept
-		{
-			// Allocate the control block with the allocator, if we fit
-			if constexpr (!detail::has_max_size<Alloc>::value)
-			{
-				m_Stats = reinterpret_cast<stats*>(const_cast<Alloc&>(alloc).allocate(sizeof(stats)));
-				if constexpr (detail::has_construct<void, Alloc, stats*, const Alloc&>::value)
-					alloc.construct(m_Stats, alloc);
-				else
-					::new(m_Stats) stats(alloc);
-			}
-			else
-			{
-				m_Stats = new stats(alloc);
-			}
-		}
+		/**
+		 * @brief Constructor for forwarding any arguments to the underlying allocator
+		*/
+		template<typename... Args,
+			typename = std::enable_if_t<
+			detail::can_construct_v<Alloc, Args...>>>
+		overflow(Args&&... args) noexcept :
+			m_Alloc(std::forward<Args>(args)...),
+			m_Allocs(0),
+			m_Constructs(0) {}
 
-		overflow(const overflow& other) noexcept :
-			m_Stats(other.m_Stats)
-		{
-			m_Stats->UseCount++;
-		}
+		overflow(const overflow&) noexcept = default;
 
-		overflow(overflow&& other) noexcept :
-			m_Stats(other.m_Stats)
-		{
-			other.m_Stats = nullptr;
-		}
+		overflow(overflow&&) noexcept = default;
 
 		~overflow()
 		{
-			if (m_Stats)
-				decrement();
+			if (m_Allocs != 0 || m_Constructs != 0)
+			{
+				Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n";
+				if (m_Allocs > 0)
+					Stream << " Leaked memory (" << m_Allocs << " bytes)\n";
+				else if (m_Allocs < 0)
+					Stream << " Too many frees (" << -m_Allocs << " bytes)\n";
+
+				if (m_Constructs > 0)
+					Stream << " Too many constructor calls (" << m_Constructs << ")\n";
+				else if (m_Constructs < 0)
+					Stream << " Too many destructor calls (" << -m_Constructs << ")\n";
+			}
 		}
 
-		overflow& operator=(const overflow& rhs) noexcept
-		{
-			if (m_Stats)
-				decrement();
+		overflow& operator=(const overflow&) noexcept = default;
 
-			m_Stats = rhs.m_Stats;
-			m_Stats->UseCount++;
-
-			return *this;
-		}
-
-		overflow& operator=(overflow&& rhs) noexcept
-		{
-			if (m_Stats)
-				decrement();
-
-			m_Stats = rhs.m_Stats;
-
-			rhs.m_Stats = nullptr;
-
-			return *this;
-		}
+		overflow& operator=(overflow&&) noexcept = default;
 
 		bool operator==(const overflow& rhs) const noexcept
 		{
-			return m_Stats->Allocator == rhs.m_Stats->Allocator;
+			return m_Allocator == rhs.m_Allocator;
 		}
 
 		bool operator!=(const overflow& rhs) const noexcept
 		{
-			return m_Stats->Allocator != rhs.m_Stats->Allocator;
+			return m_Allocator != rhs.m_Allocator;
 		}
 
 #pragma region Allocation
 		void* allocate(size_type n)
 		{
-			m_Stats->Allocs += n;
+			m_Allocs += n;
 
 			size_type size = n + OVERFLOW_SIZE * 2;
-			char* ptr = reinterpret_cast<char*>(m_Stats->Allocator.allocate(size));
+			char* ptr = reinterpret_cast<char*>(m_Alloc.allocate(size));
 
 			if (!ptr)
 				return nullptr;
@@ -131,7 +95,7 @@ namespace ktl
 		{
 			KTL_ASSERT(p != nullptr);
 
-			m_Stats->Allocs -= n;
+			m_Allocs -= n;
 
 			if (p)
 			{
@@ -145,7 +109,7 @@ namespace ktl
 					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr - OVERFLOW_SIZE) << " has been modified\n";
 
 				size_type size = n + OVERFLOW_SIZE * 2;
-				m_Stats->Allocator.deallocate(ptr - OVERFLOW_SIZE, size);
+				m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);
 			}
 		}
 #pragma endregion
@@ -154,10 +118,10 @@ namespace ktl
 		template<typename T, typename... Args>
 		void construct(T* p, Args&&... args)
 		{
-			m_Stats->Constructs++;
+			m_Constructs++;
 
 			if constexpr (detail::has_construct_v<Alloc, T*, Args...>)
-				m_Stats->Allocator.construct(p, std::forward<Args>(args)...);
+				m_Alloc.construct(p, std::forward<Args>(args)...);
 			else
 				::new(p) T(std::forward<Args>(args)...);
 		}
@@ -165,10 +129,10 @@ namespace ktl
 		template<typename T>
 		void destroy(T* p)
 		{
-			m_Stats->Constructs--;
+			m_Constructs--;
 
 			if constexpr (detail::has_destroy_v<Alloc, T*>)
-				m_Stats->Allocator.destroy(p);
+				m_Alloc.destroy(p);
 			else
 				p->~T();
 		}
@@ -179,25 +143,25 @@ namespace ktl
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const noexcept
 		{
-			return m_Stats->Allocator.max_size();
+			return m_Alloc.max_size();
 		}
 
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
 		{
-			return m_Stats->Allocator.owns(p);
+			return m_Alloc.owns(p);
 		}
 #pragma endregion
 
 		Alloc& get_allocator()
 		{
-			return m_Stats->Allocator;
+			return m_Alloc;
 		}
 
 		const Alloc& get_allocator() const
 		{
-			return m_Stats->Allocator;
+			return m_Alloc;
 		}
 
 	private:
@@ -236,6 +200,9 @@ namespace ktl
 			}
 		}
 
-		stats* m_Stats;
+	private:
+		Alloc m_Alloc;
+		int64_t m_Allocs;
+		int64_t m_Constructs;
 	};
 }

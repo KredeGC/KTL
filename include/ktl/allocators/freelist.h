@@ -43,8 +43,8 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		freelist(Args&&... alloc) noexcept :
-			m_Alloc(std::forward<Args>(alloc)...),
+		freelist(Args&&... args) noexcept :
+			m_Alloc(std::forward<Args>(args)...),
 			m_Free(nullptr) {}
 
 		freelist(const freelist&) noexcept = delete;
