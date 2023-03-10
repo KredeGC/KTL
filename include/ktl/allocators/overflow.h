@@ -66,12 +66,12 @@ namespace ktl
 
 		bool operator==(const overflow& rhs) const noexcept
 		{
-			return m_Allocator == rhs.m_Allocator;
+			return m_Alloc == rhs.m_Alloc;
 		}
 
 		bool operator!=(const overflow& rhs) const noexcept
 		{
-			return m_Allocator != rhs.m_Allocator;
+			return m_Alloc != rhs.m_Alloc;
 		}
 
 #pragma region Allocation
@@ -162,42 +162,6 @@ namespace ktl
 		const Alloc& get_allocator() const
 		{
 			return m_Alloc;
-		}
-
-	private:
-		void decrement()
-		{
-			if (m_Stats->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-			{
-				if (m_Stats->Allocs != 0 || m_Stats->Constructs != 0)
-				{
-					Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n";
-					if (m_Stats->Allocs > 0)
-						Stream << " Leaked memory (" << m_Stats->Allocs << " bytes)\n";
-					else if (m_Stats->Allocs < 0)
-						Stream << " Too many frees (" << -m_Stats->Allocs << " bytes)\n";
-
-					if (m_Stats->Constructs > 0)
-						Stream << " Too many constructor calls (" << m_Stats->Constructs << ")\n";
-					else if (m_Stats->Constructs < 0)
-						Stream << " Too many destructor calls (" << -m_Stats->Constructs << ")\n";
-				}
-
-				if constexpr (!detail::has_max_size<Alloc>::value)
-				{
-					Alloc alloc = std::move(m_Stats->Allocator);
-
-					if constexpr (detail::has_destroy<Alloc, stats*>::value)
-						alloc.destroy(m_Stats);
-					else
-						m_Stats->~stats();
-					alloc.deallocate(m_Stats, sizeof(stats));
-				}
-				else
-				{
-					delete m_Stats;
-				}
-			}
 		}
 
 	private:
