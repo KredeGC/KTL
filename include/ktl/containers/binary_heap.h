@@ -34,8 +34,8 @@ namespace ktl
 
     public:
         /**
-         * @brief Construct the binary heap with the given allocator and comparator
-         * @param comp The allocator to use. Will be default constructed if unspecified
+         * @brief Construct the binary heap with the given comparator
+         * @param comp The comparator to use. Will be default constructed if unspecified
         */
         binary_heap(const Comp& comp = Comp()) noexcept :
             m_Alloc(),
@@ -47,7 +47,7 @@ namespace ktl
         /**
          * @brief Construct the binary heap with the given allocator and comparator
          * @param allocator The allocator to use
-         * @param comp The allocator to use. Will be default constructed if unspecified
+         * @param comp The comparator to use. Will be default constructed if unspecified
         */
         binary_heap(const Alloc& allocator, const Comp& comp = Comp()) noexcept :
             m_Alloc(allocator),
@@ -57,12 +57,24 @@ namespace ktl
             m_Begin(nullptr) {}
 
         /**
+         * @brief Construct the binary heap with the given comparator and an initial capacity
+         * @param capacity The initial capacity to use
+         * @param comp The comparator to use. Will be default constructed if unspecified
+        */
+        explicit binary_heap(size_t capacity, const Comp& comp = Comp()) noexcept :
+            m_Alloc(),
+            m_Comp(comp),
+            m_Size(0),
+            m_Capacity(capacity),
+            m_Begin(Traits::allocate(m_Alloc, capacity)) {}
+
+        /**
          * @brief Construct the binary heap with the given allocator, comparator and an initial capacity
          * @param capacity The initial capacity to use
          * @param allocator The allocator to use. Will be default constructed if unspecified
-         * @param comp The allocator to use. Will be default constructed if unspecified
+         * @param comp The comparator to use. Will be default constructed if unspecified
         */
-        explicit binary_heap(size_t capacity, const Alloc& allocator = Alloc(), const Comp& comp = Comp()) noexcept :
+        explicit binary_heap(size_t capacity, const Alloc& allocator, const Comp& comp = Comp()) noexcept :
             m_Alloc(allocator),
             m_Comp(comp),
             m_Size(0),
@@ -70,12 +82,28 @@ namespace ktl
             m_Begin(Traits::allocate(m_Alloc, capacity)) {}
 
         /**
+         * @brief Construct the binary heap with the given comparator and an initial set of values
+         * @param initializer A list of values to insert into the binary heap
+         * @param comp The comparator to use. Will be default constructed if unspecified
+        */
+        binary_heap(std::initializer_list<T> initializer, const Comp& comp = Comp()) :
+            m_Alloc(),
+            m_Comp(comp),
+            m_Size(0),
+            m_Capacity(initializer.size()),
+            m_Begin(Traits::allocate(m_Alloc, initializer.size()))
+        {
+            for (auto value : initializer)
+                insert(value);
+        }
+
+        /**
          * @brief Construct the binary heap with the given allocator, comparator and an initial set of values
          * @param initializer A list of values to insert into the binary heap
          * @param allocator The allocator to use. Will be default constructed if unspecified
-         * @param comp The allocator to use. Will be default constructed if unspecified
+         * @param comp The comparator to use. Will be default constructed if unspecified
         */
-        binary_heap(std::initializer_list<T> initializer, const Alloc& allocator = Alloc(), const Comp& comp = Comp()) :
+        binary_heap(std::initializer_list<T> initializer, const Alloc& allocator, const Comp& comp = Comp()) :
             m_Alloc(allocator),
             m_Comp(comp),
             m_Size(0),

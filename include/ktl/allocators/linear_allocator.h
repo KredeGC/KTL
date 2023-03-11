@@ -28,7 +28,7 @@ namespace ktl
 			m_Free(m_Data),
 			m_ObjectCount(0)
 		{
-			// Copying / moving raw allocators in use is undefined
+			// Copying raw allocators in use is undefined
 			KTL_ASSERT(other.m_ObjectCount == 0);
 		}
 
@@ -45,7 +45,7 @@ namespace ktl
 		{
 			m_Free = m_Data;
 
-			// Copying / moving raw allocators in use is undefined
+			// Copying raw allocators in use is undefined
 			KTL_ASSERT(rhs.m_ObjectCount == 0);
 
 			return *this;
