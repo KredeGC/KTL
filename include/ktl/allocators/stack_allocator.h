@@ -35,10 +35,10 @@ namespace ktl
 	class stack_allocator
 	{
 	public:
-		stack_allocator(stack<Size>& block) noexcept :
+		explicit stack_allocator(stack<Size>& block) noexcept :
 			m_Block(&block) {}
 
-		stack_allocator(stack<Size>* block) noexcept
+		explicit stack_allocator(stack<Size>* block) noexcept
 			: m_Block(block) {}
 
 		stack_allocator(const stack_allocator&) noexcept = default;

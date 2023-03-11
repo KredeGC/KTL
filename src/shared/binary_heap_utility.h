@@ -44,7 +44,7 @@ namespace ktl::test
 
     template<typename T, typename Alloc>
     typename std::enable_if<std::is_same<T, double>::value, void>::type
-    assert_binary_heap(size_t heap_size, Alloc& alloc)
+    assert_binary_heap(size_t heap_size, const Alloc& alloc)
     {
         constexpr size_t size = 8;
 
@@ -64,7 +64,7 @@ namespace ktl::test
 
     template<typename T, typename Alloc>
     typename std::enable_if<std::is_same<T, trivial_t>::value, void>::type
-    assert_binary_heap(size_t heap_size, Alloc& alloc)
+    assert_binary_heap(size_t heap_size, const Alloc& alloc)
     {
         constexpr size_t size = 8;
 
@@ -84,7 +84,7 @@ namespace ktl::test
 
     template<typename T, typename Alloc>
     typename std::enable_if<std::is_same<T, packed_t>::value, void>::type
-    assert_binary_heap(size_t heap_size, Alloc& alloc)
+    assert_binary_heap(size_t heap_size, const Alloc& alloc)
     {
         constexpr size_t size = 8;
 
@@ -107,7 +107,7 @@ namespace ktl::test
 
     template<typename T, typename Alloc>
     typename std::enable_if<std::is_same<T, complex_t>::value, void>::type
-    assert_binary_heap(size_t heap_size, Alloc& alloc)
+    assert_binary_heap(size_t heap_size, const Alloc& alloc)
     {
         constexpr size_t size = 8;
 
