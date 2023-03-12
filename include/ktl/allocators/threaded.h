@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utility/aligned_malloc.h"
+#include "../utility/alignment.h"
 #include "../utility/meta.h"
 #include "threaded_fwd.h"
 
@@ -41,7 +43,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		threaded(Args&&... alloc) noexcept :
-			m_Block(new block(std::forward<Args>(alloc)...)) {}
+			m_Block(detail::aligned_new<block>(ALIGNMENT, std::forward<Args>(alloc)...)) {}
 
 		threaded(const threaded& other) noexcept :
 			m_Block(other.m_Block)
@@ -167,7 +169,7 @@ namespace ktl
 			if (!m_Block) return;
 
 			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-				delete m_Block;
+				detail::aligned_delete(m_Block);
 		}
 
 	private:

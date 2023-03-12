@@ -1,8 +1,9 @@
 #pragma once
 
+#include "../utility/aligned_malloc.h"
+#include "../utility/alignment.h"
 #include "../utility/assert.h"
 #include "../utility/meta.h"
-#include "../utility/notomic.h"
 #include "cascading_fwd.h"
 #include "type_allocator.h"
 
@@ -84,7 +85,7 @@ namespace ktl
 		{
 			// Add an initial allocator
 			if (!m_Node)
-				m_Node = new node;
+				m_Node = detail::aligned_new<node>(ALIGNMENT);
 
 			if constexpr (detail::has_max_size<Alloc>::value)
 			{
@@ -98,7 +99,8 @@ namespace ktl
 			if (p == nullptr)
 			{
 				node* next = m_Node;
-				m_Node = new node;
+
+				m_Node = detail::aligned_new<node>(ALIGNMENT);
 				m_Node->Next = next;
 
 				p = m_Node->Allocator.allocate(n);
@@ -127,7 +129,8 @@ namespace ktl
 					if (--next->Allocations == 0 && prev)
 					{
 						prev->Next = next->Next;
-						delete next;
+
+						detail::aligned_delete(next);
 					}
 
 					break;
@@ -217,7 +220,7 @@ namespace ktl
 
 				next = current->Next;
 
-				delete current;
+				detail::aligned_delete(current);
 			}
 		}
 

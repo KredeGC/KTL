@@ -43,7 +43,7 @@
 #endif
 // KTL_HAS_MM_MALLOC
 
-namespace ktl
+namespace ktl::detail
 {
     inline void* aligned_malloc(size_t size, size_t alignment)
     {
@@ -84,5 +84,20 @@ namespace ktl
         if (ptr != 0)
             free(*(reinterpret_cast<void**>(ptr) - 1));
 #endif
+    }
+
+    template<typename T, typename... Args>
+    T* aligned_new(size_t alignment, Args&&... args)
+    {
+        T* p = static_cast<T*>(aligned_malloc(sizeof(T), alignment));
+        ::new(p) T(std::forward<Args>(args)...);
+        return p;
+    }
+
+    template<typename T>
+    void aligned_delete(T* p)
+    {
+        p->~T();
+        aligned_free(p);
     }
 }

@@ -2,7 +2,6 @@
 
 #include "../utility/assert.h"
 #include "../utility/meta.h"
-#include "../utility/notomic.h"
 #include "overflow_fwd.h"
 #include "type_allocator.h"
 
