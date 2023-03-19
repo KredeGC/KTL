@@ -171,6 +171,9 @@ This library also contains various containers that are STL compliant.
 | `size_t size() const` | Returns the current amount of elements in the vector. |
 
 # Allocator Examples
+The following examples all have `using namespace ktl` or equivalent at the top for brevity.
+These examples can all be seen as unit tests in [`src/test/exotic_allocator_test.cpp`](https://github.com/KredeGC/KTL/tree/master/src/test/exotic_allocator_test.cpp).
+
 Create an allocator which will attempt to use a linear allocator for allocation, but fall back on malloc when full.
 ```cpp
 // Create the allocator from some 8kb buffer and straight malloc
