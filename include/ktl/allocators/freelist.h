@@ -36,13 +36,17 @@ namespace ktl
         };
         
 	public:
+		freelist() noexcept :
+			m_Alloc(),
+			m_Free(nullptr) {}
+
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		freelist(Args&&... args) noexcept :
+		explicit freelist(Args&&... args) noexcept :
 			m_Alloc(std::forward<Args>(args)...),
 			m_Free(nullptr) {}
 

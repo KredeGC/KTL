@@ -27,13 +27,18 @@ namespace ktl
 		static constexpr size_t OVERFLOW_SIZE = 8;
 
 	public:
+		overflow() noexcept :
+			m_Alloc(),
+			m_Allocs(0),
+			m_Constructs(0) {}
+
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		overflow(Args&&... args) noexcept :
+		explicit overflow(Args&&... args) noexcept :
 			m_Alloc(std::forward<Args>(args)...),
 			m_Allocs(0),
 			m_Constructs(0) {}

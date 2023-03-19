@@ -24,27 +24,9 @@ namespace ktl::test
         delete[] random_copy;
     }
 
-    template<typename Alloc, typename T>
-    void assert_binary_heap_min_max(size_t heap_size, const Alloc& alloc, T* values, size_t amount)
-    {
-        // Use within scopes to ensure the allocator is destoyed
-        {
-            binary_min_heap<T, Alloc> min_heap(heap_size, alloc);
-            assert_binary_heap_insert_pop(min_heap, values, amount);
-        }
-
-        // Reuse block once the previous allocator is done with it
-        // Only matters for complex types with destructors
-        {
-            std::sort(values, values + amount, std::greater<T>());
-            binary_max_heap<T, Alloc> max_heap(heap_size, alloc);
-            assert_binary_heap_insert_pop(max_heap, values, amount);
-        }
-    }
-
-    template<typename T, typename Alloc>
-    typename std::enable_if<std::is_same<T, double>::value, void>::type
-    assert_binary_heap(size_t heap_size, const Alloc& alloc)
+    template<typename T, typename Comp, typename Alloc>
+    typename std::enable_if<std::is_same_v<T, double>, void>::type
+    assert_binary_heap(ktl::binary_heap<T, Comp, Alloc>& heap)
     {
         constexpr size_t size = 8;
 
@@ -59,12 +41,14 @@ namespace ktl::test
             58.0
         };
 
-        assert_binary_heap_min_max(heap_size, alloc, values, size);
+        std::sort(values, values + size, Comp());
+
+        assert_binary_heap_insert_pop(heap, values, size);
     }
 
-    template<typename T, typename Alloc>
+    template<typename T, typename Comp, typename Alloc>
     typename std::enable_if<std::is_same<T, trivial_t>::value, void>::type
-    assert_binary_heap(size_t heap_size, const Alloc& alloc)
+    assert_binary_heap(ktl::binary_heap<T, Comp, Alloc>& heap)
     {
         constexpr size_t size = 8;
 
@@ -79,12 +63,14 @@ namespace ktl::test
             { 58.0f, 31.0f }
         };
 
-        assert_binary_heap_min_max(heap_size, alloc, values, size);
+        std::sort(values, values + size, Comp());
+
+        assert_binary_heap_insert_pop(heap, values, size);
     }
 
-    template<typename T, typename Alloc>
+    template<typename T, typename Comp, typename Alloc>
     typename std::enable_if<std::is_same<T, packed_t>::value, void>::type
-    assert_binary_heap(size_t heap_size, const Alloc& alloc)
+    assert_binary_heap(ktl::binary_heap<T, Comp, Alloc>& heap)
     {
         constexpr size_t size = 8;
 
@@ -102,12 +88,14 @@ namespace ktl::test
             { &forRef1, &forRef2, 40000, 'a' }
         };
 
-        assert_binary_heap_min_max(heap_size, alloc, values, size);
+        std::sort(values, values + size, Comp());
+
+        assert_binary_heap_insert_pop(heap, values, size);
     }
 
-    template<typename T, typename Alloc>
+    template<typename T, typename Comp, typename Alloc>
     typename std::enable_if<std::is_same<T, complex_t>::value, void>::type
-    assert_binary_heap(size_t heap_size, const Alloc& alloc)
+    assert_binary_heap(ktl::binary_heap<T, Comp, Alloc>& heap)
     {
         constexpr size_t size = 8;
 
@@ -122,6 +110,31 @@ namespace ktl::test
             58.0
         };
 
-        assert_binary_heap_min_max(heap_size, alloc, values, size);
+        std::sort(values, values + size, Comp());
+
+        assert_binary_heap_insert_pop(heap, values, size);
+    }
+
+    template<typename T, typename Alloc, typename... Args>
+    void assert_binary_heap_min_max(Args&&... args)
+    {
+        if constexpr (sizeof...(Args) > 0)
+        {
+            Alloc allocator(std::forward<Args>(args)...);
+
+            binary_min_heap<T, Alloc> min_heap(allocator);
+            assert_binary_heap<T>(min_heap);
+
+            binary_max_heap<T, Alloc> max_heap(allocator);
+            assert_binary_heap<T>(max_heap);
+        }
+        else
+        {
+            binary_min_heap<T, Alloc> min_heap;
+            assert_binary_heap<T>(min_heap);
+
+            binary_max_heap<T, Alloc> max_heap;
+            assert_binary_heap<T>(max_heap);
+        }
     }
 }

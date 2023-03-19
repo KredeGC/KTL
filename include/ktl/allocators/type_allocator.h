@@ -35,13 +35,15 @@ namespace ktl
 			typedef type_allocator<U, Alloc> other;
 		};
 
+		type_allocator() noexcept = default;
+
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		type_allocator(Args&&... alloc) noexcept :
+		explicit type_allocator(Args&&... alloc) noexcept :
 			m_Alloc(std::forward<Args>(alloc)...) {}
 
 		type_allocator(const type_allocator&) noexcept = default;

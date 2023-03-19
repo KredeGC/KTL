@@ -83,21 +83,21 @@ namespace ktl::test::fallback_allocator
     {
         stack<16> primaryStack;
         stack<4096> fallbackStack;
-        type_fallback_allocator<double, stack_allocator<16>, stack_allocator<4096>> alloc({ primaryStack, fallbackStack });
+        type_fallback_allocator<double, stack_allocator<16>, stack_allocator<4096>> alloc(primaryStack, fallbackStack);
         assert_unordered_values<double>(alloc);
     }
 
     KTL_ADD_TEST(test_fallback_stack_linear_unordered_double)
     {
         stack<16> primaryStack;
-        type_fallback_allocator<double, stack_allocator<16>, linear_allocator<4096>> alloc({ primaryStack });
+        type_fallback_allocator<double, stack_allocator<16>, linear_allocator<4096>> alloc(primaryStack);
         assert_unordered_values<double>(alloc);
     }
 
     KTL_ADD_TEST(test_fallback_stack_malloc_unordered_double)
     {
-        stack<16> stack;
-        type_fallback_allocator<double, stack_allocator<16>, mallocator> alloc({ stack });
+        stack<16> primaryStack;
+        type_fallback_allocator<double, stack_allocator<16>, mallocator> alloc(primaryStack);
         assert_unordered_values<double>(alloc);
     }
 

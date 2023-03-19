@@ -37,7 +37,7 @@ namespace ktl
 		*/
 		template<typename Primary,
 			typename = std::enable_if_t<detail::can_construct_v<P, Primary>>>
-		fallback(Primary&& primary) noexcept :
+		explicit fallback(Primary&& primary) noexcept :
 			m_Primary(std::forward<Primary>(primary)),
 			m_Fallback() {}
 
@@ -48,7 +48,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<P, Primary> &&
 			detail::can_construct_v<F, Fallback>>>
-		fallback(Primary&& primary, Fallback&& fallback) noexcept :
+		explicit fallback(Primary&& primary, Fallback&& fallback) noexcept :
 			m_Primary(std::forward<Primary>(primary)),
 			m_Fallback(std::forward<Fallback>(fallback)) {}
 
@@ -58,7 +58,7 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<P, Args...>>>
-		fallback(std::tuple<Args...>&& primary) noexcept :
+		explicit fallback(std::tuple<Args...>&& primary) noexcept :
 			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<Args...>>(primary))),
 			m_Fallback() {}
 
@@ -69,7 +69,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<P, ArgsP...>&&
 			detail::can_construct_v<F, ArgsF...>>>
-		fallback(std::tuple<ArgsP...>&& primary, std::tuple<ArgsF...>&& fallback) noexcept :
+		explicit fallback(std::tuple<ArgsP...>&& primary, std::tuple<ArgsF...>&& fallback) noexcept :
 			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<ArgsP...>>(primary))),
 			m_Fallback(std::make_from_tuple<F>(std::forward<std::tuple<ArgsF...>>(fallback))) {}
 

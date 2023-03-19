@@ -10,6 +10,7 @@
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/overflow.h"
 #include "ktl/allocators/segragator.h"
+#include "ktl/allocators/shared.h"
 #include "ktl/allocators/stack_allocator.h"
 
 #include "ktl/containers/binary_heap.h"
@@ -45,7 +46,7 @@ namespace ktl::test::overflow_allocator
         assert_no_overflow([]()
         {
             stack<4096> block;
-            type_overflow_allocator<double, stack_allocator<4096>, stringOut> alloc({ block });
+            type_overflow_allocator<double, stack_allocator<4096>, stringOut> alloc(block);
             assert_unordered_values<double>(alloc);
         });
     }
@@ -63,8 +64,7 @@ namespace ktl::test::overflow_allocator
     {
         assert_no_overflow([]()
         {
-            type_overflow_allocator<double, linear_allocator<4096>, stringOut> alloc;
-            assert_binary_heap<double>(3, alloc);
+            assert_binary_heap_min_max<double, type_linear_allocator<double, 4096>>();
         });
     }
 
