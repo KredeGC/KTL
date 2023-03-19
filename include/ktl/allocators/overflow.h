@@ -12,7 +12,7 @@
 
 namespace ktl
 {
-	template<typename Alloc, std::ostream& Stream>
+	template<typename Alloc, typename Stream>
 	class overflow
 	{
 	private:
@@ -27,7 +27,8 @@ namespace ktl
 		static constexpr size_t OVERFLOW_SIZE = 8;
 
 	public:
-		overflow() noexcept :
+		explicit overflow(Stream& stream) noexcept :
+			m_Stream(stream),
 			m_Alloc(),
 			m_Allocs(0),
 			m_Constructs(0) {}
@@ -38,7 +39,8 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		explicit overflow(Args&&... args) noexcept :
+		explicit overflow(Stream& stream, Args&&... args) noexcept :
+			m_Stream(stream),
 			m_Alloc(std::forward<Args>(args)...),
 			m_Allocs(0),
 			m_Constructs(0) {}
@@ -49,18 +51,22 @@ namespace ktl
 
 		~overflow()
 		{
-			if (m_Allocs != 0 || m_Constructs != 0)
+			if (m_Allocs != 0)
 			{
-				Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n";
+				m_Stream << "--------MEMORY LEAK DETECTED--------\nAllocator destroyed while having:\n";
 				if (m_Allocs > 0)
-					Stream << " Leaked memory (" << m_Allocs << " bytes)\n";
-				else if (m_Allocs < 0)
-					Stream << " Too many frees (" << -m_Allocs << " bytes)\n";
+					m_Stream << " Allocated memory (" << m_Allocs << " bytes)\n";
+				else
+					m_Stream << " Too many frees (" << -m_Allocs << " bytes)\n";
+			}
 
+			if (m_Constructs != 0)
+			{
+				m_Stream << "--------POSSIBLE LOGIC ERROR DETECTED--------\nAllocator destroyed while having:\n";
 				if (m_Constructs > 0)
-					Stream << " Too many constructor calls (" << m_Constructs << ")\n";
-				else if (m_Constructs < 0)
-					Stream << " Too many destructor calls (" << -m_Constructs << ")\n";
+					m_Stream << " Too many constructor calls (" << m_Constructs << ")\n";
+				else
+					m_Stream << " Too many destructor calls (" << -m_Constructs << ")\n";
 			}
 		}
 
@@ -107,10 +113,10 @@ namespace ktl
 
 				// Check against corruption
 				if (std::memcmp(ptr + n, &OVERFLOW_TEST, OVERFLOW_SIZE) != 0)
-					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr + n) << " has been modified\n";
+					m_Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr + n) << " has been illegally modified\n";
 
 				if (std::memcmp(ptr - OVERFLOW_SIZE, &OVERFLOW_TEST, OVERFLOW_SIZE) != 0)
-					Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr - OVERFLOW_SIZE) << " has been modified\n";
+					m_Stream << "--------MEMORY CORRUPTION DETECTED--------\nThe area around " << reinterpret_cast<int*>(ptr - OVERFLOW_SIZE) << " has been illegally modified\n";
 
 				size_type size = n + OVERFLOW_SIZE * 2;
 				m_Alloc.deallocate(ptr - OVERFLOW_SIZE, size);
@@ -168,7 +174,26 @@ namespace ktl
 			return m_Alloc;
 		}
 
+		/**
+		 * @brief Return a reference to the stream that will be used when leaks or corruption occur
+		 * @return The stream
+		*/
+		Stream& get_stream()
+		{
+			return m_Stream
+		}
+
+		/**
+		 * @brief Return a const reference to the stream that will be used when leaks or corruption occur
+		 * @return The stream
+		*/
+		const Stream& get_stream() const
+		{
+			return m_Stream
+		}
+
 	private:
+		Stream& m_Stream;
 		Alloc m_Alloc;
 		int64_t m_Allocs;
 		int64_t m_Constructs;

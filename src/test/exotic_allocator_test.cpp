@@ -21,9 +21,6 @@
 
 namespace ktl::test::exotic_allocator
 {
-    static std::stringbuf stringBuffer;
-    static std::ostream stringOut(&stringBuffer);
-
     KTL_ADD_TEST(test_exotic_allocator_0)
     {
         // TODO: More tests with exotic allocator arrangements
@@ -49,11 +46,12 @@ namespace ktl::test::exotic_allocator
 
     KTL_ADD_TEST(test_exotic_allocator_2)
     {
-        stringBuffer = std::stringbuf();
+        std::stringbuf stringBuffer;
+        std::ostream stringOut(&stringBuffer);
 
         {
             // Create the allocator with std::cerr
-            type_overflow_allocator<double, mallocator, stringOut> alloc;
+            type_overflow_allocator<double, mallocator> alloc(stringOut);
             // Allocate and deallocate 1 double
             double* p = alloc.allocate(1);
             // Write to the address before what was allocated, which is illegal

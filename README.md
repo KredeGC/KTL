@@ -5,7 +5,7 @@
 ![Linux supported](https://img.shields.io/badge/Linux-Ubuntu-green?style=flat-square)
 ![MacOS untested](https://img.shields.io/badge/MacOS-Untested-red?style=flat-square)
 
-A C++ library containing various composite memory allocators and containers.<br/>
+A C++ library containing various composable memory allocators and containers.<br/>
 Allocators are mostly based on a [Talk by Andrei Alexandrescu](https://www.youtube.com/watch?v=LIb3L4vKZ7U).
 
 [![Release](https://img.shields.io/github/v/release/KredeGC/KTL?display_name=tag&style=flat-square)](https://github.com/KredeGC/KTL/releases/latest)
@@ -61,22 +61,25 @@ This library contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
-Raw allocators always use an alignment of at least 8 bytes.
+Allocators always use an alignment of at least 8 bytes.
 
 Raw allocators do not work like the STL `std::allocator`, in that 2 instances do not share the same state.<br/>
-If you make a copy of a `linear_allocator<1024>` fx. it will not be able to deallocate anything that was allocated by the original.<br/>
+If you make a copy of a raw allocator it will not be able to deallocate anything that was allocated by the original.<br/>
 If you want the state to be shared you can wrap it in a `shared<Allocator>` type, which will use ref-counting when copying and moving the allocator.<br/>
-If you also want the allocator to be thread-safe you can instead wrap it in a `threaded<Allocator>` type.
+You may also want the allocator to be thread-safe, in which case you can instead wrap it in a `threaded<Allocator>` type.
 
 In addition to this all STL containers require a typed allocator.<br/>
 To make an allocator typed you can wrap it in a `type_allocator<T, Allocator>` type.<br/>
 This is a composite allocator that you can use to make an allocator typed, like so: `type_allocator<int, linear_allocator<1024>>`.<br/>
 All allocators also have a typedeffed version with a `type_` prefix as a shorthand, such as: `type_linear_allocator<int, 1024>`.<br/>
-If you want to use an allocator with any STL container you should always make sure that it has shared state.<br/>
-Unlike STL containers, the containers in this library do not copy or move the allocators (once passed in), so you should be able to use them without needing shared state.
+If you want to use an allocator with any STL container you should always make sure that it has shared state.
 
-If you are unsure about type-safety and STL, you can always just wrap the entire allocator in both a `type_allocator` and a `shared` type.<br/>
-Like so: `type_allocator<int, shared<linear_allocator<1024>>>` or using the typedeffed version: `type_shared_linear_allocator<int, 1024>`.
+Unlike STL containers, the containers in this library do not copy or move the allocators (once passed in), so you should be able to use them without needing shared state.<br/>
+However, if the allocator is not default/copy constructible or you want to use the same allocator for multiple containers, then you must use shared state like above.
+
+If you are unsure about type-safety, STL and shared state, you can always just wrap the entire allocator in both a `type_allocator` and a `shared` type.<br/>
+Like so: `type_allocator<int, shared<linear_allocator<1024>>>` or using the typedeffed version: `type_shared_linear_allocator<int, 1024>`.<br/>
+This will ensure that the allocator works with any type of container, STL or not.
 
 | Signature | Type | Description |
 | --- | --- |--- |
@@ -185,7 +188,7 @@ Create an allocator that monitors when memory corruption has occurred around any
 #include <iostream>
 
 // Create the allocator with std::cerr
-type_overflow_allocator<double, mallocator, std::cerr> alloc;
+type_overflow_allocator<double, mallocator> alloc(std::cerr);
 // Allocate and deallocate 1 double
 double* p = alloc.allocate(1);
 // Write to the address before what was allocated, which is illegal

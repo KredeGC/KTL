@@ -23,6 +23,8 @@ namespace ktl
         static_assert(std::is_move_constructible_v<T>, "T must be move constructible");
         static_assert(std::is_move_assignable_v<T>, "T must be move assignable");
 
+        static_assert(std::is_default_constructible_v<Alloc> || std::is_copy_constructible_v<Alloc>, "The allocator must be default or copy constructible");
+
         typedef std::allocator_traits<Alloc> Traits;
 
     public:
