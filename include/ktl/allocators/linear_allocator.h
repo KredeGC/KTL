@@ -23,14 +23,7 @@ namespace ktl
 			m_Free(m_Data),
 			m_ObjectCount(0) {}
 
-		linear_allocator(const linear_allocator& other) noexcept :
-			m_Data{},
-			m_Free(m_Data),
-			m_ObjectCount(0)
-		{
-			// Copying raw allocators in use is undefined
-			KTL_ASSERT(other.m_ObjectCount == 0);
-		}
+		linear_allocator(const linear_allocator&) noexcept = delete;
 
 		linear_allocator(linear_allocator&& other) noexcept :
 			m_Data{},
@@ -41,15 +34,7 @@ namespace ktl
 			KTL_ASSERT(other.m_ObjectCount == 0);
 		}
 
-		linear_allocator& operator=(const linear_allocator& rhs) noexcept
-		{
-			m_Free = m_Data;
-
-			// Copying raw allocators in use is undefined
-			KTL_ASSERT(rhs.m_ObjectCount == 0);
-
-			return *this;
-		}
+		linear_allocator& operator=(const linear_allocator&) noexcept = delete;
 
 		linear_allocator& operator=(linear_allocator&& rhs) noexcept
 		{

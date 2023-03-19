@@ -82,78 +82,66 @@ namespace ktl::test::binary_heap
 #pragma region std::allocator
     KTL_ADD_TEST(test_binary_heap_std_double)
     {
-        std::allocator<double> alloc;
-        assert_binary_heap<double>(3, alloc);
+        assert_binary_heap_min_max<double, std::allocator<double>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_std_trivial)
     {
-        std::allocator<trivial_t> alloc;
-        assert_binary_heap<trivial_t>(3, alloc);
+        assert_binary_heap_min_max<trivial_t, std::allocator<trivial_t>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_std_packed)
     {
-        std::allocator<packed_t> alloc;
-        assert_binary_heap<packed_t>(3, alloc);
+        assert_binary_heap_min_max<packed_t, std::allocator<packed_t>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_std_complex)
     {
-        std::allocator<complex_t> alloc;
-        assert_binary_heap<complex_t>(3, alloc);
+        assert_binary_heap_min_max<complex_t, std::allocator<complex_t>>();
     }
 #pragma endregion
 
 #pragma region ktl::mallocator
     KTL_ADD_TEST(test_binary_heap_mallocator_double)
     {
-        ktl::type_mallocator<double> alloc;
-        assert_binary_heap<double>(3, alloc);
+        assert_binary_heap_min_max<double, type_mallocator<double>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_mallocator_trivial)
     {
-        ktl::type_mallocator<trivial_t> alloc;
-        assert_binary_heap<trivial_t>(3, alloc);
+        assert_binary_heap_min_max<trivial_t, type_mallocator<trivial_t>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_mallocator_packed)
     {
-        ktl::type_mallocator<packed_t> alloc;
-        assert_binary_heap<packed_t>(3, alloc);
+        assert_binary_heap_min_max<packed_t, type_mallocator<packed_t>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_mallocator_complex)
     {
-        ktl::type_mallocator<complex_t> alloc;
-        assert_binary_heap<complex_t>(3, alloc);
+        assert_binary_heap_min_max<complex_t, type_mallocator<complex_t>>();
     }
 #pragma endregion
 
 #pragma region ktl::linear
     KTL_ADD_TEST(test_binary_heap_linear_double)
     {
-        type_linear_allocator<double, 4096> alloc;
-        assert_binary_heap<double>(3, alloc);
+        assert_binary_heap_min_max<double, type_linear_allocator<double, 4096>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_linear_trivial)
     {
-        type_linear_allocator<trivial_t, 4096> alloc;
-        assert_binary_heap<trivial_t>(3, alloc);
+        assert_binary_heap_min_max<trivial_t, type_linear_allocator<trivial_t, 4096>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_linear_packed)
     {
-        type_linear_allocator<packed_t, 4096> alloc;
-        assert_binary_heap<packed_t>(3, alloc);
+        assert_binary_heap_min_max<packed_t, type_linear_allocator<packed_t, 4096>>();
     }
 
     KTL_ADD_TEST(test_binary_heap_linear_complex)
     {
-        type_linear_allocator<complex_t, 4096> alloc;
-        assert_binary_heap<complex_t>(3, alloc);
+        assert_binary_heap_min_max<complex_t, type_linear_allocator<complex_t, 4096>>();
     }
 #pragma endregion
 
@@ -161,29 +149,25 @@ namespace ktl::test::binary_heap
     KTL_ADD_TEST(test_binary_heap_stack_double)
     {
         stack<4096> block;
-        type_stack_allocator<double, 4096> alloc(block);
-        assert_binary_heap<double>(3, alloc);
+        assert_binary_heap_min_max<double, type_stack_allocator<double, 4096>>(block);
     }
 
     KTL_ADD_TEST(test_binary_heap_stack_trivial)
     {
         stack<4096> block;
-        type_stack_allocator<trivial_t, 4096> alloc(block);
-        assert_binary_heap<trivial_t>(3, alloc);
+        assert_binary_heap_min_max<trivial_t, type_stack_allocator<trivial_t, 4096>>(block);
     }
 
     KTL_ADD_TEST(test_binary_heap_stack_packed)
     {
         stack<4096> block;
-        type_stack_allocator<packed_t, 4096> alloc(block);
-        assert_binary_heap<packed_t>(3, alloc);
+        assert_binary_heap_min_max<packed_t, type_stack_allocator<packed_t, 4096>>(block);
     }
 
     KTL_ADD_TEST(test_binary_heap_stack_complex)
     {
         stack<4096> block;
-        type_stack_allocator<complex_t, 4096> alloc(block);
-        assert_binary_heap<complex_t>(3, alloc);
+        assert_binary_heap_min_max<complex_t, type_stack_allocator<complex_t, 4096>>(block);
     }
 #pragma endregion
 }

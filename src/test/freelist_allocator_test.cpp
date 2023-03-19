@@ -17,14 +17,14 @@ namespace ktl::test::freelist_allocator
     KTL_ADD_TEST(test_freelist_stack_allocator_unordered_double)
     {
         stack<4096> block;
-        type_freelist_allocator<double, 0, 8, stack_allocator<4096>> alloc({ block });
+        type_freelist_allocator<double, 0, 8, stack_allocator<4096>> alloc(block);
         assert_unordered_values<double>(alloc);
     }
 
     KTL_ADD_TEST(test_freelist_stack_allocator_unordered_packed)
     {
         stack<4096> block;
-        type_freelist_allocator<packed_t, 16, 32, stack_allocator<4096>> alloc({ block });
+        type_freelist_allocator<packed_t, 16, 32, stack_allocator<4096>> alloc(block);
         assert_unordered_values<packed_t>(alloc);
     }
 
