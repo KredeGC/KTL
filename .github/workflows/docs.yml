@@ -4,12 +4,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  Docs:
+  Build:
     runs-on: ubuntu-latest
     permissions:
       actions: read
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -20,14 +19,29 @@ jobs:
         path: doxygen-awesome-css
     - name: Install doxygen
       run: sudo apt-get update && sudo apt-get install doxygen graphviz -y
-    - name: Generate Doxygen Documentation
+    - name: Generate Doxygen documentation
       run: doxygen Doxyfile
     - name: Copy LICENSE
       run: cp doxygen-awesome-css/LICENSE docs/html/LICENSE
     - name: Create .nojekyll
       run: touch docs/html/.nojekyll
-    - name: Deploy Documentation to branch
-      uses: JamesIves/github-pages-deploy-action@v4
+    - name: Upload documentation
+      uses: actions/upload-pages-artifact@v1
       with:
-        branch: docs
-        folder: docs/html
+        path: docs
+  Deploy:
+    needs: Build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      actions: read
+      contents: read
+      pages: write
+      id-token: write
+    name: Deploy
+    steps:
+    - name: Deploy documentation
+      id: deployment
+      uses: actions/deploy-pages@v1
