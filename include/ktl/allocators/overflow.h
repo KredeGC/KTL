@@ -180,7 +180,7 @@ namespace ktl
 		*/
 		Stream& get_stream()
 		{
-			return m_Stream
+			return m_Stream;
 		}
 
 		/**
@@ -189,7 +189,7 @@ namespace ktl
 		*/
 		const Stream& get_stream() const
 		{
-			return m_Stream
+			return m_Stream;
 		}
 
 	private:
