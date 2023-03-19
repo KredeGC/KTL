@@ -25,6 +25,11 @@ namespace ktl
 
 		linear_allocator(const linear_allocator&) noexcept = delete;
 
+		/**
+		 * @brief Move constructor
+		 * @note Moving is only allowed if the original allocator has no allocations
+		 * @param other The original allocator
+		*/
 		linear_allocator(linear_allocator&& other) noexcept :
 			m_Data{},
 			m_Free(m_Data),
@@ -36,6 +41,11 @@ namespace ktl
 
 		linear_allocator& operator=(const linear_allocator&) noexcept = delete;
 
+		/**
+		 * @brief Move assignment operator
+		 * @note Moving is only allowed if the original allocator has no allocations
+		 * @param rhs The original allocator
+		*/
 		linear_allocator& operator=(linear_allocator&& rhs) noexcept
 		{
 			m_Free = m_Data;
@@ -57,9 +67,14 @@ namespace ktl
 		}
 
 #pragma region Allocation
+		/**
+		 * @brief Attempts to allocate a chunk of memory defined by @p n
+		 * @param n The amount of bytes to allocate memory for
+		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
+		*/
 		void* allocate(size_t n)
 		{
-			size_t totalSize = n + align_to_architecture(n);
+			size_t totalSize = n + detail::align_to_architecture(n);
 
 			if ((size_t(m_Free - m_Data) + totalSize) > Size)
 				return nullptr;
@@ -72,11 +87,17 @@ namespace ktl
 			return current;
 		}
 
+		/**
+		 * @brief Attempts to deallocate the memory at location @p p
+		 * @note The memory is only completely deallocated if it was the last allocation made or all memory has been deallocated
+		 * @param p The location in memory to deallocate
+		 * @param n The size that was initially allocated
+		*/
 		void deallocate(void* p, size_t n) noexcept
 		{
 			KTL_ASSERT(p != nullptr);
 
-			size_t totalSize = n + align_to_architecture(n);
+			size_t totalSize = n + detail::align_to_architecture(n);
 
 			if (m_Free - totalSize == p)
 				m_Free -= totalSize;
@@ -90,11 +111,20 @@ namespace ktl
 #pragma endregion
 
 #pragma region Utility
+		/**
+		 * @brief Returns the maximum size that an allocation can be
+		 * @return The maximum size an allocation may be
+		*/
 		size_t max_size() const noexcept
 		{
 			return Size;
 		}
 
+		/**
+		 * @brief Returns whether or not the allocator owns the given location in memory
+		 * @param p The location of the object in memory
+		 * @return Whether the allocator owns @p p
+		*/
 		bool owns(void* p) const
 		{
 			return p >= m_Data && p < m_Data + Size;
@@ -102,7 +132,7 @@ namespace ktl
 #pragma endregion
 
 	private:
-		alignas(ALIGNMENT) char m_Data[Size];
+		alignas(detail::ALIGNMENT) char m_Data[Size];
 		char* m_Free;
 		size_t m_ObjectCount;
 	};

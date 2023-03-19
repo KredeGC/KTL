@@ -95,6 +95,13 @@ namespace ktl
 		}
 
 #pragma region Allocation
+		/**
+		 * @brief Attempts to allocate a chunk of memory defined by @p n.
+		 * Will use previous allocations that were meant to be deallocated.
+		 * @note If @p n is not within Min and Max, this function will return nullptr
+		 * @param n The amount of bytes to allocate memory for
+		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
+		*/
 		void* allocate(size_type n)
 		{
 			if (n > Min && n <= Max)
@@ -112,6 +119,12 @@ namespace ktl
 			return nullptr;
 		}
 
+		/**
+		 * @brief Attempts to deallocate the memory at location @p p
+		 * @note Will not deallocate the memory, but instead tie it to a linked list for later reuse
+		 * @param p The location in memory to deallocate
+		 * @param n The size that was initially allocated
+		*/
 		void deallocate(void* p, size_type n)
 		{
 			KTL_ASSERT(p != nullptr);
@@ -126,6 +139,13 @@ namespace ktl
 #pragma endregion
 
 #pragma region Construction
+		/**
+		 * @brief Constructs an object of T with the given @p ...args at the given location
+		 * @note Only defined if the underlying allocator defines it
+		 * @tparam ...Args The types of the arguments
+		 * @param p The location of the object in memory
+		 * @param ...args A range of arguments to use to construct the object
+		*/
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
@@ -133,6 +153,11 @@ namespace ktl
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
+		/**
+		 * @brief Destructs an object of T at the given location
+		 * @note Only defined if the underlying allocator defines it
+		 * @param p The location of the object in memory
+		*/
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
@@ -142,6 +167,11 @@ namespace ktl
 #pragma endregion
 
 #pragma region Utility
+		/**
+		 * @brief Returns the maximum size that an allocation can be
+		 * @note Only defined if the underlying allocator defines it
+		 * @return The maximum size an allocation may be
+		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const noexcept
@@ -149,6 +179,12 @@ namespace ktl
 			return m_Alloc.max_size();
 		}
 
+		/**
+		 * @brief Returns whether or not the allocator owns the given location in memory
+		 * @note Only defined if the underlying allocator defines it
+		 * @param p The location of the object in memory
+		 * @return Whether the allocator owns @p p
+		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
@@ -157,11 +193,19 @@ namespace ktl
 		}
 #pragma endregion
 
+		/**
+		 * @brief Returns a reference to the underlying allocator
+		 * @return The allocator
+		*/
 		Alloc& get_allocator()
 		{
 			return m_Alloc;
 		}
 
+		/**
+		 * @brief Returns a const reference to the underlying allocator
+		 * @return The allocator
+		*/
 		const Alloc& get_allocator() const
 		{
 			return m_Alloc;

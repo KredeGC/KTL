@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace ktl
+namespace ktl::detail
 {
     constexpr size_t ALIGNMENT = 8;
     constexpr size_t ALIGNMENT_MASK = ALIGNMENT - 1;
