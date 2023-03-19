@@ -35,6 +35,10 @@ namespace ktl
 			typedef type_allocator<U, Alloc> other;
 		};
 
+		/**
+		 * @brief Default constructor
+		 * @note Only defined if the underlying allocator defines it
+		*/
 		type_allocator() noexcept = default;
 
 		/**
@@ -110,9 +114,9 @@ namespace ktl
 
 #pragma region Utility
 		/**
-		 * @brief Returns the maximum size that an allocation can be
+		 * @brief Returns the maximum size that an allocation of objects can be
 		 * @note Only defined if the underlying allocator defines it
-		 * @return The maximum size an allocation may be
+		 * @return The maximum size an allocation may be. Not in bytes, but number of T
 		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type

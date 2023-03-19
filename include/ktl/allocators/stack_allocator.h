@@ -15,7 +15,7 @@ namespace ktl
 	template<size_t Size>
 	struct stack
 	{
-		alignas(ALIGNMENT) char Data[Size];
+		alignas(detail::ALIGNMENT) char Data[Size];
 		char* Free;
 		size_t ObjectCount;
 
@@ -62,7 +62,7 @@ namespace ktl
 #pragma region Allocation
 		void* allocate(size_t n)
 		{
-			size_t totalSize = n + align_to_architecture(n);
+			size_t totalSize = n + detail::align_to_architecture(n);
 
 			if ((size_t(m_Block->Free - m_Block->Data) + totalSize) > Size)
 				return nullptr;
@@ -77,7 +77,7 @@ namespace ktl
 
 		void deallocate(void* p, size_t n) noexcept
 		{
-			size_t totalSize = n + align_to_architecture(n);
+			size_t totalSize = n + detail::align_to_architecture(n);
 
 			if (m_Block->Free - totalSize == p)
 				m_Block->Free -= totalSize;

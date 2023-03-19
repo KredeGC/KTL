@@ -38,7 +38,7 @@ namespace ktl
 #pragma region Allocation
 		void* allocate(size_t n)
 		{
-			return detail::aligned_malloc(n, ALIGNMENT);
+			return detail::aligned_malloc(n, detail::ALIGNMENT);
 		}
 
 		void deallocate(void* p, size_t n) noexcept

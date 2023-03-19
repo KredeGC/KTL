@@ -33,7 +33,7 @@ namespace ktl
 		typedef typename detail::get_size_type_t<Alloc> size_type;
 
 		shared() noexcept :
-			m_Block(detail::aligned_new<block>(ALIGNMENT)) {}
+			m_Block(detail::aligned_new<block>(detail::ALIGNMENT)) {}
 
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
@@ -42,7 +42,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		explicit shared(Args&&... alloc) noexcept :
-			m_Block(detail::aligned_new<block>(ALIGNMENT, std::forward<Args>(alloc)...)) {}
+			m_Block(detail::aligned_new<block>(detail::ALIGNMENT, std::forward<Args>(alloc)...)) {}
 
 		shared(const shared& other) noexcept :
 			m_Block(other.m_Block)
