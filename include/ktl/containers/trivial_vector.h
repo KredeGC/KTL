@@ -403,13 +403,13 @@ namespace ktl
         
 		/**
 		 * @brief Erases all elements in a range.
-		 * @param first An iterator pointing to the element first.
+		 * @param first An iterator pointing to the first element.
 		 * @param last An iterator pointing to the location after the last element.
 		 * @return An iterator pointing to the element immidiately after the erased ones.
 		*/
         iterator erase(const_iterator first, const_iterator last) noexcept
         {
-            KTL_ASSERT(first >= last);
+            KTL_ASSERT(first <= last);
             KTL_ASSERT(first >= m_Begin && last <= m_End);
             
             std::memmove(const_cast<iterator>(first), last, (m_End - last) * sizeof(T));
@@ -462,5 +462,7 @@ namespace ktl
 		T* m_Begin;
 		T* m_End;
 		T* m_EndMax;
+		
+		//std::conditional_t<sizeof(T) < 32, uint8_t[32], uint8_t*> m_Data;
 	};
 }
