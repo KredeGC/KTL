@@ -32,11 +32,13 @@ namespace ktl
 		explicit packed_ptr(PtrT p, Int value) noexcept :
 			m_Value((reinterpret_cast<uintptr_t>(p) & PTR_MASK) | (static_cast<uintptr_t>(value) & INT_MASK))
 		{
+			static_assert(std::is_unsigned_v<Int>, "Packed integer must be unsigned");
+
 			// Pointer must be correctly aligned
 			KTL_ASSERT((reinterpret_cast<size_t>(p) & (Alignment - 1)) == 0);
 		}
 
-		operator bool() const noexcept { return m_Value; }
+		explicit operator bool() const noexcept { return m_Value; }
 
 		PtrT get_ptr() const noexcept { return reinterpret_cast<PtrT>(m_Value & PTR_MASK); }
 
