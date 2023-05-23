@@ -2,6 +2,7 @@
 
 #include "../utility/aligned_malloc.h"
 #include "../utility/alignment.h"
+#include "../utility/empty_base.h"
 #include "../utility/meta.h"
 #include "shared_fwd.h"
 
@@ -18,7 +19,7 @@ namespace ktl
 
 		struct block
 		{
-			Alloc Allocator;
+			KTL_EMPTY_BASE Alloc Allocator;
 			detail::get_size_type_t<Alloc> UseCount;
 
 			template<typename... Args,

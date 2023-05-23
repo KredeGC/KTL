@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utility/assert.h"
+#include "../utility/empty_base.h"
 #include "../utility/meta.h"
 #include "freelist_fwd.h"
 #include "type_allocator.h"
@@ -224,7 +225,7 @@ namespace ktl
 		}
 
 	private:
-		Alloc m_Alloc;
+		KTL_EMPTY_BASE Alloc m_Alloc;
 		link* m_Free;
 	};
 }

@@ -3,6 +3,7 @@
 #include "../utility/aligned_malloc.h"
 #include "../utility/alignment.h"
 #include "../utility/assert.h"
+#include "../utility/empty_base.h"
 #include "../utility/meta.h"
 #include "cascading_fwd.h"
 #include "type_allocator.h"
@@ -35,7 +36,7 @@ namespace ktl
 	private:
 		struct node
 		{
-			Alloc Allocator;
+			KTL_EMPTY_BASE Alloc Allocator;
 			size_type Allocations = 0;
 			node* Next = nullptr;
 		};

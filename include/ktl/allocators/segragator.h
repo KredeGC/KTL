@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/empty_base.h"
 #include "../utility/meta.h"
 #include "segragator_fwd.h"
 #include "type_allocator.h"
@@ -182,7 +183,7 @@ namespace ktl
 #pragma endregion
 
 	private:
-		P m_Primary;
-		F m_Fallback;
+		KTL_EMPTY_BASE P m_Primary;
+		KTL_EMPTY_BASE F m_Fallback;
 	};
 }

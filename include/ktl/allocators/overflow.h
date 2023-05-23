@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utility/assert.h"
+#include "../utility/empty_base.h"
 #include "../utility/meta.h"
 #include "overflow_fwd.h"
 #include "type_allocator.h"
@@ -261,7 +262,7 @@ namespace ktl
 
 	private:
 		Stream& m_Stream;
-		Alloc m_Alloc;
+		KTL_EMPTY_BASE Alloc m_Alloc;
 		int64_t m_Allocs;
 		int64_t m_Constructs;
 	};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utility/assert.h"
+#include "../utility/empty_base.h"
 #include "trivial_array_fwd.h"
 
 #include <cstring>
@@ -302,7 +303,7 @@ namespace ktl
 		}
 
 	private:
-		Alloc m_Alloc;
+		KTL_EMPTY_BASE Alloc m_Alloc;
 		T* m_Begin;
 		T* m_End;
 	};
