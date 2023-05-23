@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../utility/assert.h"
+#include "../utility/empty_base.h"
 #include "binary_heap_fwd.h"
 
 #include <cstddef>
@@ -458,8 +459,8 @@ namespace ktl
         }
 
     private:
-        Alloc m_Alloc;
-        Comp m_Comp;
+        KTL_EMPTY_BASE Alloc m_Alloc;
+        KTL_EMPTY_BASE Comp m_Comp;
 
         size_t m_Size;
         size_t m_Capacity;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utility/empty_base.h"
 #include "../utility/meta.h"
 
 #include "type_allocator_fwd.h"
@@ -158,7 +159,7 @@ namespace ktl
 		}
 
 	private:
-		Alloc m_Alloc;
+		KTL_EMPTY_BASE Alloc m_Alloc;
 	};
 
 	template<typename T, typename U, typename Alloc>
