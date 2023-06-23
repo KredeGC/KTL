@@ -4,7 +4,7 @@
 
 namespace ktl::detail
 {
-	constexpr inline uintmax_t log2(uintmax_t n)
+	constexpr inline uintmax_t log2(uintmax_t n) noexcept
 	{
 		uintmax_t r = 0;
 

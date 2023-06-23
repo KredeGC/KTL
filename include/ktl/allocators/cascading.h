@@ -45,10 +45,11 @@ namespace ktl
 		cascading() noexcept :
 			m_Node(nullptr) {}
 
-		cascading(const cascading&) noexcept = delete;
+		cascading(const cascading&) = delete;
 
-		cascading(cascading&& other) noexcept :
-			m_Node(other.m_Node)
+		cascading(cascading&& other)
+			noexcept(noexcept(node(std::declval<node&&>()))) :
+			m_Node(std::move(other.m_Node))
 		{
 			other.m_Node = nullptr;
 		}
@@ -58,25 +59,28 @@ namespace ktl
 			release();
 		}
 
-		cascading& operator=(const cascading&) noexcept = delete;
+		cascading& operator=(const cascading&) = delete;
 
-		cascading& operator=(cascading&& rhs) noexcept
+		cascading& operator=(cascading&& rhs)
+			noexcept(noexcept(m_Node = std::move(rhs.m_Node)))
 		{
 			release();
 
-			m_Node = rhs.m_Node;
+			m_Node = std::move(rhs.m_Node);
 
 			rhs.m_Node = nullptr;
 
 			return *this;
 		}
 
-		bool operator==(const cascading& rhs) const noexcept
+		bool operator==(const cascading& rhs) const
+			noexcept(noexcept(m_Node == rhs.m_Node))
 		{
 			return m_Node == rhs.m_Node;
 		}
 
-		bool operator!=(const cascading& rhs) const noexcept
+		bool operator!=(const cascading& rhs) const
+			noexcept(noexcept(m_Node != rhs.m_Node))
 		{
 			return m_Node != rhs.m_Node;
 		}
@@ -88,13 +92,16 @@ namespace ktl
 		 * @param n The amount of bytes to allocate memory for
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
-		void* allocate(size_type n)
+		void* allocate(size_type n) noexcept(
+			noexcept(detail::aligned_new<node>(detail::ALIGNMENT)) &&
+			noexcept(m_Node->Allocator.allocate(n)) &&
+			(!detail::has_max_size_v<Alloc> || noexcept(m_Node->Allocator.max_size())))
 		{
 			// Add an initial allocator
 			if (!m_Node)
 				m_Node = detail::aligned_new<node>(detail::ALIGNMENT);
 
-			if constexpr (detail::has_max_size<Alloc>::value)
+			if constexpr (detail::has_max_size_v<Alloc>)
 			{
 				if (n > m_Node->Allocator.max_size())
 					return nullptr;
@@ -125,7 +132,8 @@ namespace ktl
 		 * @param p The location in memory to deallocate
 		 * @param n The size that was initially allocated
 		*/
-		void deallocate(void* p, size_type n) noexcept
+		void deallocate(void* p, size_type n)
+			noexcept(noexcept(detail::aligned_delete(m_Node)) && noexcept(m_Node->Allocator.owns(p)) && noexcept(m_Node->Allocator.deallocate(p, n)))
 		{
 			KTL_ASSERT(p != nullptr);
 
@@ -166,6 +174,7 @@ namespace ktl
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
+			noexcept(noexcept(m_Node->Allocator.owns(p)) && detail::has_noexcept_construct_v<Alloc, T*, Args...>)
 		{
             node* next = m_Node;
 			while (next)
@@ -179,6 +188,9 @@ namespace ktl
 				next = next->Next;
 			}
 
+			// If we ever get to this point, something has gone wrong with the internal allocators
+			KTL_ASSERT(false);
+
 			::new(p) T(std::forward<Args>(args)...);
 		}
 
@@ -190,6 +202,7 @@ namespace ktl
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
+			noexcept(noexcept(m_Node->Allocator.owns(p)) && detail::has_noexcept_destroy_v<Alloc, T*>)
 		{
 			node* next = m_Node;
 			while (next)
@@ -203,6 +216,9 @@ namespace ktl
 				next = next->Next;
 			}
 
+			// If we ever get to this point, something has gone wrong with the internal allocators
+			KTL_ASSERT(false);
+
 			p->~T();
 		}
 #pragma endregion
@@ -215,7 +231,8 @@ namespace ktl
 		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
-		max_size() const noexcept
+		max_size() const
+			noexcept(noexcept(m_Node->Allocator.max_size()))
 		{
 			return m_Node->Allocator.max_size();
 		}
@@ -226,6 +243,7 @@ namespace ktl
 		 * @return Whether the allocator owns @p p
 		*/
 		bool owns(void* p) const
+			noexcept(noexcept(m_Node->Allocator.owns(p)))
 		{
 			node* next = m_Node;
 			while (next)
@@ -241,7 +259,8 @@ namespace ktl
 #pragma endregion
 
 	private:
-		void release() noexcept
+		void release()
+			noexcept(noexcept(detail::aligned_delete(m_Node)))
 		{
 			node* next = m_Node;
 			while (next)

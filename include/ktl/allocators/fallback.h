@@ -29,7 +29,8 @@ namespace ktl
 	public:
 		typedef typename detail::get_size_type_t<P> size_type;
 
-		fallback() noexcept :
+		fallback()
+			noexcept(std::is_nothrow_default_constructible_v<P> && std::is_nothrow_default_constructible_v<F>) :
 			m_Primary(),
 			m_Fallback() {}
 
@@ -38,7 +39,8 @@ namespace ktl
 		*/
 		template<typename Primary,
 			typename = std::enable_if_t<detail::can_construct_v<P, Primary>>>
-		explicit fallback(Primary&& primary) noexcept :
+		explicit fallback(Primary&& primary)
+			noexcept(std::is_nothrow_constructible_v<P, Primary> && std::is_nothrow_default_constructible_v<F>) :
 			m_Primary(std::forward<Primary>(primary)),
 			m_Fallback() {}
 
@@ -49,7 +51,8 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<P, Primary> &&
 			detail::can_construct_v<F, Fallback>>>
-		explicit fallback(Primary&& primary, Fallback&& fallback) noexcept :
+		explicit fallback(Primary&& primary, Fallback&& fallback)
+			noexcept(std::is_nothrow_constructible_v<P, Primary> && std::is_nothrow_constructible_v<F, Fallback>) :
 			m_Primary(std::forward<Primary>(primary)),
 			m_Fallback(std::forward<Fallback>(fallback)) {}
 
@@ -59,7 +62,8 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<P, Args...>>>
-		explicit fallback(std::tuple<Args...>&& primary) noexcept :
+		explicit fallback(std::tuple<Args...>&& primary)
+			noexcept(std::is_nothrow_constructible_v<P, Args...> && std::is_nothrow_default_constructible_v<F>) :
 			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<Args...>>(primary))),
 			m_Fallback() {}
 
@@ -70,30 +74,34 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<P, ArgsP...>&&
 			detail::can_construct_v<F, ArgsF...>>>
-		explicit fallback(std::tuple<ArgsP...>&& primary, std::tuple<ArgsF...>&& fallback) noexcept :
+		explicit fallback(std::tuple<ArgsP...>&& primary, std::tuple<ArgsF...>&& fallback)
+			noexcept(std::is_nothrow_constructible_v<P, ArgsP...> && std::is_nothrow_constructible_v<F, ArgsF...>) :
 			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<ArgsP...>>(primary))),
 			m_Fallback(std::make_from_tuple<F>(std::forward<std::tuple<ArgsF...>>(fallback))) {}
 
-		fallback(const fallback&) noexcept = default;
+		fallback(const fallback&) = default;
 
-		fallback(fallback&&) noexcept = default;
+		fallback(fallback&&) = default;
 
-		fallback& operator=(const fallback&) noexcept = default;
+		fallback& operator=(const fallback&) = default;
 
-		fallback& operator=(fallback&&) noexcept = default;
+		fallback& operator=(fallback&&) = default;
 
-		bool operator==(const fallback& rhs) const noexcept
+		bool operator==(const fallback& rhs) const
+			noexcept(noexcept(m_Primary == rhs.m_Primary) && noexcept(m_Fallback == rhs.m_Fallback))
 		{
 			return m_Primary == rhs.m_Primary && m_Fallback == rhs.m_Fallback;
 		}
 
-		bool operator!=(const fallback& rhs) const noexcept
+		bool operator!=(const fallback& rhs) const
+			noexcept(noexcept(m_Primary != rhs.m_Primary) && noexcept(m_Fallback != rhs.m_Fallback))
 		{
 			return m_Primary != rhs.m_Primary || m_Fallback != rhs.m_Fallback;
 		}
 
 #pragma region Allocation
 		void* allocate(size_t n)
+			noexcept(noexcept(m_Primary.allocate(n)) && noexcept(m_Fallback.allocate(n)))
 		{
 			void* ptr = m_Primary.allocate(n);
 			if (!ptr)
@@ -102,6 +110,7 @@ namespace ktl
 		}
 
 		void deallocate(void* p, size_t n)
+			noexcept(noexcept(m_Primary.deallocate(p, n)) && noexcept(m_Fallback.deallocate(p, n)))
 		{
 			if (m_Primary.owns(p))
 			{
@@ -116,7 +125,10 @@ namespace ktl
 #pragma region Construction
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<P, T*, Args...> || detail::has_construct_v<F, T*, Args...>, void>::type
-		construct(T* p, Args&&... args)
+		construct(T* p, Args&&... args) noexcept(
+			(!detail::has_construct_v<P, T*, Args...> || detail::has_noexcept_construct_v<P, T*, Args...>) &&
+			(!detail::has_construct_v<F, T*, Args...> || detail::has_noexcept_construct_v<F, T*, Args...>) &&
+			std::is_nothrow_constructible_v<T, Args...>)
 		{
 			bool owned = m_Primary.owns(p);
 
@@ -143,7 +155,10 @@ namespace ktl
 
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<P, T*> || detail::has_destroy_v<F, T*>, void>::type
-		destroy(T* p)
+		destroy(T* p) noexcept(
+			(!detail::has_destroy_v<P, T*> || detail::has_noexcept_destroy_v<P, T*>) &&
+			(!detail::has_destroy_v<F, T*> || detail::has_noexcept_destroy_v<F, T*>) &&
+			std::is_nothrow_destructible_v<T>)
 		{
 			bool owned = m_Primary.owns(p);
 
@@ -172,7 +187,8 @@ namespace ktl
 #pragma region Utility
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<detail::has_max_size_v<Primary> && detail::has_max_size_v<Fallback>, size_type>::type
-		max_size() const noexcept
+		max_size() const
+			noexcept(noexcept(m_Primary.max_size()) && noexcept(m_Fallback.max_size()))
 		{
 			return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 		}
@@ -180,6 +196,7 @@ namespace ktl
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<detail::has_owns_v<Primary> && detail::has_owns_v<Fallback>, bool>::type
 		owns(void* p) const
+			noexcept(noexcept(m_Primary.owns(p)) && noexcept(m_Fallback.owns(p)))
 		{
 			if (m_Primary.owns(p))
 				return true;

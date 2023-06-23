@@ -32,7 +32,8 @@ namespace ktl
 		 * @brief Construct the allocator with a reference to a stream object
 		 * @param stream The stream to use when leaks or corruption happens
 		*/
-		explicit overflow(Stream& stream) noexcept :
+		explicit overflow(Stream& stream)
+			noexcept(noexcept(Alloc())) :
 			m_Stream(stream),
 			m_Alloc(),
 			m_Allocs(0),
@@ -44,15 +45,16 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		explicit overflow(Stream& stream, Args&&... args) noexcept :
+		explicit overflow(Stream& stream, Args&&... args)
+			noexcept(noexcept(Alloc(std::declval<Args>()...))) :
 			m_Stream(stream),
 			m_Alloc(std::forward<Args>(args)...),
 			m_Allocs(0),
 			m_Constructs(0) {}
 
-		overflow(const overflow&) noexcept = default;
+		overflow(const overflow&) = default;
 
-		overflow(overflow&&) noexcept = default;
+		overflow(overflow&&) = default;
 
 		~overflow()
 		{
@@ -75,16 +77,18 @@ namespace ktl
 			}
 		}
 
-		overflow& operator=(const overflow&) noexcept = default;
+		overflow& operator=(const overflow&) = default;
 
-		overflow& operator=(overflow&&) noexcept = default;
+		overflow& operator=(overflow&&) = default;
 
-		bool operator==(const overflow& rhs) const noexcept
+		bool operator==(const overflow& rhs) const
+			noexcept(noexcept(m_Alloc == rhs.m_Alloc))
 		{
 			return m_Alloc == rhs.m_Alloc;
 		}
 
-		bool operator!=(const overflow& rhs) const noexcept
+		bool operator!=(const overflow& rhs) const
+			noexcept(noexcept(m_Alloc != rhs.m_Alloc))
 		{
 			return m_Alloc != rhs.m_Alloc;
 		}
@@ -98,6 +102,7 @@ namespace ktl
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
 		void* allocate(size_type n)
+			noexcept(noexcept(m_Alloc.allocate(n)))
 		{
 			m_Allocs += n;
 
@@ -119,6 +124,7 @@ namespace ktl
 		 * @param n The size that was initially allocated
 		*/
 		void deallocate(void* p, size_type n)
+			noexcept(noexcept(m_Alloc.deallocate(p, n)))
 		{
 			KTL_ASSERT(p != nullptr);
 
@@ -170,7 +176,9 @@ namespace ktl
 		 * @param ...args A range of arguments to use to construct the object
 		*/
 		template<typename T, typename... Args>
-		void construct(T* p, Args&&... args)
+		void construct(T* p, Args&&... args) noexcept(
+			(detail::has_construct_v<Alloc, T*, Args...> && detail::has_noexcept_construct_v<Alloc, T*, Args...>) ||
+			std::is_nothrow_constructible_v<T, Args...>)
 		{
 			m_Constructs++;
 
@@ -186,7 +194,9 @@ namespace ktl
 		 * @param p The location of the object in memory
 		*/
 		template<typename T>
-		void destroy(T* p)
+		void destroy(T* p) noexcept(
+			(detail::has_destroy_v<Alloc, T*>&& detail::has_noexcept_destroy_v<Alloc, T*>) ||
+			std::is_nothrow_destructible_v<T>)
 		{
 			m_Constructs--;
 
@@ -205,7 +215,8 @@ namespace ktl
 		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
-		max_size() const noexcept
+		max_size() const
+			noexcept(noexcept(m_Alloc.max_size()))
 		{
 			return m_Alloc.max_size();
 		}
@@ -219,6 +230,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
+			noexcept(noexcept(m_Alloc.owns(p)))
 		{
 			return m_Alloc.owns(p);
 		}
@@ -228,7 +240,7 @@ namespace ktl
 		 * @brief Returns a reference to the underlying allocator
 		 * @return The allocator
 		*/
-		Alloc& get_allocator()
+		Alloc& get_allocator() noexcept
 		{
 			return m_Alloc;
 		}
@@ -237,7 +249,7 @@ namespace ktl
 		 * @brief Returns a const reference to the underlying allocator
 		 * @return The allocator
 		*/
-		const Alloc& get_allocator() const
+		const Alloc& get_allocator() const noexcept
 		{
 			return m_Alloc;
 		}
@@ -246,7 +258,7 @@ namespace ktl
 		 * @brief Return a reference to the stream that will be used when leaks or corruption occur
 		 * @return The stream
 		*/
-		Stream& get_stream()
+		Stream& get_stream() noexcept
 		{
 			return m_Stream;
 		}
@@ -255,7 +267,7 @@ namespace ktl
 		 * @brief Return a const reference to the stream that will be used when leaks or corruption occur
 		 * @return The stream
 		*/
-		const Stream& get_stream() const
+		const Stream& get_stream() const noexcept
 		{
 			return m_Stream;
 		}

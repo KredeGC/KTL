@@ -50,6 +50,17 @@ namespace ktl::detail
 	template<typename Alloc, typename... Args>
 	constexpr bool has_construct_v = has_construct<void, Alloc, Args...>::value;
 
+	// has construct(T*, Args&&...) noexcept
+	template<typename Void, typename... Types>
+	struct has_noexcept_construct : std::false_type {};
+
+	template<typename Alloc, typename... Args>
+	struct has_noexcept_construct<std::enable_if_t<has_construct_v<Alloc, Args...>>, Alloc, Args...>
+		: std::bool_constant<noexcept(std::declval<Alloc&>().construct(std::declval<Args>()...))> {};
+
+	template<typename Alloc, typename... Args>
+	constexpr bool has_noexcept_construct_v = has_noexcept_construct<void, Alloc, Args...>::value;
+
 	// has destroy(T*)
 	template<typename Alloc, typename Ptr, typename = void>
 	struct has_destroy : std::false_type {};
@@ -59,6 +70,17 @@ namespace ktl::detail
 
 	template<typename Alloc, typename Ptr>
 	constexpr bool has_destroy_v = has_destroy<Alloc, Ptr, void>::value;
+
+	// has destroy(T*) noexcept
+	template<typename Alloc, typename Ptr, typename = void>
+	struct has_noexcept_destroy : std::false_type {};
+
+	template<typename Alloc, typename Ptr>
+	struct has_noexcept_destroy<Alloc, Ptr, std::enable_if_t<has_destroy_v<Alloc, Ptr>>>
+		: std::bool_constant<noexcept(std::declval<Alloc&>().destroy(std::declval<Ptr>()))> {};
+
+	template<typename Alloc, typename Ptr>
+	constexpr bool has_noexcept_destroy_v = has_noexcept_destroy<Alloc, Ptr, void>::value;
 
 	// has owns(void*)
 	template<typename Alloc, typename = void>

@@ -60,7 +60,7 @@ namespace ktl
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n)
+		void* allocate(size_t n) noexcept
 		{
 			size_t totalSize = n + detail::align_to_architecture(n);
 
@@ -96,7 +96,7 @@ namespace ktl
 			return Size;
 		}
 
-		bool owns(void* p) const
+		bool owns(void* p) const noexcept
 		{
 			return p >= m_Block->Data && p < m_Block->Data + Size;
 		}

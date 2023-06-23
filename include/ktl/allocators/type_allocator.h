@@ -40,7 +40,9 @@ namespace ktl
 		 * @brief Default constructor
 		 * @note Only defined if the underlying allocator defines it
 		*/
-		type_allocator() noexcept = default;
+		type_allocator()
+			noexcept(noexcept(Alloc())) :
+			m_Alloc() {}
 
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
@@ -48,20 +50,27 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		explicit type_allocator(Args&&... alloc) noexcept :
+		explicit type_allocator(Args&&... alloc)
+			noexcept(noexcept(Alloc(std::declval<Args>()...))) :
 			m_Alloc(std::forward<Args>(alloc)...) {}
 
-		type_allocator(const type_allocator&) noexcept = default;
+		type_allocator(const type_allocator&) = default;
 
-		type_allocator(type_allocator&&) noexcept = default;
+		type_allocator(type_allocator&&) = default;
 
 		template<typename U>
-		type_allocator(const type_allocator<U, Alloc>& other) noexcept :
+		type_allocator(const type_allocator<U, Alloc>& other)
+			noexcept(noexcept(Alloc(other.m_Alloc))) :
 			m_Alloc(other.m_Alloc) {}
 
-		type_allocator& operator=(const type_allocator&) noexcept = default;
+		template<typename U>
+		type_allocator(type_allocator<U, Alloc>&& other)
+			noexcept(noexcept(Alloc(std::move(other.m_Alloc)))) :
+			m_Alloc(std::move(other.m_Alloc)) {}
 
-		type_allocator& operator=(type_allocator&&) noexcept = default;
+		type_allocator& operator=(const type_allocator&) = default;
+
+		type_allocator& operator=(type_allocator&&) = default;
 
 #pragma region Allocation
 		/**
@@ -70,6 +79,7 @@ namespace ktl
 		 * @return A location in memory that is at least @p n objects big or nullptr if it could not be allocated
 		*/
 		value_type* allocate(size_t n)
+			noexcept(noexcept(m_Alloc.allocate(n)))
 		{
 			return reinterpret_cast<value_type*>(m_Alloc.allocate(sizeof(value_type) * n));
 		}
@@ -80,6 +90,7 @@ namespace ktl
 		 * @param n The size that was initially allocated
 		*/
 		void deallocate(value_type* p, size_t n)
+			noexcept(noexcept(m_Alloc.deallocate(p, n)))
 		{
 			m_Alloc.deallocate(p, sizeof(value_type) * n);
 		}
@@ -96,6 +107,7 @@ namespace ktl
 		template<typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, value_type*, Args...>, void>::type
 		construct(value_type* p, Args&&... args)
+			noexcept(detail::has_noexcept_construct_v<Alloc, value_type*, Args...>)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
@@ -108,6 +120,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_destroy_v<A, value_type*>, void>::type
 		destroy(value_type* p)
+			noexcept(detail::has_noexcept_destroy_v<Alloc, value_type*>)
 		{
 			m_Alloc.destroy(p);
 		}
@@ -121,7 +134,8 @@ namespace ktl
 		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
-		max_size() const noexcept
+		max_size() const
+			noexcept(noexcept(m_Alloc.max_size()))
 		{
 			return m_Alloc.max_size() / sizeof(T);
 		}
@@ -135,6 +149,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(value_type* p) const
+			noexcept(noexcept(m_Alloc.owns(p)))
 		{
 			return m_Alloc.owns(p);
 		}
@@ -144,7 +159,7 @@ namespace ktl
 		 * @brief Returns a reference to the underlying allocator
 		 * @return The allocator
 		*/
-		Alloc& get_allocator()
+		Alloc& get_allocator() noexcept
 		{
 			return m_Alloc;
 		}
@@ -153,7 +168,7 @@ namespace ktl
 		 * @brief Returns a const reference to the underlying allocator
 		 * @return The allocator
 		*/
-		const Alloc& get_allocator() const
+		const Alloc& get_allocator() const noexcept
 		{
 			return m_Alloc;
 		}
@@ -163,13 +178,15 @@ namespace ktl
 	};
 
 	template<typename T, typename U, typename Alloc>
-	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs) noexcept
+	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
+		noexcept(noexcept(lhs.get_allocator() == rhs.get_allocator()))
 	{
 		return lhs.get_allocator() == rhs.get_allocator();
 	}
 
 	template<typename T, typename U, typename Alloc>
-	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs) noexcept
+	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
+		noexcept(noexcept(lhs.get_allocator() != rhs.get_allocator()))
 	{
 		return lhs.get_allocator() != rhs.get_allocator();
 	}

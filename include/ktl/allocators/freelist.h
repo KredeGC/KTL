@@ -47,11 +47,12 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
-		explicit freelist(Args&&... args) noexcept :
+		explicit freelist(Args&&... args)
+			noexcept(noexcept(Alloc(std::declval<Args>() ...))) :
 			m_Alloc(std::forward<Args>(args)...),
 			m_Free(nullptr) {}
 
-		freelist(const freelist&) noexcept = delete;
+		freelist(const freelist&) = delete;
 
 		freelist(freelist&& other) noexcept :
 			m_Alloc(std::move(other.m_Alloc)),
@@ -68,7 +69,7 @@ namespace ktl
 			release();
         }
 
-		freelist& operator=(const freelist&) noexcept = delete;
+		freelist& operator=(const freelist&) = delete;
 
 		freelist& operator=(freelist&& rhs) noexcept
 		{
@@ -85,12 +86,14 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const freelist& rhs) const noexcept
+		bool operator==(const freelist& rhs) const
+			noexcept(noexcept(m_Alloc == rhs.m_Alloc))
 		{
 			return m_Alloc == rhs.m_Alloc && m_Free == rhs.m_Free;
 		}
 
-		bool operator!=(const freelist& rhs) const noexcept
+		bool operator!=(const freelist& rhs) const
+			noexcept(noexcept(m_Alloc != rhs.m_Alloc))
 		{
 			return m_Alloc != rhs.m_Alloc || m_Free != rhs.m_Free;
 		}
@@ -104,6 +107,7 @@ namespace ktl
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
 		void* allocate(size_type n)
+			noexcept(noexcept(m_Alloc.allocate(Max)))
 		{
 			if (n > Min && n <= Max)
 			{
@@ -126,7 +130,7 @@ namespace ktl
 		 * @param p The location in memory to deallocate
 		 * @param n The size that was initially allocated
 		*/
-		void deallocate(void* p, size_type n)
+		void deallocate(void* p, size_type n) noexcept
 		{
 			KTL_ASSERT(p != nullptr);
 
@@ -150,6 +154,7 @@ namespace ktl
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
+			noexcept(detail::has_noexcept_construct_v<Alloc, T*, Args...>)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
@@ -162,6 +167,7 @@ namespace ktl
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
+			noexcept(detail::has_noexcept_destroy_v<Alloc, T*>)
 		{
 			m_Alloc.destroy(p);
 		}
@@ -175,7 +181,8 @@ namespace ktl
 		*/
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
-		max_size() const noexcept
+		max_size() const
+			noexcept(noexcept(m_Alloc.max_size()))
 		{
 			return m_Alloc.max_size();
 		}
@@ -189,6 +196,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
+			noexcept(noexcept(m_Alloc.owns(p)))
 		{
 			return m_Alloc.owns(p);
 		}
@@ -198,7 +206,7 @@ namespace ktl
 		 * @brief Returns a reference to the underlying allocator
 		 * @return The allocator
 		*/
-		Alloc& get_allocator()
+		Alloc& get_allocator() noexcept
 		{
 			return m_Alloc;
 		}
@@ -207,13 +215,14 @@ namespace ktl
 		 * @brief Returns a const reference to the underlying allocator
 		 * @return The allocator
 		*/
-		const Alloc& get_allocator() const
+		const Alloc& get_allocator() const noexcept
 		{
 			return m_Alloc;
 		}
 
 	private:
-		void release() noexcept
+		void release()
+			noexcept(noexcept(m_Alloc.deallocate(m_Free, Max)))
 		{
 			link* next = m_Free;
 			while (next)

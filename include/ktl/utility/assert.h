@@ -8,7 +8,7 @@
 #include <csignal>
 #define KTL_BREAKPOINT() std::raise(SIGTRAP)
 #else // Non-supported
-#define KTL_BREAKPOINT() throw
+#define KTL_BREAKPOINT()
 #endif
 
 #ifdef KTL_DEBUG_ASSERT

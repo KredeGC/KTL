@@ -72,7 +72,7 @@ namespace ktl
 		 * @param n The amount of bytes to allocate memory for
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
-		void* allocate(size_t n)
+		void* allocate(size_t n) noexcept
 		{
 			size_t totalSize = n + detail::align_to_architecture(n);
 
@@ -125,7 +125,7 @@ namespace ktl
 		 * @param p The location of the object in memory
 		 * @return Whether the allocator owns @p p
 		*/
-		bool owns(void* p) const
+		bool owns(void* p) const noexcept
 		{
 			return p >= m_Data && p < m_Data + Size;
 		}

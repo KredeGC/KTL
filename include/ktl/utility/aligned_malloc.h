@@ -45,7 +45,7 @@
 
 namespace ktl::detail
 {
-    inline void* aligned_malloc(size_t size, size_t alignment)
+    inline void* aligned_malloc(size_t size, size_t alignment) noexcept
     {
 #if KTL_HAS_MALLOC_ALIGNED
         return malloc(size);
@@ -70,7 +70,7 @@ namespace ktl::detail
 #endif
     }
 
-    inline void aligned_free(void* ptr)
+    inline void aligned_free(void* ptr) noexcept
     {
 #if KTL_HAS_MALLOC_ALIGNED
         free(ptr);
@@ -88,6 +88,7 @@ namespace ktl::detail
 
     template<typename T, typename... Args>
     T* aligned_new(size_t alignment, Args&&... args)
+        noexcept(noexcept(T(std::declval<Args>()...)))
     {
         T* p = static_cast<T*>(aligned_malloc(sizeof(T), alignment));
         ::new(p) T(std::forward<Args>(args)...);
@@ -96,6 +97,7 @@ namespace ktl::detail
 
     template<typename T>
     void aligned_delete(T* p)
+        noexcept(noexcept(p->~T()))
     {
         p->~T();
         aligned_free(p);
