@@ -82,13 +82,13 @@ namespace ktl
 		segragator& operator=(segragator&&) = default;
 
 		bool operator==(const segragator& rhs) const
-			noexcept(noexcept(m_Primary == rhs.m_Primary) && noexcept(m_Fallback == rhs.m_Fallback))
+			noexcept(detail::has_nothrow_equal_v<P> && detail::has_nothrow_equal_v<F>)
 		{
 			return m_Primary == rhs.m_Primary && m_Fallback == rhs.m_Fallback;
 		}
 
 		bool operator!=(const segragator& rhs) const
-			noexcept(noexcept(m_Primary != rhs.m_Primary) && noexcept(m_Fallback != rhs.m_Fallback))
+			noexcept(detail::has_nothrow_not_equal_v<P>&& detail::has_nothrow_not_equal_v<F>)
 		{
 			return m_Primary != rhs.m_Primary || m_Fallback != rhs.m_Fallback;
 		}

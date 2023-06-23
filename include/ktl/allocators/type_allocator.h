@@ -177,14 +177,14 @@ namespace ktl
 
 	template<typename T, typename U, typename Alloc>
 	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
-		noexcept(noexcept(lhs.get_allocator() == rhs.get_allocator()))
+		noexcept(detail::has_nothrow_equal_v<Alloc>)
 	{
 		return lhs.get_allocator() == rhs.get_allocator();
 	}
 
 	template<typename T, typename U, typename Alloc>
 	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
-		noexcept(noexcept(lhs.get_allocator() != rhs.get_allocator()))
+		noexcept(detail::has_nothrow_not_equal_v<Alloc>)
 	{
 		return lhs.get_allocator() != rhs.get_allocator();
 	}

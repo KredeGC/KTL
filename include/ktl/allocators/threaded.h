@@ -95,13 +95,13 @@ namespace ktl
 		}
 
 		bool operator==(const threaded& rhs) const
-			noexcept(noexcept(m_Block->Allocator == rhs.m_Block->Allocator))
+			noexcept(detail::has_nothrow_equal_v<Alloc>)
 		{
 			return m_Block == rhs.m_Block && m_Block->Allocator == rhs.m_Block->Allocator;
 		}
 
 		bool operator!=(const threaded& rhs) const
-			noexcept(noexcept(m_Block->Allocator != rhs.m_Block->Allocator))
+			noexcept(detail::has_nothrow_not_equal_v<Alloc>)
 		{
 			return m_Block != rhs.m_Block || m_Block->Allocator != rhs.m_Block->Allocator;
 		}

@@ -80,6 +80,14 @@ namespace ktl::detail
 	template<typename Alloc>
 	constexpr bool has_nothrow_deallocate_v = noexcept(std::declval<Alloc&>().deallocate(std::declval<void*>(), std::declval<size_t>()));
 
+	// has T& == T& noexcept
+	template<typename T>
+	constexpr bool has_nothrow_equal_v = noexcept(std::declval<T&>() == std::declval<T&>());
+
+	// has T& == T& noexcept
+	template<typename T>
+	constexpr bool has_nothrow_not_equal_v = noexcept(std::declval<T&>() == std::declval<T&>());
+
 	// has construct(T*, Args&&...) noexcept
 	template<typename Void, typename... Types>
 	struct has_nothrow_construct : std::false_type {};

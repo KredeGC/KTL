@@ -91,13 +91,13 @@ namespace ktl
 		}
 
 		bool operator==(const freelist& rhs) const
-			noexcept(noexcept(m_Alloc == rhs.m_Alloc))
+			noexcept(detail::has_nothrow_equal_v<Alloc>)
 		{
 			return m_Alloc == rhs.m_Alloc && m_Free == rhs.m_Free;
 		}
 
 		bool operator!=(const freelist& rhs) const
-			noexcept(noexcept(m_Alloc != rhs.m_Alloc))
+			noexcept(detail::has_nothrow_not_equal_v<Alloc>)
 		{
 			return m_Alloc != rhs.m_Alloc || m_Free != rhs.m_Free;
 		}

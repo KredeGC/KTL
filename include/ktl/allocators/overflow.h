@@ -82,13 +82,13 @@ namespace ktl
 		overflow& operator=(overflow&&) = default;
 
 		bool operator==(const overflow& rhs) const
-			noexcept(noexcept(m_Alloc == rhs.m_Alloc))
+			noexcept(detail::has_nothrow_equal_v<Alloc>)
 		{
 			return m_Alloc == rhs.m_Alloc;
 		}
 
 		bool operator!=(const overflow& rhs) const
-			noexcept(noexcept(m_Alloc != rhs.m_Alloc))
+			noexcept(detail::has_nothrow_not_equal_v<Alloc>)
 		{
 			return m_Alloc != rhs.m_Alloc;
 		}
