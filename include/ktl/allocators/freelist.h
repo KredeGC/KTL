@@ -57,7 +57,7 @@ namespace ktl
 		freelist(const freelist&) = delete;
 
 		freelist(freelist&& other)
-			noexcept(std::is_nothrow_move_constructible<Alloc>) :
+			noexcept(std::is_nothrow_move_constructible_v<Alloc>) :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Free(other.m_Free)
 		{
@@ -75,7 +75,7 @@ namespace ktl
 		freelist& operator=(const freelist&) = delete;
 
 		freelist& operator=(freelist&& rhs)
-			noexcept(std::is_nothrow_move_constructible_v<Alloc>)
+			noexcept(std::is_nothrow_move_assignable_v<Alloc>)
 		{
 			release();
 
