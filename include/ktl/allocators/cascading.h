@@ -94,8 +94,8 @@ namespace ktl
 		*/
 		void* allocate(size_type n) noexcept(
 			noexcept(detail::aligned_new<node>(detail::ALIGNMENT)) &&
-			noexcept(m_Node->Allocator.allocate(n)) &&
-			(!detail::has_max_size_v<Alloc> || noexcept(m_Node->Allocator.max_size())))
+			noexcept(std::declval<Alloc&>().allocate(n)) &&
+			(!detail::has_max_size_v<Alloc> || noexcept(std::declval<Alloc&>().max_size())))
 		{
 			// Add an initial allocator
 			if (!m_Node)
@@ -133,7 +133,7 @@ namespace ktl
 		 * @param n The size that was initially allocated
 		*/
 		void deallocate(void* p, size_type n)
-			noexcept(noexcept(detail::aligned_delete(m_Node)) && noexcept(m_Node->Allocator.owns(p)) && noexcept(m_Node->Allocator.deallocate(p, n)))
+			noexcept(noexcept(detail::aligned_delete(std::declval<node*>())) && noexcept(std::declval<Alloc&>().owns(p)) && noexcept(std::declval<Alloc&>().deallocate(p, n)))
 		{
 			KTL_ASSERT(p != nullptr);
 
@@ -174,7 +174,7 @@ namespace ktl
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
-			noexcept(noexcept(m_Node->Allocator.owns(p)) && detail::has_noexcept_construct_v<Alloc, T*, Args...>)
+			noexcept(noexcept(std::declval<Alloc&>().owns(p)) && detail::has_noexcept_construct_v<Alloc, T*, Args...>)
 		{
             node* next = m_Node;
 			while (next)
@@ -202,7 +202,7 @@ namespace ktl
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
-			noexcept(noexcept(m_Node->Allocator.owns(p)) && detail::has_noexcept_destroy_v<Alloc, T*>)
+			noexcept(noexcept(std::declval<Alloc&>().owns(p)) && detail::has_noexcept_destroy_v<Alloc, T*>)
 		{
 			node* next = m_Node;
 			while (next)
@@ -232,7 +232,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const
-			noexcept(noexcept(m_Node->Allocator.max_size()))
+			noexcept(noexcept(std::declval<A&>().max_size()))
 		{
 			return m_Node->Allocator.max_size();
 		}
@@ -243,7 +243,7 @@ namespace ktl
 		 * @return Whether the allocator owns @p p
 		*/
 		bool owns(void* p) const
-			noexcept(noexcept(m_Node->Allocator.owns(p)))
+			noexcept(noexcept(std::declval<Alloc&>().owns(p)))
 		{
 			node* next = m_Node;
 			while (next)

@@ -137,7 +137,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const
-			noexcept(noexcept(m_Block->Allocator.max_size()))
+			noexcept(noexcept(std::declval<A&>().max_size()))
 		{
 			return m_Block->Allocator.max_size();
 		}
@@ -145,7 +145,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
-			noexcept(noexcept(m_Block->Allocator.owns(p)))
+			noexcept(noexcept(std::declval<A&>().owns(p)))
 		{
 			return m_Block->Allocator.owns(p);
 		}
