@@ -32,7 +32,7 @@ namespace ktl
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n)
+		void* allocate(size_t n) noexcept
 		{
 			return nullptr;
 		}
@@ -44,7 +44,7 @@ namespace ktl
 #pragma endregion
 
 #pragma region Utility
-		bool owns(void* p) const
+		bool owns(void* p) const noexcept
 		{
 			return p == nullptr;
 		}

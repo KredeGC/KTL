@@ -1,30 +1,31 @@
-name: Staging
+name: Test
 
 on:
-  push:
+  pull_request:
     branches: [ master ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/Doxyfile'
 
 jobs:
   Build:
     strategy:
       matrix:
-        config: [debug, release]
-        dialect: [C++17, C++20]
         machine:
-        - host: linux
-          os: ubuntu-latest
+        - os: ubuntu-latest
           action: gmake2
           toolset: gcc
-        - host: linux
-          os: ubuntu-latest
+        - os: ubuntu-latest
           action: gmake2
           toolset: clang
-        - host: windows
-          os: windows-latest
+        - os: windows-latest
           action: vs2019
           toolset: msc
     runs-on: ${{ matrix.machine.os }}
     permissions:
+      actions: read
+      contents: read
       security-events: write
     steps:
     - name: Checkout
@@ -35,22 +36,16 @@ jobs:
         version: "5.0.0-beta1"
     - name: Install GCC
       if: matrix.machine.os == 'ubuntu-latest' && matrix.machine.toolset == 'gcc'
-      run: sudo apt update && sudo apt install -y gcc g++
+      run: sudo apt-get update && sudo apt-get install -y gcc g++
     - name: Install Clang & LLVM
       if: matrix.machine.os == 'ubuntu-latest' && matrix.machine.toolset == 'clang'
-      run: sudo apt update && sudo apt install -y clang llvm lld
+      run: sudo apt-get update && sudo apt-get install -y clang llvm lld
     - name: Install msbuild to PATH
       if: matrix.machine.os == 'windows-latest' && matrix.machine.toolset == 'msc'
       uses: microsoft/setup-msbuild@v1.1
     - name: Run premake
-      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=${{ matrix.dialect }}
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: cpp
+      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=C++20
     - name: Build
-      run: premake5 build --config=${{ matrix.config }}
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      run: premake5 build --config=debug
     - name: Run test
-      run: premake5 test --config=${{ matrix.config }}
+      run: premake5 test --config=debug

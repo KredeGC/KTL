@@ -27,8 +27,9 @@ namespace ktl
 
 			template<typename... Args,
 				typename = std::enable_if_t<
-				detail::can_construct_v<Alloc, Args...>>>
-			block(Args&&... alloc) noexcept :
+				std::is_constructible_v<Alloc, Args...>>>
+			block(Args&&... alloc)
+				noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 				Allocator(std::forward<Args>(alloc)...),
 				UseCount(1),
 				Lock() {}
@@ -37,7 +38,9 @@ namespace ktl
 	public:
 		typedef typename detail::get_size_type_t<Alloc> size_type;
 
-		threaded() noexcept :
+		template<typename A = Alloc>
+		threaded()
+			noexcept(std::is_nothrow_default_constructible_v<block>) :
 			m_Block(detail::aligned_new<block>(detail::ALIGNMENT)) {}
 
 		/**
@@ -45,8 +48,9 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct_v<Alloc, Args...>>>
-		explicit threaded(Args&&... alloc) noexcept :
+			std::is_constructible_v<Alloc, Args...>>>
+		explicit threaded(Args&&... alloc)
+			noexcept(std::is_nothrow_constructible_v<block, Args...>) :
 			m_Block(detail::aligned_new<block>(detail::ALIGNMENT, std::forward<Args>(alloc)...)) {}
 
 		threaded(const threaded& other) noexcept :
@@ -56,7 +60,7 @@ namespace ktl
 		}
 
 		threaded(threaded&& other) noexcept :
-			m_Block(std::move(other.m_Block))
+			m_Block(other.m_Block)
 		{
 			other.m_Block = nullptr;
 		}
@@ -66,7 +70,8 @@ namespace ktl
 			decrement();
 		}
 
-		threaded& operator=(const threaded& rhs) noexcept
+		threaded& operator=(const threaded& rhs)
+			noexcept(noexcept(decrement()))
 		{
 			decrement();
 
@@ -77,7 +82,8 @@ namespace ktl
 			return *this;
 		}
 
-		threaded& operator=(threaded&& rhs) noexcept
+		threaded& operator=(threaded&& rhs)
+			noexcept(noexcept(decrement()))
 		{
 			decrement();
 
@@ -88,25 +94,27 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const threaded& rhs) const noexcept
+		bool operator==(const threaded& rhs) const
+			noexcept(detail::has_nothrow_equal_v<Alloc>)
 		{
 			return m_Block == rhs.m_Block && m_Block->Allocator == rhs.m_Block->Allocator;
 		}
 
-		bool operator!=(const threaded& rhs) const noexcept
+		bool operator!=(const threaded& rhs) const
+			noexcept(detail::has_nothrow_not_equal_v<Alloc>)
 		{
 			return m_Block != rhs.m_Block || m_Block->Allocator != rhs.m_Block->Allocator;
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n)
+		void* allocate(size_t n) // Lock cannot be noexcept
 		{
 			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
 			return m_Block->Allocator.allocate(n);
 		}
 
-		void deallocate(void* p, size_t n)
+		void deallocate(void* p, size_t n) // Lock cannot be noexcept
 		{
 			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
@@ -117,7 +125,7 @@ namespace ktl
 #pragma region Construction
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
-		construct(T* p, Args&&... args)
+		construct(T* p, Args&&... args) // Lock cannot be noexcept
 		{
 			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
@@ -126,7 +134,7 @@ namespace ktl
 
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
-		destroy(T* p)
+		destroy(T* p) // Lock cannot be noexcept
 		{
 			std::lock_guard<std::mutex> lock(m_Block->Lock);
 
@@ -137,7 +145,8 @@ namespace ktl
 #pragma region Utility
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
-		max_size() const noexcept
+		max_size() const
+			noexcept(detail::has_nothrow_max_size_v<A>)
 		{
 			return m_Block->Allocator.max_size();
 		}
@@ -145,23 +154,24 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
+			noexcept(detail::has_nothrow_owns_v<A>)
 		{
 			return m_Block->Allocator.owns(p);
 		}
 #pragma endregion
 
-		Alloc& get_allocator()
+		Alloc& get_allocator() noexcept
 		{
 			return m_Block->Allocator;
 		}
 
-		const Alloc& get_allocator() const
+		const Alloc& get_allocator() const noexcept
 		{
 			return m_Block->Allocator;
 		}
 
 	private:
-		void increment()
+		void increment() noexcept
 		{
 			if (!m_Block) return;
 
@@ -169,6 +179,7 @@ namespace ktl
 		}
 
 		void decrement()
+			noexcept(std::is_nothrow_destructible_v<Alloc>)
 		{
 			if (!m_Block) return;
 
