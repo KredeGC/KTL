@@ -120,8 +120,8 @@ namespace ktl
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<P, T*, Args...> || detail::has_construct_v<F, T*, Args...>, void>::type
 		construct(T* p, Args&&... args) noexcept(
-			(!detail::has_construct_v<P, T*, Args...> || detail::has_noexcept_construct_v<P, T*, Args...>) &&
-			(!detail::has_construct_v<F, T*, Args...> || detail::has_noexcept_construct_v<F, T*, Args...>) &&
+			(!detail::has_construct_v<P, T*, Args...> || detail::has_nothrow_construct_v<P, T*, Args...>) &&
+			(!detail::has_construct_v<F, T*, Args...> || detail::has_nothrow_construct_v<F, T*, Args...>) &&
 			std::is_nothrow_constructible_v<T, Args...>)
 		{
 			bool owned = m_Primary.owns(p);
@@ -150,8 +150,8 @@ namespace ktl
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<P, T*> || detail::has_destroy_v<F, T*>, void>::type
 		destroy(T* p) noexcept(
-			(!detail::has_destroy_v<P, T*> || detail::has_noexcept_destroy_v<P, T*>) &&
-			(!detail::has_destroy_v<F, T*> || detail::has_noexcept_destroy_v<F, T*>) &&
+			(!detail::has_destroy_v<P, T*> || detail::has_nothrow_destroy_v<P, T*>) &&
+			(!detail::has_destroy_v<F, T*> || detail::has_nothrow_destroy_v<F, T*>) &&
 			std::is_nothrow_destructible_v<T>)
 		{
 			bool owned = m_Primary.owns(p);
@@ -182,7 +182,7 @@ namespace ktl
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<detail::has_max_size_v<Primary> && detail::has_max_size_v<Fallback>, size_type>::type
 		max_size() const
-			noexcept(noexcept(m_Primary.max_size()) && noexcept(m_Fallback.max_size()))
+			noexcept(detail::has_nothrow_max_size_v<P> && detail::has_nothrow_max_size_v<F>)
 		{
 			return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 		}
@@ -190,7 +190,7 @@ namespace ktl
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<detail::has_owns_v<Primary> && detail::has_owns_v<Fallback>, bool>::type
 		owns(void* p) const
-			noexcept(noexcept(m_Primary.owns(p)) && noexcept(m_Fallback.owns(p)))
+			noexcept(detail::has_nothrow_owns_v<P> && detail::has_nothrow_owns_v<F>)
 		{
 			if (m_Primary.owns(p))
 				return true;

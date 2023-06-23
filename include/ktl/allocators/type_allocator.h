@@ -107,7 +107,7 @@ namespace ktl
 		template<typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, value_type*, Args...>, void>::type
 		construct(value_type* p, Args&&... args)
-			noexcept(detail::has_noexcept_construct_v<Alloc, value_type*, Args...>)
+			noexcept(detail::has_nothrow_construct_v<Alloc, value_type*, Args...>)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
@@ -120,7 +120,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_destroy_v<A, value_type*>, void>::type
 		destroy(value_type* p)
-			noexcept(detail::has_noexcept_destroy_v<Alloc, value_type*>)
+			noexcept(detail::has_nothrow_destroy_v<Alloc, value_type*>)
 		{
 			m_Alloc.destroy(p);
 		}
@@ -135,7 +135,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const
-			noexcept(noexcept(std::declval<Alloc&>().max_size()))
+			noexcept(detail::has_nothrow_max_size_v<A>)
 		{
 			return m_Alloc.max_size() / sizeof(T);
 		}
@@ -149,7 +149,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(value_type* p) const
-			noexcept(noexcept(std::declval<Alloc&>().owns(p)))
+			noexcept(detail::has_nothrow_owns_v<A>)
 		{
 			return m_Alloc.owns(p);
 		}
@@ -179,14 +179,14 @@ namespace ktl
 
 	template<typename T, typename U, typename Alloc>
 	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
-		noexcept(noexcept(lhs.get_allocator() == rhs.get_allocator()))
+		noexcept(noexcept(std::declval<type_allocator<T, Alloc>&>().get_allocator() == std::declval<type_allocator<U, Alloc>&>().get_allocator()))
 	{
 		return lhs.get_allocator() == rhs.get_allocator();
 	}
 
 	template<typename T, typename U, typename Alloc>
 	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
-		noexcept(noexcept(lhs.get_allocator() != rhs.get_allocator()))
+		noexcept(noexcept(std::declval<type_allocator<T, Alloc>&>().get_allocator() != std::declval<type_allocator<U, Alloc>&>().get_allocator()))
 	{
 		return lhs.get_allocator() != rhs.get_allocator();
 	}

@@ -188,7 +188,7 @@ namespace ktl
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<detail::has_max_size_v<Primary> && detail::has_max_size_v<Fallback>, size_type>::type
 		max_size() const
-			noexcept(noexcept(m_Primary.max_size()) && noexcept(m_Fallback.max_size()))
+			noexcept(detail::has_nothrow_max_size_v<P> && detail::has_nothrow_max_size_v<F>)
 		{
 			return (std::max)(m_Primary.max_size(), m_Fallback.max_size());
 		}
@@ -196,7 +196,7 @@ namespace ktl
 		template<typename Primary = P, typename Fallback = F>
 		typename std::enable_if<detail::has_owns_v<Primary> && detail::has_owns_v<Fallback>, bool>::type
 		owns(void* p) const
-			noexcept(noexcept(m_Primary.owns(p)) && noexcept(m_Fallback.owns(p)))
+			noexcept(detail::has_nothrow_owns_v<P> && detail::has_nothrow_owns_v<F>)
 		{
 			if (m_Primary.owns(p))
 				return true;
