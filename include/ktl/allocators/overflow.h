@@ -44,7 +44,7 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct_v<Alloc, Args...>>>
+			std::is_constructible_v<Alloc, Args...>>>
 		explicit overflow(Stream& stream, Args&&... args)
 			noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 			m_Stream(stream),
@@ -102,7 +102,7 @@ namespace ktl
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
 		void* allocate(size_type n)
-			noexcept(noexcept(m_Alloc.allocate(n)))
+			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
 			m_Allocs += n;
 
@@ -124,7 +124,7 @@ namespace ktl
 		 * @param n The size that was initially allocated
 		*/
 		void deallocate(void* p, size_type n)
-			noexcept(noexcept(m_Alloc.deallocate(p, n)))
+			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
 		{
 			KTL_ASSERT(p != nullptr);
 

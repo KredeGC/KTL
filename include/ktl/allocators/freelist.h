@@ -37,7 +37,9 @@ namespace ktl
         };
         
 	public:
-		freelist() noexcept :
+		template<typename A = Alloc>
+		freelist()
+			noexcept(std::is_nothrow_default_constructible_v<A>) :
 			m_Alloc(),
 			m_Free(nullptr) {}
 
@@ -48,13 +50,14 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		explicit freelist(Args&&... args)
-			noexcept(noexcept(Alloc(std::declval<Args>() ...))) :
+			noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 			m_Alloc(std::forward<Args>(args)...),
 			m_Free(nullptr) {}
 
 		freelist(const freelist&) = delete;
 
-		freelist(freelist&& other) noexcept :
+		freelist(freelist&& other)
+			noexcept(std::is_nothrow_move_constructible<Alloc>) :
 			m_Alloc(std::move(other.m_Alloc)),
 			m_Free(other.m_Free)
 		{
@@ -71,7 +74,8 @@ namespace ktl
 
 		freelist& operator=(const freelist&) = delete;
 
-		freelist& operator=(freelist&& rhs) noexcept
+		freelist& operator=(freelist&& rhs)
+			noexcept(std::is_nothrow_move_constructible<Alloc>)
 		{
 			release();
 
@@ -107,7 +111,7 @@ namespace ktl
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
 		void* allocate(size_type n)
-			noexcept(noexcept(m_Alloc.allocate(Max)))
+			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
 			if (n > Min && n <= Max)
 			{
@@ -154,7 +158,7 @@ namespace ktl
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
-			noexcept(detail::has_noexcept_construct_v<Alloc, T*, Args...>)
+			noexcept(detail::has_nothrow_construct_v<Alloc, T*, Args...>)
 		{
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
@@ -167,7 +171,7 @@ namespace ktl
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
-			noexcept(detail::has_noexcept_destroy_v<Alloc, T*>)
+			noexcept(detail::has_nothrow_destroy_v<Alloc, T*>)
 		{
 			m_Alloc.destroy(p);
 		}
@@ -222,7 +226,7 @@ namespace ktl
 
 	private:
 		void release()
-			noexcept(noexcept(m_Alloc.deallocate(m_Free, Max)))
+			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
 		{
 			link* next = m_Free;
 			while (next)

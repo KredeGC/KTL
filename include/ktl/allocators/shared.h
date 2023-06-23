@@ -26,7 +26,7 @@ namespace ktl
 				typename = std::enable_if_t<
 				detail::can_construct_v<Alloc, Args...>>>
 			block(Args&&... alloc)
-				noexcept(noexcept(Alloc(std::declval<Args>()...))) :
+				noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 				Allocator(std::forward<Args>(alloc)...),
 				UseCount(1) {}
 		};
@@ -34,8 +34,9 @@ namespace ktl
 	public:
 		typedef typename detail::get_size_type_t<Alloc> size_type;
 
+		template<typename A = Alloc>
 		shared()
-			noexcept(noexcept(block())) :
+			noexcept(std::is_nothrow_default_constructible_v<block>) :
 			m_Block(detail::aligned_new<block>(detail::ALIGNMENT)) {}
 
 		/**
@@ -45,7 +46,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		explicit shared(Args&&... alloc)
-			noexcept(noexcept(block(std::declval<Args>()...))) :
+			noexcept(std::is_nothrow_constructible_v<block, Args...>) :
 			m_Block(detail::aligned_new<block>(detail::ALIGNMENT, std::forward<Args>(alloc)...)) {}
 
 		shared(const shared& other) noexcept :
@@ -103,13 +104,13 @@ namespace ktl
 
 #pragma region Allocation
 		void* allocate(size_t n)
-			noexcept(noexcept(m_Block->Allocator.allocate(n)))
+			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
 			return m_Block->Allocator.allocate(n);
 		}
 
 		void deallocate(void* p, size_t n)
-			noexcept(noexcept(m_Block->Allocator.deallocate(p, n)))
+			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
 		{
 			m_Block->Allocator.deallocate(p, n);
 		}
@@ -119,7 +120,7 @@ namespace ktl
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args)
-			noexcept(detail::has_noexcept_construct_v<Alloc, T*, Args...>)
+			noexcept(detail::has_nothrow_construct_v<Alloc, T*, Args...>)
 		{
 			m_Block->Allocator.construct(p, std::forward<Args>(args)...);
 		}
@@ -127,7 +128,7 @@ namespace ktl
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p)
-			noexcept(detail::has_noexcept_destroy_v<Alloc, T*>)
+			noexcept(detail::has_nothrow_destroy_v<Alloc, T*>)
 		{
 			m_Block->Allocator.destroy(p);
 		}
@@ -137,7 +138,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const
-			noexcept(noexcept(std::declval<A&>().max_size()))
+			noexcept(detail::has_nothrow_max_size_v<A>)
 		{
 			return m_Block->Allocator.max_size();
 		}
@@ -145,7 +146,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_owns_v<A>, bool>::type
 		owns(void* p) const
-			noexcept(noexcept(std::declval<A&>().owns(p)))
+			noexcept(detail::has_nothrow_owns_v<A>)
 		{
 			return m_Block->Allocator.owns(p);
 		}
@@ -170,7 +171,7 @@ namespace ktl
 		}
 
 		void decrement()
-			noexcept(noexcept(detail::aligned_delete(m_Block)))
+			noexcept(std::is_nothrow_destructible_v<Alloc>)
 		{
 			if (!m_Block) return;
 
