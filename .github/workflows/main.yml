@@ -1,4 +1,4 @@
-name: Test
+name: Staging
 
 on:
   push:
@@ -43,13 +43,13 @@ jobs:
       if: matrix.machine.os == 'windows-latest' && matrix.machine.toolset == 'msc'
       uses: microsoft/setup-msbuild@v1.1
     - name: Run premake
-      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }}
+      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=${{ matrix.dialect }}
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
         languages: cpp
     - name: Build
-      run: premake5 build --config=${{ matrix.config }} --dialect=${{ matrix.dialect }}
+      run: premake5 build --config=${{ matrix.config }}
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
     - name: Run test

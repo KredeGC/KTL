@@ -46,6 +46,6 @@ jobs:
     - name: Run premake
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=C++20
     - name: Build
-      run: premake5 build --config=debug --architecture=x64
+      run: premake5 build --config=debug
     - name: Run test
-      run: premake5 test --config=debug --architecture=x64
+      run: premake5 test --config=debug
