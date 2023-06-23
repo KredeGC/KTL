@@ -82,6 +82,14 @@ namespace ktl::detail
 
 
 
+	// has allocate(size_t) noexcept
+	template<typename Alloc>
+	constexpr bool has_nothrow_allocate_v = noexcept(std::declval<Alloc&>().allocate(std::declval<size_t>()));
+
+	// has deallocate(void*, size_t) noexcept
+	template<typename Alloc>
+	constexpr bool has_nothrow_deallocate_v = noexcept(std::declval<Alloc&>().deallocate(std::declval<void*>(), std::declval<size_t>()));
+
 	// has construct(T*, Args&&...) noexcept
 	template<typename Void, typename... Types>
 	struct has_nothrow_construct : std::false_type {};

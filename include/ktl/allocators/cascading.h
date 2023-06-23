@@ -48,7 +48,7 @@ namespace ktl
 		cascading(const cascading&) = delete;
 
 		cascading(cascading&& other)
-			noexcept(noexcept(node(std::declval<node&&>()))) :
+			noexcept(std::is_nothrow_move_constructible_v<node>) :
 			m_Node(std::move(other.m_Node))
 		{
 			other.m_Node = nullptr;
@@ -62,7 +62,7 @@ namespace ktl
 		cascading& operator=(const cascading&) = delete;
 
 		cascading& operator=(cascading&& rhs)
-			noexcept(noexcept(m_Node = std::move(rhs.m_Node)))
+			noexcept(std::is_nothrow_move_assignable_v<node>)
 		{
 			release();
 
@@ -93,9 +93,9 @@ namespace ktl
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
 		void* allocate(size_type n) noexcept(
-			noexcept(detail::aligned_new<node>(detail::ALIGNMENT)) &&
-			noexcept(std::declval<Alloc&>().allocate(n)) &&
-			(!detail::has_max_size_v<Alloc> || noexcept(std::declval<Alloc&>().max_size())))
+			std::is_nothrow_default_constructible_v<node> &&
+			detail::has_nothrow_allocate_v<Alloc> &&
+			(!detail::has_max_size_v<Alloc> || detail::has_nothrow_max_size_v<Alloc>))
 		{
 			// Add an initial allocator
 			if (!m_Node)
@@ -132,8 +132,10 @@ namespace ktl
 		 * @param p The location in memory to deallocate
 		 * @param n The size that was initially allocated
 		*/
-		void deallocate(void* p, size_type n)
-			noexcept(noexcept(detail::aligned_delete(std::declval<node*>())) && noexcept(std::declval<Alloc&>().owns(p)) && noexcept(std::declval<Alloc&>().deallocate(p, n)))
+		void deallocate(void* p, size_type n) noexcept(
+			std::is_nothrow_destructible_v<node> &&
+			detail::has_nothrow_owns_v<Alloc> &&
+			detail::has_nothrow_deallocate_v<Alloc>)
 		{
 			KTL_ASSERT(p != nullptr);
 
@@ -173,8 +175,9 @@ namespace ktl
 		*/
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
-		construct(T* p, Args&&... args)
-			noexcept(noexcept(std::declval<Alloc&>().owns(p)) && detail::has_noexcept_construct_v<Alloc, T*, Args...>)
+		construct(T* p, Args&&... args) noexcept(
+			detail::has_nothrow_owns_v<Alloc> &&
+			detail::has_noexcept_construct_v<Alloc, T*, Args...>)
 		{
             node* next = m_Node;
 			while (next)
@@ -201,8 +204,9 @@ namespace ktl
 		*/
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
-		destroy(T* p)
-			noexcept(noexcept(std::declval<Alloc&>().owns(p)) && detail::has_noexcept_destroy_v<Alloc, T*>)
+		destroy(T* p) noexcept(
+			detail::has_nothrow_owns_v<Alloc> &&
+			detail::has_noexcept_destroy_v<Alloc, T*>)
 		{
 			node* next = m_Node;
 			while (next)
@@ -232,7 +236,7 @@ namespace ktl
 		template<typename A = Alloc>
 		typename std::enable_if<detail::has_max_size_v<A>, size_type>::type
 		max_size() const
-			noexcept(noexcept(std::declval<A&>().max_size()))
+			noexcept(detail::has_nothrow_max_size_v<A>)
 		{
 			return m_Node->Allocator.max_size();
 		}
@@ -243,7 +247,7 @@ namespace ktl
 		 * @return Whether the allocator owns @p p
 		*/
 		bool owns(void* p) const
-			noexcept(noexcept(std::declval<Alloc&>().owns(p)))
+			noexcept(detail::has_nothrow_owns_v<Alloc>)
 		{
 			node* next = m_Node;
 			while (next)
@@ -260,7 +264,7 @@ namespace ktl
 
 	private:
 		void release()
-			noexcept(noexcept(detail::aligned_delete(m_Node)))
+			noexcept(std::is_nothrow_destructible_v<node>)
 		{
 			node* next = m_Node;
 			while (next)

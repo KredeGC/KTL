@@ -40,10 +40,7 @@ namespace ktl
 		 * @brief Default constructor
 		 * @note Only defined if the underlying allocator defines it
 		*/
-		template<typename = std::enable_if_t<std::is_default_constructible_v<Alloc>>>
-		type_allocator()
-			noexcept(std::is_nothrow_default_constructible_v<Alloc>) :
-			m_Alloc() {}
+		type_allocator() = default;
 
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
@@ -52,7 +49,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		explicit type_allocator(Args&&... alloc)
-			noexcept(noexcept(Alloc(std::declval<Args>()...))) :
+			noexcept(std::is_nothrow_constructible_v<T, Args...>) :
 			m_Alloc(std::forward<Args>(alloc)...) {}
 
 		type_allocator(const type_allocator&) = default;
@@ -61,12 +58,12 @@ namespace ktl
 
 		template<typename U>
 		type_allocator(const type_allocator<U, Alloc>& other)
-			noexcept(noexcept(Alloc(other.m_Alloc))) :
+			noexcept(std::is_nothrow_constructible_v<Alloc, const type_allocator<U, Alloc>&>) :
 			m_Alloc(other.m_Alloc) {}
 
 		template<typename U>
 		type_allocator(type_allocator<U, Alloc>&& other)
-			noexcept(noexcept(Alloc(std::move(other.m_Alloc)))) :
+			noexcept(std::is_nothrow_constructible_v<Alloc, type_allocator<U, Alloc>&&>) :
 			m_Alloc(std::move(other.m_Alloc)) {}
 
 		type_allocator& operator=(const type_allocator&) = default;
@@ -180,14 +177,14 @@ namespace ktl
 
 	template<typename T, typename U, typename Alloc>
 	bool operator==(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
-		noexcept(noexcept(std::declval<type_allocator<T, Alloc>&>().get_allocator() == std::declval<type_allocator<U, Alloc>&>().get_allocator()))
+		noexcept(noexcept(lhs.get_allocator() == rhs.get_allocator()))
 	{
 		return lhs.get_allocator() == rhs.get_allocator();
 	}
 
 	template<typename T, typename U, typename Alloc>
 	bool operator!=(const type_allocator<T, Alloc>& lhs, const type_allocator<U, Alloc>& rhs)
-		noexcept(noexcept(std::declval<type_allocator<T, Alloc>&>().get_allocator() != std::declval<type_allocator<U, Alloc>&>().get_allocator()))
+		noexcept(noexcept(lhs.get_allocator() != rhs.get_allocator()))
 	{
 		return lhs.get_allocator() != rhs.get_allocator();
 	}

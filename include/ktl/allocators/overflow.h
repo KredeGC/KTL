@@ -33,7 +33,7 @@ namespace ktl
 		 * @param stream The stream to use when leaks or corruption happens
 		*/
 		explicit overflow(Stream& stream)
-			noexcept(noexcept(Alloc())) :
+			noexcept(std::is_nothrow_default_constructible_v<Alloc>) :
 			m_Stream(stream),
 			m_Alloc(),
 			m_Allocs(0),
@@ -46,7 +46,7 @@ namespace ktl
 			typename = std::enable_if_t<
 			detail::can_construct_v<Alloc, Args...>>>
 		explicit overflow(Stream& stream, Args&&... args)
-			noexcept(noexcept(Alloc(std::declval<Args>()...))) :
+			noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 			m_Stream(stream),
 			m_Alloc(std::forward<Args>(args)...),
 			m_Allocs(0),
