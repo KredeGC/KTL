@@ -35,7 +35,7 @@ namespace ktl
 		 * @brief Constructor for forwarding a single argument to the primary allocator
 		*/
 		template<typename Primary,
-			typename = std::enable_if_t<detail::can_construct_v<P, Primary>>>
+			typename = std::enable_if_t<std::is_constructible_v<P, Primary>>>
 		explicit fallback(Primary&& primary)
 			noexcept(std::is_nothrow_constructible_v<P, Primary> && std::is_nothrow_default_constructible_v<F>) :
 			m_Primary(std::forward<Primary>(primary)),
@@ -46,8 +46,8 @@ namespace ktl
 		*/
 		template<typename Primary, typename Fallback,
 			typename = std::enable_if_t<
-			detail::can_construct_v<P, Primary> &&
-			detail::can_construct_v<F, Fallback>>>
+			std::is_constructible_v<P, Primary> &&
+			std::is_constructible_v<F, Fallback>>>
 		explicit fallback(Primary&& primary, Fallback&& fallback)
 			noexcept(std::is_nothrow_constructible_v<P, Primary> && std::is_nothrow_constructible_v<F, Fallback>) :
 			m_Primary(std::forward<Primary>(primary)),
@@ -58,7 +58,7 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct_v<P, Args...>>>
+			std::is_constructible_v<P, Args...>>>
 		explicit fallback(std::tuple<Args...>&& primary)
 			noexcept(std::is_nothrow_constructible_v<P, Args...> && std::is_nothrow_default_constructible_v<F>) :
 			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<Args...>>(primary))),
@@ -69,8 +69,8 @@ namespace ktl
 		*/
 		template<typename... ArgsP, typename... ArgsF,
 			typename = std::enable_if_t<
-			detail::can_construct_v<P, ArgsP...>&&
-			detail::can_construct_v<F, ArgsF...>>>
+			std::is_constructible_v<P, ArgsP...>&&
+			std::is_constructible_v<F, ArgsF...>>>
 		explicit fallback(std::tuple<ArgsP...>&& primary, std::tuple<ArgsF...>&& fallback)
 			noexcept(std::is_nothrow_constructible_v<P, ArgsP...> && std::is_nothrow_constructible_v<F, ArgsF...>) :
 			m_Primary(std::make_from_tuple<P>(std::forward<std::tuple<ArgsP...>>(primary))),

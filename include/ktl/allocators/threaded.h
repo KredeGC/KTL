@@ -27,7 +27,7 @@ namespace ktl
 
 			template<typename... Args,
 				typename = std::enable_if_t<
-				detail::can_construct_v<Alloc, Args...>>>
+				std::is_constructible_v<Alloc, Args...>>>
 			block(Args&&... alloc)
 				noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 				Allocator(std::forward<Args>(alloc)...),
@@ -48,7 +48,7 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct_v<Alloc, Args...>>>
+			std::is_constructible_v<Alloc, Args...>>>
 		explicit threaded(Args&&... alloc)
 			noexcept(std::is_nothrow_constructible_v<block, Args...>) :
 			m_Block(detail::aligned_new<block>(detail::ALIGNMENT, std::forward<Args>(alloc)...)) {}

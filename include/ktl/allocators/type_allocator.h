@@ -47,7 +47,7 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct_v<Alloc, Args...>>>
+			std::is_constructible_v<Alloc, Args...>>>
 		explicit type_allocator(Args&&... alloc)
 			noexcept(std::is_nothrow_constructible_v<T, Args...>) :
 			m_Alloc(std::forward<Args>(alloc)...) {}

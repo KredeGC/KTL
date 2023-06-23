@@ -73,14 +73,12 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const cascading& rhs) const
-			noexcept(noexcept(m_Node == rhs.m_Node))
+		bool operator==(const cascading& rhs) const noexcept
 		{
 			return m_Node == rhs.m_Node;
 		}
 
-		bool operator!=(const cascading& rhs) const
-			noexcept(noexcept(m_Node != rhs.m_Node))
+		bool operator!=(const cascading& rhs) const noexcept
 		{
 			return m_Node != rhs.m_Node;
 		}
@@ -177,7 +175,7 @@ namespace ktl
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args) noexcept(
 			detail::has_nothrow_owns_v<Alloc> &&
-			detail::has_noexcept_construct_v<Alloc, T*, Args...>)
+			detail::has_nothrow_construct_v<Alloc, T*, Args...>)
 		{
             node* next = m_Node;
 			while (next)
@@ -206,7 +204,7 @@ namespace ktl
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p) noexcept(
 			detail::has_nothrow_owns_v<Alloc> &&
-			detail::has_noexcept_destroy_v<Alloc, T*>)
+			detail::has_nothrow_destroy_v<Alloc, T*>)
 		{
 			node* next = m_Node;
 			while (next)

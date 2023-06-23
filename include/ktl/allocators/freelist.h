@@ -48,7 +48,7 @@ namespace ktl
 		*/
 		template<typename... Args,
 			typename = std::enable_if_t<
-			detail::can_construct_v<Alloc, Args...>>>
+			std::is_constructible_v<Alloc, Args...>>>
 		explicit freelist(Args&&... args)
 			noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
 			m_Alloc(std::forward<Args>(args)...),
@@ -75,7 +75,7 @@ namespace ktl
 		freelist& operator=(const freelist&) = delete;
 
 		freelist& operator=(freelist&& rhs)
-			noexcept(std::is_nothrow_move_constructible<Alloc>)
+			noexcept(std::is_nothrow_move_constructible_v<Alloc>)
 		{
 			release();
 

@@ -70,16 +70,6 @@ namespace ktl::detail
 	template<typename Alloc>
 	constexpr bool has_owns_v = has_owns<Alloc, void>::value;
 
-	// has Alloc(Args...)
-	template<typename Void, typename... Types>
-	struct can_construct : std::false_type {};
-
-	template<typename Alloc, typename... Args>
-	struct can_construct<std::void_t<decltype(Alloc(std::declval<Args>()...))>, Alloc, Args...> : std::true_type {};
-
-	template<typename Alloc, typename... Args>
-	constexpr bool can_construct_v = can_construct<void, Alloc, Args...>::value;
-
 
 
 	// has allocate(size_t) noexcept
@@ -99,9 +89,6 @@ namespace ktl::detail
 		: std::bool_constant<noexcept(std::declval<Alloc&>().construct(std::declval<Args>()...))> {};
 
 	template<typename Alloc, typename... Args>
-	constexpr bool has_noexcept_construct_v = has_nothrow_construct<void, Alloc, Args...>::value;
-
-	template<typename Alloc, typename... Args>
 	constexpr bool has_nothrow_construct_v = has_nothrow_construct<void, Alloc, Args...>::value;
 
 	// has destroy(T*) noexcept
@@ -111,9 +98,6 @@ namespace ktl::detail
 	template<typename Alloc, typename Ptr>
 	struct has_nothrow_destroy<Alloc, Ptr, std::enable_if_t<has_destroy_v<Alloc, Ptr>>>
 		: std::bool_constant<noexcept(std::declval<Alloc&>().destroy(std::declval<Ptr>()))> {};
-
-	template<typename Alloc, typename Ptr>
-	constexpr bool has_noexcept_destroy_v = has_nothrow_destroy<Alloc, Ptr, void>::value;
 
 	template<typename Alloc, typename Ptr>
 	constexpr bool has_nothrow_destroy_v = has_nothrow_destroy<Alloc, Ptr, void>::value;

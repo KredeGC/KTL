@@ -177,7 +177,7 @@ namespace ktl
 		*/
 		template<typename T, typename... Args>
 		void construct(T* p, Args&&... args) noexcept(
-			(detail::has_construct_v<Alloc, T*, Args...> && detail::has_noexcept_construct_v<Alloc, T*, Args...>) ||
+			(detail::has_construct_v<Alloc, T*, Args...> && detail::has_nothrow_construct_v<Alloc, T*, Args...>) ||
 			std::is_nothrow_constructible_v<T, Args...>)
 		{
 			m_Constructs++;
@@ -195,7 +195,7 @@ namespace ktl
 		*/
 		template<typename T>
 		void destroy(T* p) noexcept(
-			(detail::has_destroy_v<Alloc, T*>&& detail::has_noexcept_destroy_v<Alloc, T*>) ||
+			(detail::has_destroy_v<Alloc, T*>&& detail::has_nothrow_destroy_v<Alloc, T*>) ||
 			std::is_nothrow_destructible_v<T>)
 		{
 			m_Constructs--;
