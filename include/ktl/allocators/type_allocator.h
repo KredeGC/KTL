@@ -40,8 +40,9 @@ namespace ktl
 		 * @brief Default constructor
 		 * @note Only defined if the underlying allocator defines it
 		*/
+		template<typename = std::enable_if_t<std::is_default_constructible_v<Alloc>>>
 		type_allocator()
-			noexcept(noexcept(Alloc())) :
+			noexcept(std::is_nothrow_default_constructible_v<Alloc>) :
 			m_Alloc() {}
 
 		/**
