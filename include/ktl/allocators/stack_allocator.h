@@ -4,6 +4,7 @@
 #include "stack_allocator_fwd.h"
 #include "type_allocator.h"
 
+#include <cstdint>
 #include <memory>
 #include <type_traits>
 
@@ -98,7 +99,13 @@ namespace ktl
 
 		bool owns(void* p) const noexcept
 		{
-			return p >= m_Block->Data && p < m_Block->Data + Size;
+			// Comparing pointers to different objects is unspecified
+			// But converting them to integers and comparing them isn't...
+			uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
+			uintptr_t low = reinterpret_cast<uintptr_t>(m_Block->Data);
+			uintptr_t high = low + Size;
+
+			return ptr >= low && ptr < high;
 		}
 #pragma endregion
 
