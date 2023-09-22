@@ -124,4 +124,50 @@ namespace ktl
 	*/
 	template<typename T>
 	using copy = T;
+
+	template<typename T>
+	class iterator
+	{
+		using value_type = decltype(*std::declval<T&>());
+
+	public:
+		template<typename C, typename = std::enable_if_t<std::is_constructible_v<T, decltype(std::begin(std::declval<C&>()))>>>
+		iterator(C&& container) :
+			m_Begin(std::begin(std::forward<C>(container))),
+			m_End(std::end(std::forward<C>(container))) {}
+
+		template<typename U, typename V>
+		iterator(U&& begin, V&& end) :
+			m_Begin(std::forward<U>(begin)),
+			m_End(std::forward<V>(end)) {}
+
+		[[nodiscard]] T& begin() noexcept { return m_Begin; }
+
+		[[nodiscard]] T& end() noexcept { return m_End; }
+
+		value_type next() noexcept(std::is_nothrow_copy_constructible_v<T> && noexcept(++m_Begin))
+		{
+			T next = m_Begin;
+			++m_Begin;
+			return *next;
+		}
+
+		[[nodiscard]] bool has_next() const noexcept(noexcept(m_Begin.operator==(m_End))) { return !(m_Begin == m_End); }
+
+		[[nodiscard]] value_type operator*() noexcept(noexcept(*m_Begin)) { return *m_Begin; }
+
+		T& operator->() noexcept { return m_Begin; }
+
+		[[nodiscard]] explicit operator bool() const noexcept(noexcept(this->has_next())) { return has_next(); }
+
+	private:
+		T m_Begin;
+		T m_End;
+	};
+
+	template<typename C>
+	iterator(C&&)->iterator<decltype(std::begin(std::declval<C&>()))>;
+
+	template<typename U, typename V>
+	iterator(U&&, V&&)->iterator<std::decay_t<U>>;
 }
