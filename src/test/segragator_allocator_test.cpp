@@ -97,7 +97,7 @@ namespace ktl::test::segragator_allocator
         stack<1024> fallbackStack;
         Alloc alloc(std::forward_as_tuple(primaryStack), std::forward_as_tuple(fallbackStack));
 
-        assert_raw_allocate_deallocate(alloc);
+        assert_raw_allocate_deallocate<2, 4, 8, 16, 32, 64>(alloc);
     }
     
     KTL_ADD_TEST(test_segragator_stack_stack_unordered_double)

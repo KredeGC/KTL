@@ -6,39 +6,41 @@
 
 namespace ktl::test
 {
-    template<typename Alloc>
+    template<size_t... Is, typename Alloc>
     void assert_raw_allocate_deallocate(Alloc& allocator)
     {
-        void* ptr1 = allocator.allocate(4);
-        void* ptr2 = allocator.allocate(8);
-        void* ptr3 = allocator.allocate(12);
+        constexpr size_t amount = sizeof...(Is);
 
-        KTL_TEST_ASSERT(ptr1);
-        KTL_TEST_ASSERT(ptr2);
-        KTL_TEST_ASSERT(ptr3);
+        size_t sizes[amount]{ Is... };
+        void* ptrs[amount]{ nullptr };
 
-        KTL_TEST_ASSERT(ptr1 != ptr2);
-        KTL_TEST_ASSERT(ptr2 != ptr3);
+        std::shuffle(sizes, sizes + amount, random_generator);
 
-        allocator.deallocate(ptr1, 4);
-        allocator.deallocate(ptr2, 8);
+        // Allocate all with random sizes
+        for (size_t i = 0; i < amount; i++)
+        {
+            ptrs[i] = allocator.allocate(sizes[i]);
+            KTL_TEST_ASSERT(ptrs[i]);
+        }
 
-        void* ptr4 = allocator.allocate(4);
-        void* ptr5 = allocator.allocate(8);
-        void* ptr6 = allocator.allocate(12);
+        // Assert that they are all unique
+        for (size_t i = 1; i < amount; i++)
+            KTL_TEST_ASSERT(ptrs[i - 1] != ptrs[i]);
 
-        KTL_TEST_ASSERT(ptr4);
-        KTL_TEST_ASSERT(ptr5);
-        KTL_TEST_ASSERT(ptr6);
+        // Deallocate the first half
+        for (size_t i = 0; i < amount / 2; i++)
+            allocator.deallocate(ptrs[i], sizes[i]);
 
-        KTL_TEST_ASSERT(ptr4 != ptr5);
-        KTL_TEST_ASSERT(ptr5 != ptr6);
-        KTL_TEST_ASSERT(ptr3 != ptr6);
+        // Allocate the first half again
+        for (size_t i = 0; i < amount / 2; i++)
+        {
+            ptrs[i] = allocator.allocate(sizes[i]);
+            KTL_TEST_ASSERT(ptrs[i]);
+        }
 
-        allocator.deallocate(ptr3, 12);
-        allocator.deallocate(ptr4, 4);
-        allocator.deallocate(ptr5, 8);
-        allocator.deallocate(ptr6, 12);
+        // Assert that they are all still unique
+        for (size_t i = 1; i < amount; i++)
+            KTL_TEST_ASSERT(ptrs[i - 1] != ptrs[i]);
     }
 
     template<typename T, typename Alloc>

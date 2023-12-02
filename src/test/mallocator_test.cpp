@@ -18,7 +18,7 @@ namespace ktl::test::mallocator
     KTL_ADD_TEST(test_mallocator_raw_allocate)
     {
         ktl::mallocator alloc;
-        assert_raw_allocate_deallocate(alloc);
+        assert_raw_allocate_deallocate<4, 8, 16, 32, 64, 128>(alloc);
     }
 
     KTL_ADD_TEST(test_mallocator_unordered_double)

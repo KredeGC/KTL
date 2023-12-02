@@ -22,7 +22,7 @@ namespace ktl::test::stack_allocator
     {
         stack<4096> block;
         ktl::stack_allocator<4096> alloc(block);
-        assert_raw_allocate_deallocate(alloc);
+        assert_raw_allocate_deallocate<2, 4, 8, 16, 32, 64>(alloc);
     }
 
     KTL_ADD_TEST(test_stack_allocator_unordered_double)

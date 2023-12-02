@@ -20,7 +20,7 @@ namespace ktl::test::linear_allocator
     KTL_ADD_TEST(test_linear_raw_allocate)
     {
         ktl::linear_allocator<4096> alloc;
-        assert_raw_allocate_deallocate(alloc);
+        assert_raw_allocate_deallocate<2, 4, 8, 16, 32, 64>(alloc);
     }
 
     KTL_ADD_TEST(test_linear_allocator_unordered_double)
