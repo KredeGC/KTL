@@ -6,8 +6,43 @@
 
 namespace ktl::test
 {
+    template<typename Alloc>
+    void assert_raw_allocate_deallocate(Alloc& allocator)
+    {
+        void* ptr1 = allocator.allocate(4);
+        void* ptr2 = allocator.allocate(8);
+        void* ptr3 = allocator.allocate(12);
+
+        KTL_TEST_ASSERT(ptr1);
+        KTL_TEST_ASSERT(ptr2);
+        KTL_TEST_ASSERT(ptr3);
+
+        KTL_TEST_ASSERT(ptr1 != ptr2);
+        KTL_TEST_ASSERT(ptr2 != ptr3);
+
+        allocator.deallocate(ptr1, 4);
+        allocator.deallocate(ptr2, 8);
+
+        void* ptr4 = allocator.allocate(4);
+        void* ptr5 = allocator.allocate(8);
+        void* ptr6 = allocator.allocate(12);
+
+        KTL_TEST_ASSERT(ptr4);
+        KTL_TEST_ASSERT(ptr5);
+        KTL_TEST_ASSERT(ptr6);
+
+        KTL_TEST_ASSERT(ptr4 != ptr5);
+        KTL_TEST_ASSERT(ptr5 != ptr6);
+        KTL_TEST_ASSERT(ptr3 != ptr6);
+
+        allocator.deallocate(ptr3, 12);
+        allocator.deallocate(ptr4, 4);
+        allocator.deallocate(ptr5, 8);
+        allocator.deallocate(ptr6, 12);
+    }
+
     template<typename T, typename Alloc>
-    static T* assert_allocate(Alloc& alloc, const T& value)
+    T* assert_allocate(Alloc& alloc, const T& value)
     {
         T* ptr = std::allocator_traits<Alloc>::allocate(alloc, 1);
 

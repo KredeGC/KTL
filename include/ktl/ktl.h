@@ -8,6 +8,7 @@
 #include "allocators/mallocator.h"
 #include "allocators/null_allocator.h"
 #include "allocators/overflow.h"
+#include "allocators/reference.h"
 #include "allocators/segragator.h"
 #include "allocators/shared.h"
 #include "allocators/stack_allocator.h"
