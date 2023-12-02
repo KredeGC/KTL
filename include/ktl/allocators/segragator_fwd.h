@@ -1,5 +1,6 @@
 #pragma once
 
+#include "reference_fwd.h"
 #include "shared_fwd.h"
 #include "threaded_fwd.h"
 #include "type_allocator_fwd.h"
@@ -86,13 +87,19 @@ namespace ktl
     using type_segragator_allocator = type_allocator<T, segragator<Threshold, P, F>>;
 
     /**
-     * @brief Shorthand for a typed, ref-counted freelist allocator
+     * @brief Shorthand for a typed, weak-reference segragator allocator
+    */
+    template<typename T, size_t Threshold, typename P, typename F>
+    using type_reference_segragator_allocator = type_allocator<T, reference<segragator<Threshold, P, F>>>;
+
+    /**
+     * @brief Shorthand for a typed, ref-counted segragator allocator
     */
     template<typename T, size_t Threshold, typename P, typename F>
     using type_shared_segragator_allocator = type_allocator<T, shared<segragator<Threshold, P, F>>>;
 
     /**
-     * @brief Shorthand for a typed, thread-safe, ref-counted freelist allocator
+     * @brief Shorthand for a typed, thread-safe, ref-counted segragator allocator
     */
     template<typename T, size_t Threshold, typename P, typename F>
     using type_threaded_segragator_allocator = type_allocator<T, threaded<segragator<Threshold, P, F>>>;

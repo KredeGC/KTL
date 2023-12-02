@@ -6,8 +6,57 @@
 
 namespace ktl::test
 {
+    template<size_t... Is, typename Alloc>
+    void assert_raw_allocate_deallocate(Alloc& allocator)
+    {
+        constexpr size_t amount = sizeof...(Is);
+
+        size_t sizes[amount]{ Is... };
+        void* ptrs[amount]{ nullptr };
+
+        std::shuffle(sizes, sizes + amount, random_generator);
+
+        // Allocate all with random sizes
+        for (size_t i = 0; i < amount; i++)
+        {
+            void* valid_ptr = allocator.allocate(sizes[i]);
+            KTL_TEST_ASSERT(valid_ptr);
+            ptrs[i] = valid_ptr;
+        }
+
+        // Assert that they are all unique
+        for (size_t i = 1; i < amount; i++)
+        {
+            bool ptr_not_equal = ptrs[i - 1] != ptrs[i];
+            KTL_TEST_ASSERT(ptr_not_equal);
+        }
+
+        // Deallocate the first half
+        for (size_t i = 0; i < amount / 2; i++)
+            allocator.deallocate(ptrs[i], sizes[i]);
+
+        // Allocate the first half again
+        for (size_t i = 0; i < amount / 2; i++)
+        {
+            void* valid_ptr = allocator.allocate(sizes[i]);
+            KTL_TEST_ASSERT(valid_ptr);
+            ptrs[i] = valid_ptr;
+        }
+
+        // Assert that they are all still unique
+        for (size_t i = 1; i < amount; i++)
+        {
+            bool ptr_not_equal = ptrs[i - 1] != ptrs[i];
+            KTL_TEST_ASSERT(ptr_not_equal);
+        }
+
+        // Deallocate everything
+        for (size_t i = 0; i < amount; i++)
+            allocator.deallocate(ptrs[i], sizes[i]);
+    }
+
     template<typename T, typename Alloc>
-    static T* assert_allocate(Alloc& alloc, const T& value)
+    T* assert_allocate(Alloc& alloc, const T& value)
     {
         T* ptr = std::allocator_traits<Alloc>::allocate(alloc, 1);
 

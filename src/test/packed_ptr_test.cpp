@@ -18,7 +18,7 @@ namespace ktl::test::packed_ptr
         int* in_ptr = &t;
         uint16_t in_value = 2;
 
-        ktl::packed_ptr<int*, 2, alignof(int)> pack(in_ptr, in_value);
+        ktl::packed_ptr<int*, 2> pack(in_ptr, in_value);
 
         KTL_TEST_ASSERT(pack);
         KTL_TEST_ASSERT(in_ptr == pack.get_ptr());

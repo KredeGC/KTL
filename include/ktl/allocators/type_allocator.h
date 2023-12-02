@@ -21,6 +21,10 @@ namespace ktl
 	private:
 		static_assert(detail::has_no_value_type_v<Alloc>, "Building on top of typed allocators is not allowed. Use allocators without a type");
 		static_assert(!std::is_const_v<T>, "Using an allocator of const T is ill-formed");
+		static_assert(!std::is_copy_constructible_v<Alloc> || std::is_nothrow_copy_constructible_v<Alloc>, "Using a throwing copy constructor is ill-formed");
+		static_assert(!std::is_move_constructible_v<Alloc> || std::is_nothrow_move_constructible_v<Alloc>, "Using a throwing move constructor is ill-formed");
+		static_assert(!std::is_copy_assignable_v<Alloc> || std::is_nothrow_copy_assignable_v<Alloc>, "Using throwing copy assignment is ill-formed");
+		static_assert(!std::is_move_assignable_v<Alloc> || std::is_nothrow_move_assignable_v<Alloc>, "Using throwing move assignment is ill-formed");
 
 		template<typename U, typename A>
 		friend class type_allocator;
@@ -54,21 +58,36 @@ namespace ktl
 
 		type_allocator(const type_allocator&) = default;
 
-		type_allocator(type_allocator&&) = default;
+		// Move construction is essentially forbidden for STL allocators
+		// A al(std::move(a)); a == al
+		// https://en.cppreference.com/w/cpp/named_req/Allocator
+		type_allocator(type_allocator&& other)
+			noexcept(std::is_nothrow_copy_constructible_v<Alloc>) :
+			m_Alloc(other.m_Alloc) {}
 
 		template<typename U>
 		type_allocator(const type_allocator<U, Alloc>& other)
 			noexcept(std::is_nothrow_constructible_v<Alloc, const type_allocator<U, Alloc>&>) :
 			m_Alloc(other.m_Alloc) {}
 
+		// Move construction is essentially forbidden for STL allocators
+		// https://en.cppreference.com/w/cpp/named_req/Allocator
 		template<typename U>
 		type_allocator(type_allocator<U, Alloc>&& other)
 			noexcept(std::is_nothrow_constructible_v<Alloc, type_allocator<U, Alloc>&&>) :
-			m_Alloc(std::move(other.m_Alloc)) {}
+			m_Alloc(other.m_Alloc) {}
 
 		type_allocator& operator=(const type_allocator&) = default;
 
-		type_allocator& operator=(type_allocator&&) = default;
+		// Move construction is essentially forbidden for STL allocators
+		// https://en.cppreference.com/w/cpp/named_req/Allocator
+		type_allocator& operator=(type_allocator&& rhs)
+			noexcept(std::is_nothrow_copy_assignable_v<Alloc>)
+		{
+			m_Alloc = rhs.m_Alloc;
+
+			return *this;
+		}
 
 #pragma region Allocation
 		/**

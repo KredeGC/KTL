@@ -14,6 +14,13 @@
 
 namespace ktl::test::freelist_allocator
 {
+    KTL_ADD_TEST(test_freelist_stack_allocator_raw_allocate)
+    {
+        stack<4096> block;
+        freelist<0, 8, stack_allocator<4096>> alloc(block);
+        assert_raw_allocate_deallocate<1, 2, 4, 4, 8, 8>(alloc);
+    }
+
     KTL_ADD_TEST(test_freelist_stack_allocator_unordered_double)
     {
         stack<4096> block;

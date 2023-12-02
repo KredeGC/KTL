@@ -78,15 +78,26 @@ namespace ktl::test::segragator_allocator
         Alloc4 alloc4;
         Alloc5 alloc5;
 
-        static_assert(detail::has_no_value_type<Alloc1>::value);
-        static_assert(detail::has_no_value_type<Alloc2>::value);
-        static_assert(detail::has_no_value_type<Alloc3>::value);
-        static_assert(detail::has_no_value_type<Alloc4>::value);
-        static_assert(detail::has_no_value_type<Alloc5>::value);
+        static_assert(detail::has_no_value_type_v<Alloc1>);
+        static_assert(detail::has_no_value_type_v<Alloc2>);
+        static_assert(detail::has_no_value_type_v<Alloc3>);
+        static_assert(detail::has_no_value_type_v<Alloc4>);
+        static_assert(detail::has_no_value_type_v<Alloc5>);
         
         static_assert(!std::is_same_v<Alloc1, Alloc2>, "The allocator types shouldn't match");
         static_assert(std::is_same_v<Alloc3, Alloc4>, "The allocator types don't match");
         static_assert(!std::is_same_v<Alloc3, Alloc5>, "The allocator types shouldn't match");
+    }
+
+    KTL_ADD_TEST(test_segragator_stack_stack_raw_allocate)
+    {
+        using Alloc = segragator<8, stack_allocator<1024>, stack_allocator<1024>>;
+
+        stack<1024> primaryStack;
+        stack<1024> fallbackStack;
+        Alloc alloc(std::forward_as_tuple(primaryStack), std::forward_as_tuple(fallbackStack));
+
+        assert_raw_allocate_deallocate<2, 4, 8, 16, 32, 64>(alloc);
     }
     
     KTL_ADD_TEST(test_segragator_stack_stack_unordered_double)

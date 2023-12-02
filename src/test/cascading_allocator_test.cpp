@@ -15,6 +15,12 @@
 
 namespace ktl::test::cascading_allocator
 {
+    KTL_ADD_TEST(test_cascading_linear_raw_allocate)
+    {
+        cascading<linear_allocator<32>> alloc;
+        assert_raw_allocate_deallocate<2, 4, 8, 16, 24, 32>(alloc);
+    }
+
     KTL_ADD_TEST(test_cascading_linear_unordered_double)
     {
         type_cascading_allocator<double, linear_allocator<32>> alloc;
