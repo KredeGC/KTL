@@ -41,6 +41,16 @@ namespace ktl::test::overflow_allocator
         KTL_TEST_ASSERT(stringBuffer.str().empty());
     }
 
+    KTL_ADD_TEST(test_cascading_linear_raw_allocate)
+    {
+        assert_no_overflow([](std::ostream& stringOut)
+        {
+            stack<4096> block;
+            overflow<stack_allocator<4096>> alloc(stringOut, block);
+            assert_raw_allocate_deallocate<2, 4, 8, 16, 32, 64>(alloc);
+        });
+    }
+
     KTL_ADD_TEST(test_overflow_stack_unordered_double)
     {
         assert_no_overflow([](std::ostream& stringOut)

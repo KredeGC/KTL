@@ -79,6 +79,14 @@ namespace ktl::test::fallback_allocator
         static_assert(!std::is_same_v<Alloc3, Alloc5>, "The allocator types shouldn't match");
     }
     
+    KTL_ADD_TEST(test_cascading_linear_raw_allocate)
+    {
+        stack<16> primaryStack;
+        stack<4096> fallbackStack;
+        fallback<stack_allocator<16>, stack_allocator<4096>> alloc(primaryStack, fallbackStack);
+        assert_raw_allocate_deallocate<2, 4, 8, 16, 32, 64>(alloc);
+    }
+
     KTL_ADD_TEST(test_fallback_stack_stack_unordered_double)
     {
         stack<16> primaryStack;
