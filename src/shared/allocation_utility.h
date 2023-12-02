@@ -19,13 +19,17 @@ namespace ktl::test
         // Allocate all with random sizes
         for (size_t i = 0; i < amount; i++)
         {
-            ptrs[i] = allocator.allocate(sizes[i]);
-            KTL_TEST_ASSERT(ptrs[i]);
+            void* valid_ptr = allocator.allocate(sizes[i]);
+            KTL_TEST_ASSERT(valid_ptr);
+            ptrs[i] = valid_ptr;
         }
 
         // Assert that they are all unique
         for (size_t i = 1; i < amount; i++)
-            KTL_TEST_ASSERT(ptrs[i - 1] != ptrs[i]);
+        {
+            bool ptr_not_equal = ptrs[i - 1] != ptrs[i];
+            KTL_TEST_ASSERT(ptr_not_equal);
+        }
 
         // Deallocate the first half
         for (size_t i = 0; i < amount / 2; i++)
@@ -34,13 +38,21 @@ namespace ktl::test
         // Allocate the first half again
         for (size_t i = 0; i < amount / 2; i++)
         {
-            ptrs[i] = allocator.allocate(sizes[i]);
-            KTL_TEST_ASSERT(ptrs[i]);
+            void* valid_ptr = allocator.allocate(sizes[i]);
+            KTL_TEST_ASSERT(valid_ptr);
+            ptrs[i] = valid_ptr;
         }
 
         // Assert that they are all still unique
         for (size_t i = 1; i < amount; i++)
-            KTL_TEST_ASSERT(ptrs[i - 1] != ptrs[i]);
+        {
+            bool ptr_not_equal = ptrs[i - 1] != ptrs[i];
+            KTL_TEST_ASSERT(ptr_not_equal);
+        }
+
+        // Deallocate everything
+        for (size_t i = 0; i < amount; i++)
+            allocator.deallocate(ptrs[i], sizes[i]);
     }
 
     template<typename T, typename Alloc>
