@@ -285,7 +285,7 @@ namespace ktl
 		void resize(size_t n) noexcept
 		{
 			if (capacity() < n)
-				set_size(n);
+				expand(n - capacity());
 
 			m_End = m_Begin + n;
 		}
@@ -435,7 +435,7 @@ namespace ktl
 		void expand(size_t n) noexcept
 		{
 			size_t curCap = capacity();
-			size_t alSize = curCap + (std::max)(curCap, n);
+			size_t alSize = curCap + (std::max)(curCap / 2, n);
 
 			set_size(alSize);
 		}
