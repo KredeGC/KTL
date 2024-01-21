@@ -37,11 +37,6 @@ jobs:
     - name: Install GCC
       if: matrix.machine.toolset == 'gcc'
       run: sudo apt-get update && sudo apt-get install -y gcc g++
-    - name: Clang libstdc++ image workaround
-      if: matrix.machine.toolset == 'clang'
-      uses: mjp41/workaround8649@7929373c0fe5caf844d8115adccef39e3b5362e7
-      with:
-        os: ${{ matrix.machine.os }}
     - name: Install Clang & LLVM
       if: matrix.machine.toolset == 'clang'
       run: sudo apt-get update && sudo apt-get install -y clang llvm lld
@@ -49,7 +44,7 @@ jobs:
       if: matrix.machine.toolset == 'msc'
       uses: microsoft/setup-msbuild@v1.1
     - name: Run premake
-      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=C++20
+      run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=C++17
     - name: Build
       run: premake5 build --config=debug
     - name: Run test
