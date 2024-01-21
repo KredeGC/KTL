@@ -1,5 +1,6 @@
 #include "shared/test.h"
 
+#include <cstddef>
 #include <iostream>
 
 #if defined(_WIN32) // Windows
@@ -26,7 +27,7 @@ namespace ktl::test
 		size_t count = 0;
 		size_t passed = 0;
 
-		for (uint32_t i = 0; i < s_TestCounter; i++)
+		for (size_t i = 0; i < s_TestCounter; i++)
 		{
 			if (s_TestFunctions[i])
 			{
