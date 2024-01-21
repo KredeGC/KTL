@@ -36,8 +36,6 @@ namespace ktl
 
 		global& operator=(global&& rhs) noexcept
 		{
-			s_Alloc = rhs.s_Alloc;
-
 			return *this;
 		}
 
