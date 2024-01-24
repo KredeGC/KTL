@@ -11,7 +11,32 @@
 
 namespace ktl
 {
-	template<typename Alloc>
+	template<typename T>
+	class notomic
+	{
+	public:
+		notomic() noexcept = default;
+		notomic(T value) noexcept :
+			m_Count(value) {}
+
+		notomic(const notomic&) = delete;
+		notomic(notomic&&) = delete;
+
+		T fetch_add(T add, std::memory_order) noexcept
+		{
+			return m_Count++;
+		}
+
+		T fetch_sub(T add, std::memory_order) noexcept
+		{
+			return m_Count--;
+		}
+
+	private:
+		T m_Count;
+	};
+
+	template<typename Alloc, template<typename> typename Atomic>
 	class shared
 	{
 	private:
@@ -20,7 +45,7 @@ namespace ktl
 		struct block
 		{
 			KTL_EMPTY_BASE Alloc Allocator;
-			detail::get_size_type_t<Alloc> UseCount;
+			Atomic<detail::get_size_type_t<Alloc>> UseCount;
 
 			template<typename... Args,
 				typename = std::enable_if_t<
@@ -167,7 +192,7 @@ namespace ktl
 		{
 			if (!m_Block) return;
 
-			m_Block->UseCount++;
+			m_Block->UseCount.fetch_add(1, std::memory_order_acq_rel);
 		}
 
 		void decrement()
@@ -175,7 +200,7 @@ namespace ktl
 		{
 			if (!m_Block) return;
 
-			if (--m_Block->UseCount == 0)
+			if (m_Block->UseCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
 				detail::aligned_delete(m_Block);
 		}
 
