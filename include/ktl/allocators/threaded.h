@@ -78,7 +78,7 @@ namespace ktl
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
 		construct(T* p, Args&&... args) // Lock cannot be noexcept
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			//std::lock_guard<std::mutex> lock(m_Lock); // Does it need to lock on construction?
 
 			m_Alloc.construct(p, std::forward<Args>(args)...);
 		}
@@ -87,7 +87,7 @@ namespace ktl
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
 		destroy(T* p) // Lock cannot be noexcept
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			//std::lock_guard<std::mutex> lock(m_Lock);
 
 			m_Alloc.destroy(p);
 		}
