@@ -19,8 +19,7 @@ Allocators are mostly based on a [Talk by Andrei Alexandrescu](https://www.youtu
 
 # Status
 The interface is in a mostly stable state, so severe changes should rarely occur.
-In addition, most allocators presented are not thread-safe.
-For now thread safety is not on the roadmap as it would degrade performance on single-threaded applications.
+In addition, most allocators presented are not thread-safe, but can be composed together in order to achieve thread safety.
 The functionality is fairly stable but should not be expected to be used in a production environment for the time being.
 
 # Table of Content
@@ -61,12 +60,12 @@ This library contains 2 different types of allocators:
 * Raw void* allocators - Do the actual allocation/deallocation and construction/destruction
 * Composite/synthetic allocators - Attach to other allocators to provide extra features on top
 
-Allocators always use an alignment of at least 8 bytes.
+Allocators always use an alignment equal to the `std::max_align_t` type.
 
-Raw allocators do not work like the STL `std::allocator` in 2 ways: Multiple instances do not share the same state, and they are untyped.<br/>
+Raw allocators are different from the STL `std::allocator` in 2 ways: Multiple instances do not necessarily share the same state, and they are untyped.<br/>
 If you make a copy of a raw allocator it may not be able to deallocate anything that was allocated by the original.<br/>
 If you want the state to be shared you can wrap it in a `shared<Allocator>` type, which will use ref-counting when copying and moving the allocator.<br/>
-You may also want the allocator to be thread-safe, in which case you can wrap it in a `atomic_shared<threaded<Allocator>>` type.
+You may also want the allocator to be thread-safe, in which case you can wrap it in a `atomic_shared<threaded<Allocator>>` type instead.
 
 All STL containers require a typed allocator with shared state.<br/>
 To make an allocator typed you can wrap it in a `type_allocator<T, Allocator>` type.<br/>
@@ -86,18 +85,18 @@ If you also want it to be synchronized across multiple threads you can wrap your
 | --- | --- | --- | --- |
 | `linear_allocator<Size>` | Raw | Contained | Allocates a block of `Size` which it then hands out in chunks, similar to `stack_allocator`.<br/>Simply increments a counter during allocation, making allocations very fast, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given, but unlike the `stack_allocator` keeps its memory internally. |
 | `mallocator` | Raw | Shared | An allocator which tries to align memory when allocating.<br/>Almost like std::allocator, except it has no type. |
-| `null_allocator` | Raw | None | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
+| `null_allocator` | Raw | Shared | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
 | `stack_allocator<Size>` | Raw | Contained | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making allocations very fast, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
 | `cascading<Allocator>` | Composite | Contained | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one.<br/>The allocator type must be default-constructible, which means the `stack_allocator` can't be used. |
-| `fallback<Primary, Fallback>` | Composite | None | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
+| `fallback<Primary, Fallback>` | Composite | Inherited | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
 | `freelist<Min, Max, Alloc>` | Composite | Contained | Allocates using the given allocator, if the size specified is within the range of `Min` and `Max`, otherwise returns `nullptr`.<br/>When deallocating, it keeps the free memory in a linked list which can be reused on later allocations. |
 | `global<Allocator>` | Composite | Shared | A global static allocator. |
 | `overflow<Allocator, Stream>` | Composite | Contained | Checks for memory corruption/leak when allocating/constructing via it's specified allocator. It streams the results to the Stream specified. Must be constructed with a reference to the `Stream`. |
 | `reference<Allocator>` | Composite | Shared | Keeps a reference to an allocator that has been instantiated elsewhere. The lifetime of the underlying allocator should outlive the reference to it. A great alternative to shared allocators, but do not work with multiple threads. |
-| `segragator<Threshold, Primary, Fallback>` | Composite | None | Delegates allocation between 2 allocators based on a size threshold. |
+| `segragator<Threshold, Primary, Fallback>` | Composite | Inherited | Delegates allocation between 2 allocators based on a size threshold. |
 | `shared<Allocator, Atomic=notomic>` | Composite | Shared | Wraps around the specified allocator, making it ref-counted. This can be used to make an allocator STL compliant, so they can be used with STL containers. A *"thread-safe"* version can be accessed via the `atomic_shared<Alloc>` alias, which can be used in conjunction with `threaded<Alloc>`. |
 | `threaded<Allocator>` | Composite | Contained | Wraps around the specified allocator with a mutex that locks when allocating / deallocating. This can be used to make an allocator STL compliant, so they can be used with STL containers. |
-| `type_allocator<T, Allocator>` | Composite | None | Wraps around the specified allocator with a type. This can be used to make an allocator STL compliant, so they can be used with STL containers. |
+| `type_allocator<T, Allocator>` | Composite | Inherited | Wraps around the specified allocator with a type. This can be used to make an allocator STL compliant, so they can be used with STL containers. |
 
 NOTES:
 Exceptions are not used with any of the allocators above. This means that upon failure, they will simply return a null pointer to indicate that they were unable to allocate anything. Some synthethic allocators may rely upon this nullptr feature, like fallback_allocator, which upon failure will attempt to use the given `Fallback` allocator instead.

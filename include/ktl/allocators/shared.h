@@ -6,6 +6,7 @@
 #include "../utility/meta.h"
 #include "shared_fwd.h"
 
+#include <atomic>
 #include <memory>
 #include <type_traits>
 

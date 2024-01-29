@@ -76,7 +76,8 @@ namespace ktl
 #pragma region Construction
 		template<typename T, typename... Args>
 		typename std::enable_if<detail::has_construct_v<Alloc, T*, Args...>, void>::type
-		construct(T* p, Args&&... args) // Lock cannot be noexcept
+		construct(T* p, Args&&... args)
+			noexcept(detail::has_nothrow_construct_v<Alloc, T*, Args...>)
 		{
 			//std::lock_guard<std::mutex> lock(m_Lock); // Does it need to lock on construction?
 
@@ -85,7 +86,8 @@ namespace ktl
 
 		template<typename T>
 		typename std::enable_if<detail::has_destroy_v<Alloc, T*>, void>::type
-		destroy(T* p) // Lock cannot be noexcept
+		destroy(T* p)
+			noexcept(detail::has_nothrow_destroy_v<Alloc, T*>)
 		{
 			//std::lock_guard<std::mutex> lock(m_Lock);
 

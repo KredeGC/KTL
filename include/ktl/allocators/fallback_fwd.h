@@ -81,10 +81,4 @@ namespace ktl
     */
     template<typename T, typename P, typename F>
     using type_shared_fallback_allocator = type_allocator<T, shared<fallback<P, F>>>;
-
-    /**
-     * @brief Shorthand for a typed, thread-safe, ref-counted fallback allocator
-    */
-    template<typename T, typename P, typename F>
-    using type_threaded_fallback_allocator = type_allocator<T, threaded<fallback<P, F>>>;
 }

@@ -27,10 +27,4 @@ namespace ktl
 	*/
 	template<typename T, size_t Size>
 	using type_shared_stack_allocator = type_allocator<T, shared<stack_allocator<Size>>>;
-
-	/**
-	 * @brief Shorthand for a typed, thread-safe, ref-counted stack allocator
-	*/
-	template<typename T, size_t Size>
-	using type_threaded_stack_allocator = type_allocator<T, threaded<stack_allocator<Size>>>;
 }
