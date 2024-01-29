@@ -7,8 +7,8 @@
 #include "ktl/allocators/linear_allocator.h"
 #include "ktl/allocators/mallocator.h"
 #include "ktl/allocators/segragator.h"
+#include "ktl/allocators/shared.h"
 #include "ktl/allocators/stack_allocator.h"
-#include "ktl/allocators/threaded.h"
 
 #include <iostream>
 
@@ -102,7 +102,7 @@ namespace ktl::test::segragator_allocator
     
     KTL_ADD_TEST(test_segragator_stack_stack_unordered_double)
     {
-        using AllocDouble = type_threaded_segragator_allocator<double, 8, stack_allocator<1024>, stack_allocator<1024>>;
+        using AllocDouble = type_shared_segragator_allocator<double, 8, stack_allocator<1024>, stack_allocator<1024>>;
         using AllocTrivial = typename std::allocator_traits<AllocDouble>::template rebind_alloc<trivial_t>;
 
         stack<1024> primaryStack;

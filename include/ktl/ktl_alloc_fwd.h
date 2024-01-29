@@ -3,6 +3,7 @@
 #include "allocators/cascading_fwd.h"
 #include "allocators/fallback_fwd.h"
 #include "allocators/freelist_fwd.h"
+#include "allocators/global_fwd.h"
 #include "allocators/linear_allocator_fwd.h"
 #include "allocators/mallocator_fwd.h"
 #include "allocators/overflow_fwd.h"

@@ -24,10 +24,4 @@ namespace ktl
 	*/
 	template<typename T, typename Alloc, typename Stream = std::ostream>
 	using type_shared_overflow_allocator = type_allocator<T, shared<overflow<Alloc, Stream>>>;
-
-	/**
-	 * @brief Shorthand for a typed, thread-safe, ref-counted overflow allocator
-	*/
-	template<typename T, typename Alloc, typename Stream = std::ostream>
-	using type_threaded_overflow_allocator = type_allocator<T, threaded<overflow<Alloc, Stream>>>;
 }

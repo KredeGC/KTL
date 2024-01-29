@@ -23,9 +23,6 @@ jobs:
           os: windows-latest
           action: vs2019
           toolset: msc
-        exclude: # Exclude Clang C++20 since GitHub's runner images are screwed
-        - machine.toolset: clang
-          dialect: C++20
     runs-on: ${{ matrix.machine.os }}
     permissions:
       security-events: write

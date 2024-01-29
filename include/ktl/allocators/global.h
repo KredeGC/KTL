@@ -4,17 +4,15 @@
 #include "../utility/alignment.h"
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
-#include "threaded_fwd.h"
+#include "global_fwd.h"
 
-#include <atomic>
 #include <memory>
-#include <mutex>
 #include <type_traits>
 
 namespace ktl
 {
 	template<typename Alloc>
-	class threaded
+	class global
 	{
 	private:
 		static_assert(detail::has_no_value_type_v<Alloc>, "Building on top of typed allocators is not allowed. Use allocators without a type");
@@ -22,54 +20,46 @@ namespace ktl
 	public:
 		typedef typename detail::get_size_type_t<Alloc> size_type;
 
-		template<typename A = Alloc>
-		threaded()
-			noexcept(std::is_nothrow_default_constructible_v<Alloc>) :
-			m_Alloc(),
-			m_Lock() {}
-
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
 		*/
-		template<typename... Args,
-			typename = std::enable_if_t<
-			std::is_constructible_v<Alloc, Args...>>>
-		explicit threaded(Args&&... args)
-			noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
-			m_Alloc(std::forward<Args>(args) ...),
-			m_Lock() {}
+		global() noexcept {}
 
-		threaded(const threaded&) = delete;
-		threaded(threaded&&) = delete;
+		global(const global& other) noexcept {}
 
-		threaded& operator=(const threaded&) = delete;
-		threaded& operator=(threaded&&) = delete;
+		global(global&& other) noexcept {}
 
-		bool operator==(const threaded& rhs) const
-			noexcept(detail::has_nothrow_equal_v<Alloc>)
+		global& operator=(const global& rhs) noexcept
 		{
-			return m_Alloc == rhs.m_Alloc;
+			return *this;
 		}
 
-		bool operator!=(const threaded& rhs) const
-			noexcept(detail::has_nothrow_not_equal_v<Alloc>)
+		global& operator=(global&& rhs) noexcept
 		{
-			return m_Alloc != rhs.m_Alloc;
+			return *this;
+		}
+
+		bool operator==(const global& rhs) const
+		{
+			return true;
+		}
+
+		bool operator!=(const global& rhs) const
+		{
+			return true;
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n) // Lock cannot be noexcept
+		void* allocate(size_t n)
+			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
-
-			return m_Alloc.allocate(n);
+			return s_Alloc.allocate(n);
 		}
 
-		void deallocate(void* p, size_t n) // Lock cannot be noexcept
+		void deallocate(void* p, size_t n)
+			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
-
-			m_Alloc.deallocate(p, n);
+			s_Alloc.deallocate(p, n);
 		}
 #pragma endregion
 
@@ -79,9 +69,7 @@ namespace ktl
 		construct(T* p, Args&&... args)
 			noexcept(detail::has_nothrow_construct_v<Alloc, T*, Args...>)
 		{
-			//std::lock_guard<std::mutex> lock(m_Lock); // Does it need to lock on construction?
-
-			m_Alloc.construct(p, std::forward<Args>(args)...);
+			s_Alloc.construct(p, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
@@ -89,9 +77,7 @@ namespace ktl
 		destroy(T* p)
 			noexcept(detail::has_nothrow_destroy_v<Alloc, T*>)
 		{
-			//std::lock_guard<std::mutex> lock(m_Lock);
-
-			m_Alloc.destroy(p);
+			s_Alloc.destroy(p);
 		}
 #pragma endregion
 
@@ -101,7 +87,7 @@ namespace ktl
 		max_size() const
 			noexcept(detail::has_nothrow_max_size_v<A>)
 		{
-			return m_Alloc.max_size();
+			return s_Alloc.max_size();
 		}
 
 		template<typename A = Alloc>
@@ -109,22 +95,26 @@ namespace ktl
 		owns(void* p) const
 			noexcept(detail::has_nothrow_owns_v<A>)
 		{
-			return m_Alloc.owns(p);
+			return s_Alloc.owns(p);
 		}
 #pragma endregion
 
+		void set_allocator(Alloc&& value) noexcept
+		{
+			s_Alloc = std::move(value);
+		}
+
 		Alloc& get_allocator() noexcept
 		{
-			return m_Alloc;
+			return s_Alloc;
 		}
 
 		const Alloc& get_allocator() const noexcept
 		{
-			return m_Alloc;
+			return s_Alloc;
 		}
 
 	private:
-		KTL_EMPTY_BASE Alloc m_Alloc;
-		std::mutex m_Lock;
+		static inline Alloc s_Alloc{};
 	};
 }

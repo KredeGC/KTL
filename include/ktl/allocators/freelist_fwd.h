@@ -23,10 +23,4 @@ namespace ktl
 	*/
 	template<typename T, size_t Min, size_t Max, typename Alloc>
 	using type_shared_freelist_allocator = type_allocator<T, shared<freelist<Min, Max, Alloc>>>;
-
-	/**
-	 * @brief Shorthand for a typed, thread-safe, ref-counted freelist allocator
-	*/
-	template<typename T, size_t Min, size_t Max, typename Alloc>
-	using type_threaded_freelist_allocator = type_allocator<T, threaded<freelist<Min, Max, Alloc>>>;
 }

@@ -97,10 +97,4 @@ namespace ktl
     */
     template<typename T, size_t Threshold, typename P, typename F>
     using type_shared_segragator_allocator = type_allocator<T, shared<segragator<Threshold, P, F>>>;
-
-    /**
-     * @brief Shorthand for a typed, thread-safe, ref-counted segragator allocator
-    */
-    template<typename T, size_t Threshold, typename P, typename F>
-    using type_threaded_segragator_allocator = type_allocator<T, threaded<segragator<Threshold, P, F>>>;
 }

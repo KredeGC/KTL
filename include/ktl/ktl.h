@@ -4,6 +4,7 @@
 #include "allocators/cascading.h"
 #include "allocators/fallback.h"
 #include "allocators/freelist.h"
+#include "allocators/global.h"
 #include "allocators/linear_allocator.h"
 #include "allocators/mallocator.h"
 #include "allocators/null_allocator.h"
