@@ -16,11 +16,6 @@ namespace ktl
 #ifdef KTL_SOURCE_LOCATION
     using source_location = std::source_location;
 #else
-    struct source_location
-    {
-        constexpr const char* file_name() const noexcept { return ""; }
-
-        constexpr uint_least32_t line() const noexcept { return 0; }
-    };
+    struct source_location {};
 #endif
 }

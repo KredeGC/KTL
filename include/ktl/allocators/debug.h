@@ -67,15 +67,15 @@ namespace ktl
 #pragma region Allocation
 		/**
 		 * @brief Attempts to allocate a chunk of memory defined by @p n
-		 * @note Allocates 64 bytes more on either side of the returned address.
-		 * This memory will be used for overflow checking.
 		 * @param n The amount of bytes to allocate memory for
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
-		void* allocate(size_type n, const source_location source = KTL_SOURCE())
+		void* allocate(size_type n, const source_location& source = KTL_SOURCE())
 			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
+#ifdef KTL_SOURCE_LOCATION
 			m_Container.push_back({ source.file_name(), source.line(), n });
+#endif
 
 			return detail::allocate(m_Alloc, n, source);
 		}
