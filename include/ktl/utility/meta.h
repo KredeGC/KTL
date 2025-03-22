@@ -1,5 +1,7 @@
 #pragma once
 
+#include "source_location.h"
+
 #include <type_traits>
 
 namespace ktl::detail
@@ -27,8 +29,18 @@ namespace ktl::detail
 		using type = typename Alloc::size_type;
 	};
 
-	template<typename Alloc>
+	template<typename Alloc, typename = void>
 	using get_size_type_t = typename get_size_type<Alloc, void>::type;
+
+	// has allocate(size_t)
+	template<typename Alloc, typename = void>
+	struct has_allocate : std::false_type {};
+
+	template<typename Alloc>
+	struct has_allocate<Alloc, std::void_t<decltype(std::declval<Alloc&>().allocate(std::declval<size_t>()))>> : std::true_type {};
+
+	template<typename Alloc>
+	constexpr bool has_allocate_v = has_allocate<Alloc>::value;
 
 	// has construct(T*, Args&&...)
 	template<typename Void, typename... Types>
@@ -73,8 +85,19 @@ namespace ktl::detail
 
 
 	// has allocate(size_t) noexcept
+	template<typename Alloc, bool>
+	struct has_nothrow_allocate : std::false_type {};
+
 	template<typename Alloc>
-	constexpr bool has_nothrow_allocate_v = noexcept(std::declval<Alloc&>().allocate(std::declval<size_t>()));
+	struct has_nothrow_allocate<Alloc, true>
+		: std::bool_constant<noexcept(std::declval<Alloc&>().allocate(std::declval<size_t>()))> {};
+
+	template<typename Alloc>
+	struct has_nothrow_allocate<Alloc, false>
+		: std::bool_constant<noexcept(std::declval<Alloc&>().allocate(std::declval<size_t>(), std::declval<source_location>()))> {};
+
+	template<typename Alloc>
+	constexpr bool has_nothrow_allocate_v = has_nothrow_allocate<Alloc, has_allocate_v<Alloc>>::value;
 
 	// has deallocate(void*, size_t) noexcept
 	template<typename Alloc>
@@ -84,7 +107,7 @@ namespace ktl::detail
 	template<typename T>
 	constexpr bool has_nothrow_equal_v = noexcept(std::declval<T&>() == std::declval<T&>());
 
-	// has T& == T& noexcept
+	// has T& != T& noexcept
 	template<typename T>
 	constexpr bool has_nothrow_not_equal_v = noexcept(std::declval<T&>() == std::declval<T&>());
 
@@ -131,4 +154,15 @@ namespace ktl::detail
 
 	template<typename Alloc>
 	constexpr bool has_nothrow_owns_v = has_nothrow_owns<Alloc, void>::value;
+
+
+
+	template<typename Alloc>
+	void* allocate(Alloc& alloc, size_t n, const source_location source) noexcept(false)
+	{
+		if constexpr (has_allocate_v<Alloc>)
+			return alloc.allocate(n);
+		else
+			return alloc.allocate(n, source);
+	}
 }

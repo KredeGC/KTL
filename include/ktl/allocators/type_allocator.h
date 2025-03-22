@@ -2,6 +2,7 @@
 
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 
 #include "type_allocator_fwd.h"
 
@@ -95,10 +96,10 @@ namespace ktl
 		 * @param n The amount of objects to allocate memory for. Not in bytes, but number of T
 		 * @return A location in memory that is at least @p n objects big or nullptr if it could not be allocated
 		*/
-		value_type* allocate(size_t n)
+		value_type* allocate(size_t n, const source_location source = KTL_SOURCE())
 			noexcept(noexcept(m_Alloc.allocate(n)))
 		{
-			return reinterpret_cast<value_type*>(m_Alloc.allocate(sizeof(value_type) * n));
+			return reinterpret_cast<value_type*>(detail::allocate(m_Alloc, sizeof(value_type) * n, source));
 		}
 
 		/**

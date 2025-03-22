@@ -2,6 +2,7 @@
 
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 #include "fallback_fwd.h"
 #include "type_allocator.h"
 
@@ -97,12 +98,12 @@ namespace ktl
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n)
+		void* allocate(size_t n, const source_location source = KTL_SOURCE())
 			noexcept(detail::has_nothrow_allocate_v<P> && detail::has_nothrow_allocate_v<F>)
 		{
-			void* ptr = m_Primary.allocate(n);
+			void* ptr = detail::allocate(m_Primary, n, source);
 			if (!ptr)
-				return m_Fallback.allocate(n);
+				return detail::allocate(m_Fallback, n, source);
 			return ptr;
 		}
 

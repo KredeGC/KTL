@@ -4,45 +4,34 @@
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
 #include "../utility/source_location.h"
-#include "freelist_fwd.h"
+#include "debug_fwd.h"
 #include "type_allocator.h"
 
-#include <cstddef>
+#include <cstring>
 #include <memory>
+#include <ostream>
 #include <type_traits>
 
 namespace ktl
 {
-	/**
-	 * @brief An allocator which allocates using its underlying allocator.
-	 * Only allocates if the requested size is within the @p Min and @p Max range
-	 * When deallocating it chains the memory in a linked list, which can then be reused.
-	 * @note The memory is only completely dealloacated when the allocator is destroyed.
-	 * The value of @p Max must be at least the size of a pointer, otherwise it cannot chain deallocations.
-	 * @tparam Alloc The allocator to wrap around
-	*/
-	template<size_t Min, size_t Max, typename Alloc>
-	class freelist
+	template<typename Alloc, typename Container>
+	class debug
 	{
 	private:
 		static_assert(detail::has_no_value_type_v<Alloc>, "Building on top of typed allocators is not allowed. Use allocators without a type");
-		static_assert(Max >= sizeof(void*), "The freelist allocator requires a Max of at least the size of a pointer");
 
 	public:
 		typedef typename detail::get_size_type_t<Alloc> size_type;
 
-	private:
-        struct link
-        {
-            link* Next;
-        };
-        
 	public:
-		template<typename A = Alloc>
-		freelist()
-			noexcept(std::is_nothrow_default_constructible_v<A>) :
-			m_Alloc(),
-			m_Free(nullptr) {}
+		/**
+		 * @brief Construct the allocator with a reference to a container object
+		 * @param container The container to use for populating statistics
+		*/
+		explicit debug(Container& container)
+			noexcept(std::is_nothrow_default_constructible_v<Alloc>) :
+			m_Container(container),
+			m_Alloc() {}
 
 		/**
 		 * @brief Constructor for forwarding any arguments to the underlying allocator
@@ -50,102 +39,56 @@ namespace ktl
 		template<typename... Args,
 			typename = std::enable_if_t<
 			std::is_constructible_v<Alloc, Args...>>>
-		explicit freelist(Args&&... args)
+		explicit debug(Container& container, Args&&... args)
 			noexcept(std::is_nothrow_constructible_v<Alloc, Args...>) :
-			m_Alloc(std::forward<Args>(args)...),
-			m_Free(nullptr) {}
+			m_Container(container),
+			m_Alloc(std::forward<Args>(args)...) {}
 
-		freelist(const freelist&) = delete;
+		debug(const debug&) = default;
 
-		freelist(freelist&& other)
-			noexcept(std::is_nothrow_move_constructible_v<Alloc>) :
-			m_Alloc(std::move(other.m_Alloc)),
-			m_Free(other.m_Free)
-		{
-			// Moving raw allocators in use is undefined
-			KTL_ASSERT(m_Alloc == other.m_Alloc || other.m_Free == nullptr);
+		debug(debug&&) = default;
 
-			other.m_Free = nullptr;
-		}
+		debug& operator=(const debug&) = default;
 
-        ~freelist()
-        {
-			release();
-        }
+		debug& operator=(debug&&) = default;
 
-		freelist& operator=(const freelist&) = delete;
-
-		freelist& operator=(freelist&& rhs)
-			noexcept(std::is_nothrow_move_assignable_v<Alloc>)
-		{
-			release();
-
-			m_Alloc = std::move(rhs.m_Alloc);
-			m_Free = rhs.m_Free;
-
-			// Moving raw allocators in use is undefined
-			KTL_ASSERT(m_Alloc == rhs.m_Alloc || rhs.m_Free == nullptr);
-
-			rhs.m_Free = nullptr;
-
-			return *this;
-		}
-
-		bool operator==(const freelist& rhs) const
+		bool operator==(const debug& rhs) const
 			noexcept(detail::has_nothrow_equal_v<Alloc>)
 		{
-			return m_Alloc == rhs.m_Alloc && m_Free == rhs.m_Free;
+			return m_Alloc == rhs.m_Alloc;
 		}
 
-		bool operator!=(const freelist& rhs) const
+		bool operator!=(const debug& rhs) const
 			noexcept(detail::has_nothrow_not_equal_v<Alloc>)
 		{
-			return m_Alloc != rhs.m_Alloc || m_Free != rhs.m_Free;
+			return m_Alloc != rhs.m_Alloc;
 		}
 
 #pragma region Allocation
 		/**
-		 * @brief Attempts to allocate a chunk of memory defined by @p n.
-		 * Will use previous allocations that were meant to be deallocated.
-		 * @note If @p n is not within Min and Max, this function will return nullptr
+		 * @brief Attempts to allocate a chunk of memory defined by @p n
+		 * @note Allocates 64 bytes more on either side of the returned address.
+		 * This memory will be used for overflow checking.
 		 * @param n The amount of bytes to allocate memory for
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
 		void* allocate(size_type n, const source_location source = KTL_SOURCE())
 			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
-			if (n > Min && n <= Max)
-			{
-				link* next = m_Free;
-				if (next)
-				{
-					m_Free = next->Next;
-					return next;
-				}
+			m_Container.push_back({ source.file_name(), source.line(), n });
 
-				return detail::allocate(m_Alloc, Max, source);
-			}
-
-			return nullptr;
+			return detail::allocate(m_Alloc, n, source);
 		}
 
 		/**
 		 * @brief Attempts to deallocate the memory at location @p p
-		 * @note Will not deallocate the memory, but instead tie it to a linked list for later reuse
 		 * @param p The location in memory to deallocate
 		 * @param n The size that was initially allocated
 		*/
 		void deallocate(void* p, size_type n)
 			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
 		{
-			KTL_ASSERT(p != nullptr);
-
-			if (n > Min && n <= Max && p)
-			{
-				link* next = reinterpret_cast<link*>(p);
-				next->Next = m_Free;
-				m_Free = next;
-			}
+			m_Alloc.deallocate(p, n);
 		}
 #pragma endregion
 
@@ -226,21 +169,26 @@ namespace ktl
 			return m_Alloc;
 		}
 
-	private:
-		void release()
-			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
+		/**
+		 * @brief Return a reference to the container that will be used to accumulate statistics
+		 * @return The stream
+		*/
+		Container& get_container() noexcept
 		{
-			link* next = m_Free;
-			while (next)
-			{
-				link* prev = next;
-				next = next->Next;
-				m_Alloc.deallocate(prev, Max);
-			}
+			return m_Container;
+		}
+
+		/**
+		 * @brief Return a const reference to the container that will be used to accumulate statistics
+		 * @return The stream
+		*/
+		const Container& get_container() const noexcept
+		{
+			return m_Container;
 		}
 
 	private:
+		Container& m_Container;
 		KTL_EMPTY_BASE Alloc m_Alloc;
-		link* m_Free;
 	};
 }

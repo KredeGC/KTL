@@ -2,6 +2,7 @@
 
 // Allocators
 #include "allocators/cascading.h"
+#include "allocators/debug.h"
 #include "allocators/fallback.h"
 #include "allocators/freelist.h"
 #include "allocators/global.h"

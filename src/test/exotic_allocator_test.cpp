@@ -6,6 +6,7 @@
 
 #define KTL_DEBUG_ASSERT
 #include "ktl/allocators/cascading.h"
+#include "ktl/allocators/debug.h"
 #include "ktl/allocators/fallback.h"
 #include "ktl/allocators/freelist.h"
 #include "ktl/allocators/linear_allocator.h"
@@ -15,6 +16,7 @@
 #include "ktl/allocators/stack_allocator.h"
 
 #include <sstream>
+#include <vector>
 
 // Naming scheme: test_exotic_allocator_[ID]
 // Contains tests of all sorts for exotic composable allocators
@@ -169,5 +171,32 @@ namespace ktl::test::exotic_allocator
 
         KTL_TEST_ASSERT(p1 == p2);
         KTL_TEST_ASSERT(p2 != p3);
+    }
+
+    KTL_ADD_TEST(test_exotic_allocator_7)
+    {
+        struct debug_info
+        {
+            std::string_view File;
+            uint_least32_t Line;
+            size_t Size;
+        };
+
+        std::vector<debug_info> allocations;
+
+        // Create the allocator with std::cerr
+        debug<linear_allocator<1024>, std::vector<debug_info>> alloc(allocations);
+
+        constexpr bool isnoex = detail::has_nothrow_allocate_v<debug<linear_allocator<1024>, std::vector<debug_info>>>;
+
+        // Allocate and deallocate 1 double
+        void* p = alloc.allocate(16);
+        void* p2 = alloc.allocate(64);
+        void* p3 = alloc.allocate(1024);
+            
+        // When it deallocates it should give a message in the standard error stream
+        alloc.deallocate(p, 16);
+        alloc.deallocate(p2, 64);
+        alloc.deallocate(p3, 1024);
     }
 }

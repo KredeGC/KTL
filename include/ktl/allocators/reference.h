@@ -4,6 +4,7 @@
 #include "../utility/alignment.h"
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 #include "reference_fwd.h"
 
 #include <memory>
@@ -59,10 +60,10 @@ namespace ktl
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n)
+		void* allocate(size_t n, const source_location source = KTL_SOURCE())
 			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
-			return m_Alloc->allocate(n);
+			return detail::allocate(*m_Alloc, n, source);
 		}
 
 		void deallocate(void* p, size_t n)
