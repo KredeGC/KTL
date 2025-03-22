@@ -192,11 +192,11 @@ namespace ktl::test::exotic_allocator
         // Allocate and deallocate 1 double
         void* p = alloc.allocate(16);
         void* p2 = alloc.allocate(64);
-        void* p3 = alloc.allocate(1024);
+        void* p3 = alloc.allocate(256);
             
         // When it deallocates it should give a message in the standard error stream
         alloc.deallocate(p, 16);
         alloc.deallocate(p2, 64);
-        alloc.deallocate(p3, 1024);
+        alloc.deallocate(p3, 256);
     }
 }
