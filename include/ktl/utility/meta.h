@@ -34,13 +34,13 @@ namespace ktl::detail
 
 	// has allocate(size_t)
 	template<typename Alloc, typename = void>
-	struct has_allocate : std::false_type {};
+	struct has_plain_allocate : std::false_type {};
 
 	template<typename Alloc>
-	struct has_allocate<Alloc, std::void_t<decltype(std::declval<Alloc&>().allocate(std::declval<size_t>()))>> : std::true_type {};
+	struct has_plain_allocate<Alloc, std::void_t<decltype(std::declval<Alloc&>().allocate(std::declval<size_t>()))>> : std::true_type {};
 
 	template<typename Alloc>
-	constexpr bool has_allocate_v = has_allocate<Alloc>::value;
+	constexpr bool has_plain_allocate_v = has_plain_allocate<Alloc>::value;
 
 	// has construct(T*, Args&&...)
 	template<typename Void, typename... Types>
@@ -97,7 +97,7 @@ namespace ktl::detail
 		: std::bool_constant<noexcept(std::declval<Alloc&>().allocate(std::declval<size_t>(), std::declval<source_location>()))> {};
 
 	template<typename Alloc>
-	constexpr bool has_nothrow_allocate_v = has_nothrow_allocate<Alloc, has_allocate_v<Alloc>>::value;
+	constexpr bool has_nothrow_allocate_v = has_nothrow_allocate<Alloc, has_plain_allocate_v<Alloc>>::value;
 
 	// has deallocate(void*, size_t) noexcept
 	template<typename Alloc>
@@ -160,7 +160,7 @@ namespace ktl::detail
 	template<typename Alloc>
 	void* allocate(Alloc& alloc, size_t n, const source_location source) noexcept(false)
 	{
-		if constexpr (has_allocate_v<Alloc>)
+		if constexpr (has_plain_allocate_v<Alloc>)
 			return alloc.allocate(n);
 		else
 			return alloc.allocate(n, source);
