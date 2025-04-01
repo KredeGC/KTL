@@ -34,7 +34,7 @@ namespace ktl::test::nothrow_allocator
 
 		throwing_allocator(throwing_allocator&&) = default;
 
-		throwing_allocator& operator=(const throwing_allocator&) {}
+		throwing_allocator& operator=(const throwing_allocator&) { return *this; }
 
 		throwing_allocator& operator=(throwing_allocator&&) = default;
 
