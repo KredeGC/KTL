@@ -44,9 +44,6 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: Run premake
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=${{ matrix.dialect }}
-    - uses: mjp41/workaround8649@c8550b715ccdc17f89c8d5c28d7a48eeff9c94a8
-      with:
-        os: ${{ matrix.machine.os }}
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
