@@ -32,6 +32,7 @@ The functionality is fairly stable but should not be expected to be used in a pr
   * [binary_heap interface](#binary_heap-interface)
   * [trivial_array interface](#trivial_array-interface)
   * [trivial_vector interface](#trivial_vector-interface)
+* [Utility classes](#utility-classes)
 * [Allocator examples](#allocator-examples)
 * [Building and running tests](#building-and-running-tests)
 
@@ -88,6 +89,7 @@ If you also want it to be synchronized across multiple threads you can wrap your
 | `null_allocator` | Raw | Shared | An allocator which allocates and owns nothing.<br/>Useful for ensuring that a composite allocator doesn't use a specific path when allocating. |
 | `stack_allocator<Size>` | Raw | Contained | Uses a preallocated `stack<Size>`, which has to be passed in during construction.<br/>Simply increments a counter during allocation, making allocations very fast, but it also rarely deallocates.<br/>Has a max allocation size of the `Size` given. |
 | `cascading<Allocator>` | Composite | Contained | Attempts to allocate using the given allocator, but upon failure will create a new allocator and keep a reference to the old one.<br/>Deallocation can take O(n) time as it may have to traverse multiple allocator instances to find the right one.<br/>The allocator type must be default-constructible, which means the `stack_allocator` can't be used. |
+| `debug<Allocator, Container>` | Composite | Contained | Wraps around an allocator, providing information about allocations by pushing them into the given container. Makes use of `std::source_location` and is only available in C++20 and above. |
 | `fallback<Primary, Fallback>` | Composite | Inherited | Delegates allocation between 2 allocators.<br/>It first attempts to allocate with the `Primary` allocator, but upon failure will use the `Fallback` allocator. |
 | `freelist<Min, Max, Alloc>` | Composite | Contained | Allocates using the given allocator, if the size specified is within the range of `Min` and `Max`, otherwise returns `nullptr`.<br/>When deallocating, it keeps the free memory in a linked list which can be reused on later allocations. |
 | `global<Allocator>` | Composite | Shared | A global static allocator. |
@@ -171,6 +173,14 @@ This library also contains various containers that are STL compliant.
 | `void reserve(size_t size)` | Reserves the size of the array to `size`, without initializing any elements. |
 | `void resize(size_t size)` | Resizes the vector to the given size. |
 | `size_t size() const` | Returns the current amount of elements in the vector. |
+
+# Utility classes
+Some utility functions and classes are also part of the library.
+
+| Signature | Description | Notes |
+| --- | --- | --- |
+| [ipair<br/>\<K, C\>(C&& container)](#ipair) | A function that returns an `ipair_iterable<K, C>`. The returned object wraps around the given container and provides an index whhen iterating through the container. Useful when you want to iterate through a container, but also want to keep an index for each iteration. | The value returned by the iterator can be used with structured binding, such as in an auto for loop:<br/>`for (auto [index, value] : ipair(container)) ...` |
+| [packed_ptr<br/>\<PtrT, IntT, Bits, Min, Max, Alignment\>](#packed_ptr) |  |  |
 
 # Allocator Examples
 The following examples all have `using namespace ktl` or equivalent at the top for brevity.
