@@ -5,6 +5,7 @@
 #include "../utility/assert.h"
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 #include "cascading_fwd.h"
 #include "type_allocator.h"
 
@@ -90,7 +91,7 @@ namespace ktl
 		 * @param n The amount of bytes to allocate memory for
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
-		void* allocate(size_type n) noexcept(
+		void* allocate(size_type n, const source_location source = KTL_SOURCE()) noexcept(
 			std::is_nothrow_default_constructible_v<node> &&
 			detail::has_nothrow_allocate_v<Alloc> &&
 			(!detail::has_max_size_v<Alloc> || detail::has_nothrow_max_size_v<Alloc>))
@@ -105,7 +106,7 @@ namespace ktl
 					return nullptr;
 			}
 
-			void* p = m_Node->Allocator.allocate(n);
+			void* p = detail::allocate(m_Node->Allocator, n, source);
 
 			// If the allocator was unable to allocate it, create a new one
 			if (p == nullptr)
@@ -115,7 +116,7 @@ namespace ktl
 				m_Node = detail::aligned_new<node>(detail::ALIGNMENT);
 				m_Node->Next = next;
 
-				p = m_Node->Allocator.allocate(n);
+				p = detail::allocate(m_Node->Allocator, n, source);
 			}
 
 			if (p)

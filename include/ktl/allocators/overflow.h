@@ -3,8 +3,8 @@
 #include "../utility/assert.h"
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 #include "overflow_fwd.h"
-#include "type_allocator.h"
 
 #include <cstring>
 #include <memory>
@@ -101,13 +101,13 @@ namespace ktl
 		 * @param n The amount of bytes to allocate memory for
 		 * @return A location in memory that is at least @p n bytes big or nullptr if it could not be allocated
 		*/
-		void* allocate(size_type n)
+		void* allocate(size_type n, const source_location source = KTL_SOURCE())
 			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
 			m_Allocs += n;
 
 			size_type size = n + OVERFLOW_SIZE * 2;
-			char* ptr = reinterpret_cast<char*>(m_Alloc.allocate(size));
+			char* ptr = reinterpret_cast<char*>(detail::allocate(m_Alloc, size, source));
 
 			if (!ptr)
 				return nullptr;

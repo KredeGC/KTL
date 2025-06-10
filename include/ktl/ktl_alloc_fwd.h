@@ -1,6 +1,7 @@
 #pragma once
 
 #include "allocators/cascading_fwd.h"
+#include "allocators/debug_fwd.h"
 #include "allocators/fallback_fwd.h"
 #include "allocators/freelist_fwd.h"
 #include "allocators/global_fwd.h"

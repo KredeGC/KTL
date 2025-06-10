@@ -4,6 +4,7 @@
 #include "../utility/alignment.h"
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 #include "threaded_fwd.h"
 
 #include <atomic>
@@ -58,18 +59,31 @@ namespace ktl
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n) // Lock cannot be noexcept
+		void* allocate(size_t n, const source_location source = KTL_SOURCE())
+			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			try
+			{
+				std::lock_guard<std::mutex> lock(m_Lock);
 
-			return m_Alloc.allocate(n);
+				return m_Alloc.allocate(n, source);
+			}
+			catch (const std::system_error&)
+			{
+				return nullptr;
+			}
 		}
 
-		void deallocate(void* p, size_t n) // Lock cannot be noexcept
+		void deallocate(void* p, size_t n)
+			noexcept(detail::has_nothrow_deallocate_v<Alloc>)
 		{
-			std::lock_guard<std::mutex> lock(m_Lock);
+			try
+			{
+				std::lock_guard<std::mutex> lock(m_Lock);
 
-			m_Alloc.deallocate(p, n);
+				m_Alloc.deallocate(p, n);
+			}
+			catch (const std::system_error&) {}
 		}
 #pragma endregion
 

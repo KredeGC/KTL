@@ -4,6 +4,7 @@
 #include "../utility/alignment.h"
 #include "../utility/empty_base.h"
 #include "../utility/meta.h"
+#include "../utility/source_location.h"
 #include "global_fwd.h"
 
 #include <memory>
@@ -39,21 +40,21 @@ namespace ktl
 			return *this;
 		}
 
-		bool operator==(const global& rhs) const
+		bool operator==(const global& rhs) const noexcept
 		{
 			return true;
 		}
 
-		bool operator!=(const global& rhs) const
+		bool operator!=(const global& rhs) const noexcept
 		{
 			return true;
 		}
 
 #pragma region Allocation
-		void* allocate(size_t n)
+		void* allocate(size_t n, const source_location source = KTL_SOURCE())
 			noexcept(detail::has_nothrow_allocate_v<Alloc>)
 		{
-			return s_Alloc.allocate(n);
+			return detail::allocate(s_Alloc, n, source);
 		}
 
 		void deallocate(void* p, size_t n)

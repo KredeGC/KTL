@@ -2,6 +2,7 @@
 
 // Allocators
 #include "allocators/cascading.h"
+#include "allocators/debug.h"
 #include "allocators/fallback.h"
 #include "allocators/freelist.h"
 #include "allocators/global.h"
@@ -18,6 +19,7 @@
 
 // Containers
 #include "containers/binary_heap.h"
+#include "containers/ipair.h"
 #include "containers/packed_ptr.h"
 #include "containers/trivial_array.h"
 #include "containers/trivial_buffer.h"
