@@ -45,12 +45,12 @@ jobs:
     - name: Run premake
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=${{ matrix.dialect }}
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
-        languages: cpp
+        languages: c-cpp
     - name: Build
       run: premake5 build --config=${{ matrix.config }}
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
     - name: Run test
       run: premake5 test --config=${{ matrix.config }}
