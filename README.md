@@ -179,7 +179,7 @@ Some utility functions and classes are also part of the library.
 
 | Signature | Description | Notes |
 | --- | --- | --- |
-| [ipair<br/>\<K, C\>(C&& container)](#ipair) | A function that returns an `ipair_iterable<K, C>`. The returned object wraps around the given container and provides an index whhen iterating through the container. Useful when you want to iterate through a container, but also want to keep an index for each iteration. | The value returned by the iterator can be used with structured binding, such as in an auto for loop:<br/>`for (auto [index, value] : ipair(container)) ...` |
+| [ipair<br/>\<K, C\>(C&& container)](#ipair) | A function that returns an `ipair_iterable<K, C>` where `K` is the index type (default `size_t`) and `C` is the container type. The returned object wraps around the given container and provides an index whhen iterating through the container. Useful when you want to iterate through a container, but also want to keep an index for each iteration. | The value returned by the iterator can be used with structured binding, such as in an auto for loop:<br/>`for (auto [index, value] : ipair(container)) ...` |
 | [packed_ptr<br/>\<PtrT, IntT, Bits, Min, Max, Alignment\>](#packed_ptr) |  |  |
 
 # Allocator Examples
