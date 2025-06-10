@@ -91,7 +91,9 @@ namespace ktl
             return *this;
         }
 
-        ipair_iterator operator++(int) noexcept(noexcept(++std::declval<K&>()) && noexcept(++std::declval<I&>()))
+        template<typename IT = I>
+        typename std::enable_if_t<std::is_copy_constructible_v<ipair_iterator<K, IT>>, ipair_iterator>
+        operator++(int) noexcept(std::is_nothrow_copy_constructible_v<ipair_iterator> && noexcept(++std::declval<K&>()) && noexcept(++std::declval<I&>()))
         {
             ipair_iterator iter = *this;
             ++m_Iterator;
@@ -109,8 +111,8 @@ namespace ktl
         }
 
         template<typename IT = I>
-        typename std::enable_if_t<detail::is_decrementable_v<IT>, ipair_iterator>
-        operator--(int) noexcept(noexcept(--std::declval<K&>()) && noexcept(--std::declval<I&>()))
+        typename std::enable_if_t<std::is_copy_constructible_v<ipair_iterator<K, IT>> && detail::is_decrementable_v<IT>, ipair_iterator>
+        operator--(int) noexcept(std::is_nothrow_copy_constructible_v<ipair_iterator> && noexcept(--std::declval<K&>()) && noexcept(--std::declval<I&>()))
         {
             ipair_iterator iter = *this;
             --m_Iterator;
