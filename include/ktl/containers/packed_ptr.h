@@ -11,6 +11,7 @@ namespace ktl
 	/**
 	 * @brief A packed pointer-like type which takes advantage of any bits that don't get used due to alignment
 	 * @tparam PtrT The pointer type to use
+	 * @tparam IntT The integer type to use
 	*/
 	template<typename PtrT, typename IntT, size_t Bits, IntT Min, IntT Max, size_t Alignment>
 	class packed_ptr
@@ -19,10 +20,11 @@ namespace ktl
 		static constexpr uintmax_t FREE_BITS = detail::log2(Alignment);
 
 	private:
+		static_assert(!std::is_const_v<PtrT>, "Pointer type cannot be const");
+		static_assert(!std::is_const_v<IntT>, "Integer type cannot be const");
 		static_assert(std::is_pointer_v<PtrT>, "Type must be a pointer");
 		static_assert(Bits <= FREE_BITS, "The number of bits in use cannot surpass the number of free bits");
 		static_assert(std::is_integral_v<IntT>, "The packed type must be an integer");
-		//static_assert(std::is_unsigned_v<IntT>, "Packed integer must be unsigned");
 
 		static constexpr uintptr_t INT_MASK = (1ULL << Bits) - 1ULL;
 		static constexpr uintptr_t PTR_MASK = ~((1ULL << FREE_BITS) - 1ULL);
@@ -37,7 +39,50 @@ namespace ktl
 		{
 			// Pointer must be correctly aligned
 			KTL_ASSERT((reinterpret_cast<size_t>(p) & (Alignment - 1)) == 0);
+
+			// Integer must be between min and max
+			KTL_ASSERT(value >= Min && value <= Max);
 		}
+
+		packed_ptr(PtrT p) noexcept :
+			m_Value(from_ptr(p))
+		{
+			// Pointer must be correctly aligned
+			KTL_ASSERT((reinterpret_cast<size_t>(p) & (Alignment - 1)) == 0);
+		}
+
+		packed_ptr(IntT value) noexcept :
+			m_Value(from_int(value))
+		{
+			// Integer must be between min and max
+			KTL_ASSERT(value >= Min && value <= Max);
+		}
+
+#ifndef KTL_EXPLICIT_POINTER
+		packed_ptr& operator=(PtrT p) noexcept
+		{
+			set_ptr(p);
+			return *this;
+		}
+
+		packed_ptr& operator=(IntT value) noexcept
+		{
+			set_int(value);
+			return *this;
+		}
+
+		template<typename Y = IntT, typename = std::enable_if_t<!std::is_same_v<Y, bool>, Y>>
+		operator PtrT() const noexcept { return get_ptr(); }
+
+		template<typename Y = IntT, typename = std::enable_if_t<!std::is_same_v<Y, bool>, Y>>
+		operator IntT() const noexcept { return get_int(); }
+
+		explicit operator bool() const noexcept { return get_ptr(); }
+#endif // KTL_EXPLICIT_POINTER
+
+		PtrT operator->() const noexcept { return get_ptr(); }
+
+		decltype(*std::declval<PtrT>()) operator*() const noexcept { return *get_ptr(); }
 
 		PtrT get_ptr() const noexcept { return to_ptr(m_Value); }
 
@@ -53,6 +98,7 @@ namespace ktl
 
 		void set_int(IntT value) noexcept
 		{
+			// Integer must be between min and max
 			KTL_ASSERT(value >= Min && value <= Max);
 
 			m_Value = (m_Value & PTR_MASK) | from_int(value);

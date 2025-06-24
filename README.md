@@ -180,7 +180,7 @@ Some utility functions and classes are also part of the library.
 | Signature | Description | Notes |
 | --- | --- | --- |
 | [ipair<br/>\<K, C\>(C&& container)](#ipair) | A function that returns an `ipair_iterable<K, C>` where `K` is the index type (default `size_t`) and `C` is the container type. The returned object wraps around the given container and provides an index whhen iterating through the container. Useful when you want to iterate through a container, but also want to keep an index for each iteration. | The value returned by the iterator can be used with structured binding, such as in an auto for loop:<br/>`for (auto [index, value] : ipair(container)) ...` |
-| [packed_ptr<br/>\<PtrT, IntT, Bits, Min, Max, Alignment\>](#packed_ptr) |  |  |
+| [packed_ptr<br/>\<PtrT, IntT, Bits, Min, Max, Alignment\>](#packed_ptr) | A pointer wrapper that can store data in the lowest bits, taking advantage of memory alignment almost always being 8 bytes or higher. It can store any integer type, including signed and unsigned integers. Useful for packing structs tightly in order to reduce memory footprint. | Use `set_ptr()`, `get_ptr()`, `set_int()` and `get_int()` to access the pointer and integer values respectively. |
 
 # Allocator Examples
 The following examples all have `using namespace ktl` or equivalent at the top for brevity.
