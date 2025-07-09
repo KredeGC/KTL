@@ -42,29 +42,6 @@ namespace ktl::test::packed_ptr
         KTL_TEST_ASSERT(in_value == pack.get_int());
     }
 
-    KTL_ADD_TEST(test_packed_lambda_ptr)
-    {
-        auto in_ptr = [](void* a, void* b)
-            {
-                *reinterpret_cast<double*>(a) = 4.0;
-                *reinterpret_cast<double*>(b) = 4.0;
-            };
-        int in_value = 2;
-
-        ktl::packed_ptr<void(void*, void*), int, 0, 2, 4> pack(in_ptr, in_value);
-
-        double a;
-        double b;
-
-        pack(&a, &b);
-
-        KTL_TEST_ASSERT(a == 4.0);
-        KTL_TEST_ASSERT(b == 4.0);
-
-        KTL_TEST_ASSERT(in_ptr == pack.get_ptr());
-        KTL_TEST_ASSERT(in_value == pack.get_int());
-    }
-
     KTL_ADD_TEST(test_packed_ptr_enum)
     {
         int t;

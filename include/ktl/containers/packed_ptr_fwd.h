@@ -51,13 +51,6 @@ namespace ktl
 			using type = std::underlying_type_t<T>;
 		};
 
-		// Function types
-		template<typename T>
-		struct underlying_type<T, std::enable_if_t<std::is_function_v<T>>>
-		{
-			using type = uint64_t;
-		};
-
 		// Pointer types, but not function pointers
 		template<typename T>
 		struct underlying_type<T, std::enable_if_t<std::is_pointer_v<T> && !is_function_pointer_v<T>>>
