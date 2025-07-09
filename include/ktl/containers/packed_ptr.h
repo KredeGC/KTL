@@ -75,6 +75,14 @@ namespace ktl
 			return *this;
 		}
 
+		friend bool operator==(packed_ptr pack, PtrT p) noexcept { return pack.get_ptr() == p; }
+
+		friend bool operator==(packed_ptr pack, IntT n) noexcept { return pack.get_int() == n; }
+
+		friend bool operator==(PtrT p, packed_ptr pack) noexcept { return pack.get_ptr() == p; }
+
+		friend bool operator==(IntT n, packed_ptr pack) noexcept { return pack.get_int() == n; }
+
 		template<typename Y = IntT, typename = std::enable_if_t<!std::is_same_v<Y, bool>, Y>>
 		operator PtrT() const noexcept { return get_ptr(); }
 
@@ -87,6 +95,9 @@ namespace ktl
 		PtrT operator->() const noexcept { return get_ptr(); }
 
 		decltype(*std::declval<PtrT>()) operator*() const noexcept { return *get_ptr(); }
+
+		template<typename... Ts>
+		auto operator()(Ts&&... args) const noexcept { return get_ptr()(std::forward<Ts>(args) ...); }
 
 		PtrT get_ptr() const noexcept { return to_ptr(m_Value); }
 

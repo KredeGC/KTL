@@ -30,6 +30,13 @@ namespace ktl::test::packed_ptr
         uint16_t a;
     };
 
+    // A more complex function, so that it cannot be inlined
+    void complex_func(void* a, void* b)
+    {
+        *reinterpret_cast<double*>(a) = 4.0;
+        *reinterpret_cast<double*>(b) = 4.0;
+    }
+
     KTL_ADD_TEST(test_packed_ptr_stack)
     {
         int t;
@@ -37,6 +44,25 @@ namespace ktl::test::packed_ptr
         uint16_t in_value = 2;
 
         ktl::packed_ptr<int*, uint16_t> pack(in_ptr, in_value);
+
+        KTL_TEST_ASSERT(in_ptr == pack.get_ptr());
+        KTL_TEST_ASSERT(in_value == pack.get_int());
+    }
+
+    KTL_ADD_TEST(test_packed_func_ptr)
+    {
+        void(*in_ptr)(void*, void*) = &complex_func;
+        int in_value = 2;
+
+        ktl::packed_ptr<void(*)(void*, void*), int> pack(in_ptr, in_value);
+
+        double a;
+        double b;
+
+        pack(&a, &b);
+
+        KTL_TEST_ASSERT(a == 4.0);
+        KTL_TEST_ASSERT(b == 4.0);
 
         KTL_TEST_ASSERT(in_ptr == pack.get_ptr());
         KTL_TEST_ASSERT(in_value == pack.get_int());
