@@ -30,12 +30,26 @@ namespace ktl::test::packed_ptr
         uint16_t a;
     };
 
+    template<typename R, typename... Ts>
+    using ppff = R(Ts...);
+
     // A more complex function, so that it cannot be inlined
     void complex_func(void* a, void* b)
     {
+        volatile uint64_t c = 42;
         *reinterpret_cast<double*>(a) = 4.0;
         *reinterpret_cast<double*>(b) = 4.0;
     }
+
+    struct A
+    {
+        static void complex_func(void* a, void* b)
+        {
+            volatile uint64_t c = 42;
+            *reinterpret_cast<double*>(a) = 4.0;
+            *reinterpret_cast<double*>(b) = 4.0;
+        }
+    };
 
     KTL_ADD_TEST(test_packed_ptr_stack)
     {
@@ -51,10 +65,16 @@ namespace ktl::test::packed_ptr
 
     KTL_ADD_TEST(test_packed_func_ptr)
     {
-        void(*in_ptr)(void*, void*) = &complex_func;
+        auto in_ptr = A::complex_func;
         int in_value = 2;
+        
+        auto in_ptr2 = [](void* a, void* b)
+            {
+                *reinterpret_cast<double*>(a) = 4.0;
+                *reinterpret_cast<double*>(b) = 4.0;
+            };
 
-        ktl::packed_ptr<void(*)(void*, void*), int> pack(in_ptr, in_value);
+        ktl::packed_ptr<void(void*, void*), int, 0, 3, 4> pack(in_ptr, in_value);
 
         double a;
         double b;
