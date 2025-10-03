@@ -12,6 +12,13 @@
 
 namespace ktl::test::packed_ptr
 {
+    enum class test_enum : char
+    {
+        First,
+        Second,
+        Third
+    };
+
     struct alignas(16) struct16
     {
         double a;
@@ -29,7 +36,19 @@ namespace ktl::test::packed_ptr
         int* in_ptr = &t;
         uint16_t in_value = 2;
 
-        ktl::packed_ptr<int*, uint16_t, 2> pack(in_ptr, in_value);
+        ktl::packed_ptr<int*, uint16_t> pack(in_ptr, in_value);
+
+        KTL_TEST_ASSERT(in_ptr == pack.get_ptr());
+        KTL_TEST_ASSERT(in_value == pack.get_int());
+    }
+
+    KTL_ADD_TEST(test_packed_ptr_enum)
+    {
+        int t;
+        int* in_ptr = &t;
+        test_enum in_value = test_enum::Third;
+
+        ktl::packed_ptr<int*, test_enum, test_enum::First, test_enum::Third> pack(in_ptr, in_value);
 
         KTL_TEST_ASSERT(in_ptr == pack.get_ptr());
         KTL_TEST_ASSERT(in_value == pack.get_int());
@@ -42,7 +61,7 @@ namespace ktl::test::packed_ptr
         double* in_ptr = alloc.allocate(1);
         int in_value = -2;
 
-        ktl::packed_ptr<const double*, int, 2> pack;
+        ktl::packed_ptr<const double*, int> pack;
 
         pack.set_ptr(in_ptr);
         pack.set_int(in_value);
@@ -59,7 +78,9 @@ namespace ktl::test::packed_ptr
         struct16* in_ptr = &ptr_value;
         int in_value = -7;
 
-        ktl::packed_ptr<struct16*, int, 4> pack;
+        ktl::packed_ptr<struct16*, int> pack;
+
+        static_assert(ktl::packed_ptr<struct16*, int>::FreeBits == 4);
 
         pack.set_ptr(in_ptr);
         pack.set_int(in_value);
@@ -74,7 +95,9 @@ namespace ktl::test::packed_ptr
         struct2* in_ptr = &ptr_value;
         bool in_value = true;
 
-        ktl::packed_ptr<struct2*, bool, 1> pack;
+        ktl::packed_ptr<struct2*, bool> pack;
+
+        static_assert(ktl::packed_ptr<struct2*, bool>::FreeBits == 1);
 
         pack.set_ptr(in_ptr);
         pack.set_int(in_value);
@@ -92,7 +115,7 @@ namespace ktl::test::packed_ptr
 
         ktl::packed_ptr<struct16*, int> pack;
 
-        static_assert(ktl::packed_ptr<struct16*, int>::FREE_BITS == 4);
+        static_assert(ktl::packed_ptr<struct16*, int>::FreeBits == 4);
 
         pack = in_ptr;
         pack = in_value;
@@ -114,7 +137,7 @@ namespace ktl::test::packed_ptr
         struct16* in_ptr = &ptr_value;
         ktl::packed_ptr<struct16*, int> pack_ptr = &ptr_value;
 
-        static_assert(ktl::packed_ptr<struct16*, int>::FREE_BITS == 4);
+        static_assert(ktl::packed_ptr<struct16*, int>::FreeBits == 4);
 
         pack_ptr->a = 1.0;
         in_ptr->b = -1.0;
