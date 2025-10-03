@@ -270,7 +270,7 @@ namespace ktl
 
 				if (m_Begin != nullptr)
 				{
-					std::memcpy(alBlock, m_Begin, std::min(curSize, n) * sizeof(T));
+					std::memcpy(alBlock, m_Begin, (std::min)(curSize, n) * sizeof(T));
 					Traits::deallocate(m_Alloc, m_Begin, curSize);
 				}
 

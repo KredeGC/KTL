@@ -53,7 +53,7 @@ namespace ktl::detail
         return _mm_malloc(size, alignment);
 #elif KTL_HAS_POSIX_MEMALIGN
         void* res;
-        const int failed = posix_memalign(&res, size, alignment);
+        const int failed = posix_memalign(&res, alignment, size);
         if (failed) res = nullptr;
         return res;
 #elif defined(_MSC_VER)

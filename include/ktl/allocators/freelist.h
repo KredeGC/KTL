@@ -120,7 +120,7 @@ namespace ktl
 				if (next)
 				{
 					m_Free = next->Next;
-					return next;
+					return std::launder(next);
 				}
 
 				return detail::allocate(m_Alloc, Max, source);
@@ -142,7 +142,7 @@ namespace ktl
 
 			if (n > Min && n <= Max && p)
 			{
-				link* next = reinterpret_cast<link*>(p);
+				link* next = std::launder(reinterpret_cast<link*>(p));
 				next->Next = m_Free;
 				m_Free = next;
 			}
