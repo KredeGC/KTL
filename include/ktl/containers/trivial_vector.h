@@ -26,6 +26,8 @@ namespace ktl
 		typedef std::allocator_traits<Alloc> Traits;
 
 	public:
+		using allocator_type = Alloc;
+
 		typedef T* iterator;
 		typedef const T* const_iterator;
         
@@ -202,6 +204,19 @@ namespace ktl
 			other.m_End = nullptr;
 			other.m_EndMax = nullptr;
 			return *this;
+		}
+
+		friend bool operator==(const trivial_vector& lhs, const trivial_vector& rhs) noexcept
+		{
+			if (lhs.size() != rhs.size())
+				return false;
+
+			return std::memcmp(lhs.data(), rhs.data(), lhs.size()) == 0;
+		}
+
+		friend bool operator!=(const trivial_vector& lhs, const trivial_vector& rhs) noexcept
+		{
+			return !(lhs == rhs);
 		}
 
 		/**

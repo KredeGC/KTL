@@ -21,6 +21,7 @@
 #include "containers/binary_heap.h"
 #include "containers/ipair.h"
 #include "containers/packed_ptr.h"
+#include "containers/small_vector.h"
 #include "containers/trivial_array.h"
 #include "containers/trivial_buffer.h"
 #include "containers/trivial_vector.h"
