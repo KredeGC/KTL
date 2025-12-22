@@ -28,7 +28,7 @@ jobs:
       security-events: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - name: Setup premake
       uses: abel0b/setup-premake@v2.2
       with:
@@ -41,16 +41,16 @@ jobs:
       run: sudo apt update && sudo apt install -y clang llvm lld
     - name: Install msbuild to PATH
       if: matrix.machine.toolset == 'msc'
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: Run premake
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=${{ matrix.dialect }}
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: c-cpp
     - name: Build
       run: premake5 build --config=${{ matrix.config }}
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
     - name: Run test
       run: premake5 test --config=${{ matrix.config }}

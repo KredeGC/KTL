@@ -14,9 +14,9 @@ jobs:
       contents: read
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - name: Checkout doxygen awesome
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
       with:
         repository: jothepro/doxygen-awesome-css
         path: doxygen-awesome-css
@@ -29,7 +29,7 @@ jobs:
     - name: Create .nojekyll
       run: touch docs/html/.nojekyll
     - name: Upload documentation
-      uses: actions/upload-pages-artifact@v1
+      uses: actions/upload-pages-artifact@v3
       with:
         path: docs/html
   Deploy:
@@ -47,4 +47,4 @@ jobs:
     steps:
     - name: Deploy documentation
       id: deployment
-      uses: actions/deploy-pages@v1
+      uses: actions/deploy-pages@v4

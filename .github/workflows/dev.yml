@@ -29,7 +29,7 @@ jobs:
       security-events: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - name: Setup premake
       uses: abel0b/setup-premake@v2.2
       with:
@@ -42,7 +42,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y clang llvm lld
     - name: Install msbuild to PATH
       if: matrix.machine.toolset == 'msc'
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: Run premake
       run: premake5 ${{ matrix.machine.action }} --toolset=${{ matrix.machine.toolset }} --dialect=C++17
     - name: Build
