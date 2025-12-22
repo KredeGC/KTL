@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - name: Copy LICENSE
       run: cp LICENSE include/ktl/LICENSE
     - name: Create VERSION.txt
@@ -35,7 +35,7 @@ jobs:
     - name: Tar headers
       run: tar czvf KTL.tar.gz include/ktl
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           KTL.zip
