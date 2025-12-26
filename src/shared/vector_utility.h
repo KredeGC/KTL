@@ -1,12 +1,18 @@
 #pragma once
+
 #include "assert_utility.h"
+#include "random.h"
 #include "types.h"
-#include <iostream>
+
 namespace ktl::test
 {
     template<typename Vec, typename T>
-    void assert_vector_push_back(Vec& vec, const T* values, size_t amount)
+    void assert_vector_push_back(Vec& vec, T* values, size_t amount)
     {
+        // Allocate with random values
+        std::shuffle(values, values + amount, random_generator);
+
+        // Push back in random order
         for (size_t i = 0; i < amount; ++i)
             vec.push_back(values[i]);
 
@@ -23,12 +29,29 @@ namespace ktl::test
             KTL_TEST_ASSERT(element == values[counter++]);
         
         // Assert erase first element
-        for (size_t i = 0; i < amount; ++i)
+        for (size_t i = 0; i < amount / 2; ++i)
         {
             auto iter = vec.begin();
             KTL_TEST_ASSERT(*iter == values[i]);
             KTL_TEST_ASSERT(vec.erase(iter) == vec.begin());
         }
+
+        KTL_TEST_ASSERT(vec.size() == amount / 2);
+
+        // Assert erase last half at once
+        vec.erase(vec.begin(), vec.end() - 1);
+
+        KTL_TEST_ASSERT(vec.size() == 1);
+        KTL_TEST_ASSERT(*vec.rbegin() == values[amount - 1]);
+
+        // Assert emplace at begin
+        vec.emplace(vec.begin(), values[0]);
+        KTL_TEST_ASSERT(vec.size() == 2);
+        KTL_TEST_ASSERT(*vec.begin() == values[0]);
+
+        // Assert pop_back
+        vec.pop_back();
+        vec.pop_back();
         
         // Assert size
         KTL_TEST_ASSERT(vec.begin() == vec.end());
@@ -37,6 +60,7 @@ namespace ktl::test
         vec.clear();
 
         KTL_TEST_ASSERT(vec.size() == 0);
+        KTL_TEST_ASSERT(vec.empty());
     }
 
     template<typename T, typename Vec>

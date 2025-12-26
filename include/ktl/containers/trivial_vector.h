@@ -397,7 +397,7 @@ namespace ktl
             
             std::memmove(const_cast<iterator>(iter + 1), iter, (m_End - iter) * sizeof(T));
             
-			*iter = T(std::forward<Args>(args)...);
+			*const_cast<iterator>(iter) = T(std::forward<Args>(args)...);
 			m_End++;
 		}
         
@@ -439,7 +439,7 @@ namespace ktl
 		 * @brief Removes the last element from the vector and returns it.
 		 * @return The last element in the vector.
 		*/
-		T pop_back() noexcept { return m_Begin[--m_End]; }
+		T pop_back() noexcept { return *(--m_End); }
 
 		/**
 		 * @brief Clears all elements in the vector.

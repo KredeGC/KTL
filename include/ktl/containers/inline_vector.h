@@ -253,9 +253,9 @@ namespace ktl
 
 		const_iterator begin() const noexcept { return iterator_at_index(0); }
 
-		iterator end() noexcept { return iterator_at_index(Capacity); }
+		iterator end() noexcept { return iterator_at_index(m_Size); }
 
-		const_iterator end() const noexcept { return iterator_at_index(Capacity); }
+		const_iterator end() const noexcept { return iterator_at_index(m_Size); }
 
 		reverse_iterator rbegin() noexcept { return std::reverse_iterator(end()); }
 
@@ -276,7 +276,7 @@ namespace ktl
 		 * @brief Returns the current capacity of the vector.
 		 * @return The current capacity of the vector in number of elements.
 		*/
-		size_t capacity() const noexcept { return Capacity; }
+		constexpr size_t capacity() const noexcept { return Capacity; }
 
 		/**
 		 * @brief Returns true if the vector has no elements.
@@ -319,6 +319,11 @@ namespace ktl
 				for (size_t i = m_Size; i < n; ++i)
 				{
 					new (iterator_at_index(i)) T();
+				}
+
+				for (size_t i = n; i < m_Size; ++i)
+				{
+					iterator_at_index(i)->~T();
 				}
 			}
 
@@ -404,21 +409,38 @@ namespace ktl
 		 * @return An iterator to the element that was added.
 		*/
 		template<typename... Args>
-		void emplace(const_iterator iter, Args&&... args) noexcept
+		iterator emplace(const_iterator const_iter, Args&&... args) noexcept
 		{
-			KTL_ASSERT(iter >= begin() && iter <= end());
+			KTL_ASSERT(const_iter >= begin() && const_iter <= end());
+			KTL_ASSERT(m_Size + 1 <= Capacity);
+
+			T* iter = const_cast<iterator>(const_iter);
 
 			if constexpr (std::is_trivial_v<T>)
 			{
-				std::memmove(const_cast<iterator>(iter + 1), iter, (end() - iter) * sizeof(T));
-
-				*iter = T(std::forward<Args>(args)...);
-				++m_Size;
+				std::memmove(iter + 1, iter, (end() - iter) * sizeof(T));
 			}
 			else
 			{
-				// TODO: Move each
+				T* last = end();
+				T* next_last = end() - 1;
+
+				if (iter != last)
+				{
+					for (auto own_iter = iter; own_iter != next_last; ++own_iter)
+					{
+						*own_iter = std::move(*(own_iter + 1));
+					}
+
+					new (last) T(std::move(*next_last));
+				}
 			}
+
+			*iter = T(std::forward<Args>(args)...);
+
+			++m_Size;
+
+			return iter;
 		}
 
 		/**
@@ -433,16 +455,18 @@ namespace ktl
 			if constexpr (std::is_trivial_v<T>)
 			{
 				std::memmove(const_cast<iterator>(iter), iter + 1, ((end() - iter) - 1) * sizeof(T));
-
-				--m_Size;
 			}
 			else
 			{
-				for (; iter < end() - 1; ++iter)
+				for (auto own_iter = const_cast<iterator>(iter); own_iter != end() - 1; ++own_iter)
 				{
-					*iter = std::move(iter + 1);
+					*own_iter = std::move(*(own_iter + 1));
 				}
+
+				rbegin()->~T();
 			}
+
+			--m_Size;
 
 			return const_cast<iterator>(iter);
 		}
@@ -463,16 +487,21 @@ namespace ktl
 			if constexpr (std::is_trivial_v<T>)
 			{
 				std::memmove(const_cast<iterator>(first), last, (end() - last) * sizeof(T));
-
-				m_Size -= diff;
 			}
 			else
 			{
-				for (auto iter = first; iter < end() - diff; ++iter)
+				for (auto iter = const_cast<iterator>(first); iter != end() - diff; ++iter)
 				{
-					*iter = std::move(iter + diff);
+					*iter = std::move(*(iter + diff));
+				}
+
+				for (auto iter = end() - diff; iter != end(); ++iter)
+				{
+					iter->~T();
 				}
 			}
+
+			m_Size -= diff;
 
 			return const_cast<iterator>(first);
 		}
@@ -483,7 +512,20 @@ namespace ktl
 		*/
 		T pop_back() noexcept
 		{
-			return *iterator_at_index(--m_Size);
+			if constexpr (std::is_trivial_v<T>)
+			{
+				return *iterator_at_index(--m_Size);
+			}
+			else
+			{
+				T* iter = iterator_at_index(--m_Size);
+
+				T value = std::move(*iter);
+
+				iter->~T();
+
+				return value;
+			}
 		}
 
 		/**
