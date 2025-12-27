@@ -370,7 +370,22 @@ namespace ktl
 		{
 			move_if_growing(size() + 1);
 
-			return std::visit([&](auto& v) { return v.emplace(iter, std::forward<Args>(args) ...); }, m_Data);
+			// TODO: Reverse this. I don't like using native std::vector<T>::iterator
+			if (m_Data.index() == 0)
+			{
+				size_type diff = iter - begin();
+
+				T* p = std::get<inline_vec>(m_Data).emplace(&(*iter), std::forward<Args>(args) ...);
+
+				iterator i = begin();
+				std::advance(i, diff);
+
+				return i;
+			}
+			else
+			{
+				return std::get<Vec>(m_Data).emplace(iter, std::forward<Args>(args) ...);
+			}
 		}
 
 		/**
