@@ -329,7 +329,7 @@ namespace ktl
 		 * @param index The index of the element in the vector. Must be less than size().
 		 * @return A reference to the element at @p index.
 		*/
-		reference at(size_t index) noexcept { KTL_ASSERT(index < size()); return iterator_at_index(index); }
+		reference at(size_t index) noexcept { KTL_ASSERT(index < size()); return *iterator_at_index(index); }
 
 		/**
 		 * @brief Returns a reference to the element at @p index.
@@ -337,7 +337,7 @@ namespace ktl
 		 * @param index The index of the element in the vector. Must be less than size().
 		 * @return A reference to the element at @p index.
 		*/
-		const_reference at(size_t index) const noexcept { KTL_ASSERT(index < size()); return iterator_at_index(index); }
+		const_reference at(size_t index) const noexcept { KTL_ASSERT(index < size()); return *iterator_at_index(index); }
 
 
 		/**
@@ -367,52 +367,19 @@ namespace ktl
 		/**
 		 * @brief Pushes a new element into the vector by copying it.
 		 * @param value The element to copy into the vector.
-		 * @return An iterator to the element that was added.
 		*/
-		iterator push_back(const T& element) noexcept
+		void push_back(const T& element) noexcept
 		{
-			return emplace_back(element);
+			emplace_back(element);
 		}
 
 		/**
 		 * @brief Pushes a new element into the vector by moving it.
 		 * @param value The element to move into the vector.
-		 * @return An iterator to the element that was added.
 		*/
-		iterator push_back(T&& element) noexcept
+		void push_back(T&& element) noexcept
 		{
-			return emplace_back(std::move(element));
-		}
-
-		/**
-		 * @brief Pushes a range of values into the vector.
-		 * @param first A pointer to the first element.
-		 * @param last A pointer one element past the last element.
-		 * @return An iterator to the element that was added.
-		*/
-		iterator push_back(const T* first, const T* last) noexcept
-		{
-			const size_t n = (last - first);
-
-			KTL_ASSERT(m_Size + n <= Capacity);
-
-			T* last_element = end();
-
-			if constexpr (std::is_trivial_v<T>)
-			{
-				m_Size += n;
-
-				std::memcpy(last_element, first, n * sizeof(T));
-			}
-			else
-			{
-				for (; first != last; ++first)
-				{
-					emplace_back(*first);
-				}
-			}
-
-			return last_element;
+			emplace_back(std::move(element));
 		}
 
 		/**
@@ -422,7 +389,7 @@ namespace ktl
 		 * @return An iterator to the element that was added.
 		*/
 		template<typename... Args>
-		iterator emplace_back(Args&&... args) noexcept
+		reference emplace_back(Args&&... args) noexcept
 		{
 			KTL_ASSERT(m_Size < Capacity);
 
@@ -432,7 +399,7 @@ namespace ktl
 
 			++m_Size;
 
-			return index;
+			return *index;
 		}
 
 		/**

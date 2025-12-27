@@ -16,104 +16,82 @@
 #include "ktl/allocators/stack_allocator.h"
 #include "ktl/allocators/type_allocator.h"
 
-// Naming scheme: test_small_vector_[Alloc]_[Type]
-// Contains tests that relate directly to the ktl::small_vector
+// Naming scheme: test_sbo_vector_[Alloc]_[Type]
+// Contains tests that relate directly to the ktl::sbo_vector
 
-namespace ktl::test::small_vector
+namespace ktl::test::sbo_vector
 {
-    //KTL_ADD_TEST(test_small_vector_construct)
-    //{
-    //    using Alloc = ktl::type_shared_linear_allocator<double, 2048>;
-    //    using Container = ktl::small_trivial_vector<double, Alloc>;
+    KTL_ADD_TEST(test_sbo_vector_construct)
+    {
+        using Container = ktl::sbo_vector<double, std::vector<double>>;
 
-    //    constexpr size_t size = 4;
+        constexpr size_t size = 4;
 
-    //    double values[] = {
-    //        4.0,
-    //        8.0,
-    //        -1.0,
-    //        10.0
-    //    };
+        double values[] = {
+            4.0,
+            8.0,
+            -1.0,
+            10.0
+        };
 
-    //    Container baseContainer;
+        Container baseContainer;
 
-    //    Alloc allocator;
+        assert_construct_container<Container>(
+            [&](Container& lhs, Container& rhs)
+            {
+                // Comparison function
+                for (size_t i = 0; i < size; i++)
+                    KTL_TEST_ASSERT(lhs[i] == rhs[i]);
+            },
+            [&]()
+            {
+                // Push some elements
+                for (size_t i = 0; i < size; i++)
+                    baseContainer.push_back(values[i]);
 
-    //    assert_construct_container<Container>(
-    //        [&](Container& lhs, Container& rhs)
-    //        {
-    //            // Comparison function
-    //            for (size_t i = 0; i < size; i++)
-    //                KTL_TEST_ASSERT(lhs[i] == rhs[i]);
-    //        },
-    //        [&]()
-    //        {
-    //            // Push some elements
-    //            for (size_t i = 0; i < size; i++)
-    //                baseContainer.push_back(values[i]);
+                return baseContainer;
+            },
+            [&]()
+            {
+                // Construct using initializer list
+                return Container{ values[0], values[1], values[2], values[3] };
+            },
+            [&]()
+            {
+                // Construct from pointer range
+                return Container(values, values + size);
+            });
+    }
 
-    //            return baseContainer;
-    //        },
-    //        [&]()
-    //        {
-    //            // Construct using initializer list
-    //            return Container{ values[0], values[1], values[2], values[3] };
-    //        },
-    //        [&]()
-    //        {
-    //            // Construct from pointer range
-    //            return Container(values, values + size);
-    //        },
-    //        [&]()
-    //        {
-    //            // Construct by copying using a different allocator
-    //            Container container(baseContainer, trivial_vector<double, Alloc>(allocator));
+    KTL_ADD_TEST(test_sbo_vector_linear_double)
+    {
+        ktl::sbo_vector<double, std::vector<double>> vec;
+        assert_vector_values<double>(vec);
+    }
 
-    //            KTL_TEST_ASSERT(allocator.owns(container.begin()));
+    /*KTL_ADD_TEST(test_sbo_vector_linear_trivial)
+    {
+        ktl::small_trivial_vector<trivial_t, type_linear_allocator<trivial_t, 4096>> vec;
+        assert_vector_values<trivial_t>(vec);
+    }
 
-    //            return container;
-    //        },
-    //        [&]()
-    //        {
-    //            // Construct by moving using a different allocator
-    //            Container container(std::move(baseContainer), trivial_vector<double, Alloc>(allocator));
+    KTL_ADD_TEST(test_sbo_vector_stack_double)
+    {
+        using Alloc = ktl::type_stack_allocator<double, 4096>;
 
-    //            KTL_TEST_ASSERT(baseContainer.empty());
-    //            KTL_TEST_ASSERT(allocator.owns(container.begin()));
+        stack<4096> block;
+        Alloc alloc(ktl::stack_allocator<4096>{ block });
+        ktl::small_trivial_vector<double, Alloc> vec(trivial_vector<double, Alloc>(alloc));
+        assert_vector_values<double>(vec);
+    }
 
-    //            return container;
-    //        });
-    //}
+    KTL_ADD_TEST(test_sbo_vector_stack_trivial)
+    {
+        using Alloc = ktl::type_stack_allocator<trivial_t, 4096>;
 
-    //KTL_ADD_TEST(test_small_vector_linear_double)
-    //{
-    //    ktl::small_trivial_vector<double, type_linear_allocator<double, 4096>> vec;
-    //    assert_vector_values<double>(vec);
-    //}
-
-    //KTL_ADD_TEST(test_small_vector_linear_trivial)
-    //{
-    //    ktl::small_trivial_vector<trivial_t, type_linear_allocator<trivial_t, 4096>> vec;
-    //    assert_vector_values<trivial_t>(vec);
-    //}
-
-    //KTL_ADD_TEST(test_small_vector_stack_double)
-    //{
-    //    using Alloc = ktl::type_stack_allocator<double, 4096>;
-
-    //    stack<4096> block;
-    //    Alloc alloc(ktl::stack_allocator<4096>{ block });
-    //    ktl::small_trivial_vector<double, Alloc> vec(trivial_vector<double, Alloc>(alloc));
-    //    assert_vector_values<double>(vec);
-    //}
-
-    //KTL_ADD_TEST(test_small_vector_stack_trivial)
-    //{
-    //    using Alloc = ktl::type_stack_allocator<trivial_t, 4096>;
-
-    //    stack<4096> block;
-    //    Alloc alloc(ktl::stack_allocator<4096>{ block });
-    //    ktl::small_trivial_vector<trivial_t, Alloc> vec(trivial_vector<double, Alloc>(alloc));
-    //    assert_vector_values<trivial_t>(vec);
-    //}
+        stack<4096> block;
+        Alloc alloc(ktl::stack_allocator<4096>{ block });
+        ktl::small_trivial_vector<trivial_t, Alloc> vec(trivial_vector<double, Alloc>(alloc));
+        assert_vector_values<trivial_t>(vec);
+    }*/
 }
