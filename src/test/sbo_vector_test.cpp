@@ -7,7 +7,7 @@
 #define KTL_DEBUG_ASSERT
 #include "ktl/ktl_alloc_fwd.h"
 
-#include "ktl/containers/small_vector.h"
+#include "ktl/containers/sbo_vector.h"
 #include "ktl/containers/trivial_vector.h"
 
 #include "ktl/allocators/linear_allocator.h"

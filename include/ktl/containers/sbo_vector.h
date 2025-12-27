@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../utility/assert.h"
-#include "small_vector_fwd.h"
+#include "sbo_vector_fwd.h"
 
 #include <cstring>
 #include <iterator>

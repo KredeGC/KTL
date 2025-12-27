@@ -1,6 +1,7 @@
 #pragma once
 
 #include "containers/binary_heap_fwd.h"
-#include "containers/small_vector_fwd.h"
+#include "containers/inline_vector_fwd.h"
+#include "containers/sbo_vector_fwd.h"
 #include "containers/trivial_array_fwd.h"
 #include "containers/trivial_vector_fwd.h"
