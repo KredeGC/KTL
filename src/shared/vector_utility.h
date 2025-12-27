@@ -42,12 +42,12 @@ namespace ktl::test
         vec.erase(vec.begin(), vec.end() - 1);
 
         KTL_TEST_ASSERT(vec.size() == 1);
-        KTL_TEST_ASSERT(*vec.rbegin() == values[amount - 1]);
+        KTL_TEST_ASSERT(vec.back() == values[amount - 1]);
 
         // Assert emplace at begin
         vec.emplace(vec.begin(), values[0]);
         KTL_TEST_ASSERT(vec.size() == 2);
-        KTL_TEST_ASSERT(*vec.begin() == values[0]);
+        KTL_TEST_ASSERT(vec.front() == values[0]);
 
         // Assert pop_back
         vec.pop_back();

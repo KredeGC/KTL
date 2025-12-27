@@ -12,7 +12,7 @@
 namespace ktl
 {
 	/**
-	 * @brief A dynamically allocated vector or trivial types
+	 * @brief A dynamically allocated vector of trivial types
 	 * @tparam T The type to use. Must be trivially copyable and default constructible
 	 * @tparam Alloc The type of allocoator to use
 	*/
@@ -23,16 +23,22 @@ namespace ktl
 		static_assert(std::is_default_constructible<T>::value, "Template class needs to be default constructible");
 		static_assert(std::is_trivially_copyable<T>::value, "Template class needs to be trivially copyable");
 
-		typedef std::allocator_traits<Alloc> Traits;
+		using Traits = std::allocator_traits<Alloc>;
 
 	public:
 		using allocator_type = Alloc;
+		using value_type = T;
+		using size_type = size_t;
+		using difference_type = std::ptrdiff_t;
 
-		typedef T* iterator;
-		typedef const T* const_iterator;
-        
-        typedef std::reverse_iterator<T*> reverse_iterator;
-        typedef std::reverse_iterator<const T*> const_reverse_iterator;
+		using reference = T&;
+		using const_reference = const T&;
+
+		using iterator = T*;
+		using const_iterator = const T*;
+
+		using reverse_iterator = std::reverse_iterator<T*>;
+		using const_reverse_iterator = std::reverse_iterator<const T*>;
 
 	public:
 		/**
@@ -251,6 +257,14 @@ namespace ktl
 		reverse_iterator rend() noexcept { return std::reverse_iterator(m_Begin); }
 
 		const_reverse_iterator rend() const noexcept { return std::reverse_iterator(m_Begin); }
+
+		T& front() noexcept { return *begin(); }
+
+		const T& front() const noexcept { return *begin(); }
+
+		T& back() noexcept { return *rbegin(); }
+
+		const T& back() const noexcept { return *rbegin(); }
 
 
 		/**

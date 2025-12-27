@@ -11,6 +11,11 @@
 
 namespace ktl
 {
+	/**
+	 * @brief A stack allocated vector with a given maximum capacity
+	 * @tparam T The type to use
+	 * @tparam Capacity The capacity for the vector
+	*/
 	template<typename T, size_t Capacity>
 	class inline_vector
 	{
@@ -18,11 +23,18 @@ namespace ktl
 		static_assert(std::is_default_constructible<T>::value, "Template class needs to be default constructible");
 
 	public:
-		typedef T* iterator;
-		typedef const T* const_iterator;
+		using value_type = T;
+		using size_type = size_t;
+		using difference_type = std::ptrdiff_t;
 
-		typedef std::reverse_iterator<T*> reverse_iterator;
-		typedef std::reverse_iterator<const T*> const_reverse_iterator;
+		using reference = T&;
+		using const_reference = const T&;
+
+		using iterator = T*;
+		using const_iterator = const T*;
+
+		using reverse_iterator = std::reverse_iterator<T*>;
+		using const_reverse_iterator = std::reverse_iterator<const T*>;
 
 	public:
 		/**
@@ -265,6 +277,14 @@ namespace ktl
 
 		const_reverse_iterator rend() const noexcept { return std::reverse_iterator(begin()); }
 
+		reference front() noexcept { return *begin(); }
+
+		const_reference front() const noexcept { return *begin(); }
+
+		reference back() noexcept { return *rbegin(); }
+
+		const_reference back() const noexcept { return *rbegin(); }
+
 
 		/**
 		 * @brief Returns the current size of the vector.
@@ -273,8 +293,14 @@ namespace ktl
 		size_t size() const noexcept { return m_Size; }
 
 		/**
-		 * @brief Returns the current capacity of the vector.
-		 * @return The current capacity of the vector in number of elements.
+		 * @brief Returns the capacity of the vector.
+		 * @return The capacity of the vector in number of elements.
+		*/
+		constexpr size_t max_size() const noexcept { return Capacity; }
+
+		/**
+		 * @brief Returns the capacity of the vector.
+		 * @return The capacity of the vector in number of elements.
 		*/
 		constexpr size_t capacity() const noexcept { return Capacity; }
 
@@ -303,7 +329,15 @@ namespace ktl
 		 * @param index The index of the element in the vector. Must be less than size().
 		 * @return A reference to the element at @p index.
 		*/
-		T& at(size_t index) const noexcept { KTL_ASSERT(index < size()); return iterator_at_index(index); }
+		reference at(size_t index) noexcept { KTL_ASSERT(index < size()); return iterator_at_index(index); }
+
+		/**
+		 * @brief Returns a reference to the element at @p index.
+		 * @note An index higher than size() will produce undefined behaviour.
+		 * @param index The index of the element in the vector. Must be less than size().
+		 * @return A reference to the element at @p index.
+		*/
+		const_reference at(size_t index) const noexcept { KTL_ASSERT(index < size()); return iterator_at_index(index); }
 
 
 		/**
@@ -510,7 +544,7 @@ namespace ktl
 		 * @brief Removes the last element from the vector and returns it.
 		 * @return The last element in the vector.
 		*/
-		T pop_back() noexcept
+		value_type pop_back() noexcept
 		{
 			if constexpr (std::is_trivial_v<T>)
 			{

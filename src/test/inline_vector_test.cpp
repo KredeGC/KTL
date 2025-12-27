@@ -57,7 +57,7 @@ namespace ktl::test::inline_vector
     {
         ktl::inline_vector<double, 8> vec;
 
-        
+        assert_vector_values<double>(vec);
     }
 
     KTL_ADD_TEST(test_inline_vector_trivial)
