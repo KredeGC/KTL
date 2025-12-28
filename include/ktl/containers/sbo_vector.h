@@ -493,16 +493,16 @@ namespace ktl
 			return iter;
 		}
 
-		template<typename = std::enable_if_t<!std::is_same_v<iterator, typename Vec::iterator>>>
-		iterator to_inline_iterator(typename Vec::iterator iter) noexcept
+		template<typename V = Vec, typename = std::enable_if_t<!std::is_same_v<iterator, typename V::iterator>>>
+		iterator to_inline_iterator(typename V::iterator iter) noexcept
 		{
 			size_type diff = std::distance(std::get<Vec>(m_Data).begin(), iter);
 
 			return std::get<Vec>(m_Data).data() + diff;
 		}
 
-		template<typename = std::enable_if_t<!std::is_same_v<iterator, typename Vec::iterator>>>
-		const_iterator to_inline_iterator(typename Vec::const_iterator iter) const noexcept
+		template<typename V = Vec, typename = std::enable_if_t<!std::is_same_v<iterator, typename V::iterator>>>
+		const_iterator to_inline_iterator(typename V::const_iterator iter) const noexcept
 		{
 			size_type diff = std::distance(std::get<Vec>(m_Data).begin(), iter);
 
@@ -533,8 +533,8 @@ namespace ktl
 			return iter;
 		}
 
-		template<typename = std::enable_if_t<!std::is_same_v<reverse_iterator, typename Vec::reverse_iterator>>>
-		reverse_iterator to_reverse_iterator(typename Vec::reverse_iterator iter) noexcept
+		template<typename V = Vec, typename = std::enable_if_t<!std::is_same_v<reverse_iterator, typename V::reverse_iterator>>>
+		reverse_iterator to_reverse_iterator(typename V::reverse_iterator iter) noexcept
 		{
 			difference_type diff = std::distance(std::get<Vec>(m_Data).rbegin(), iter);
 
@@ -544,8 +544,8 @@ namespace ktl
 			return inline_iter;
 		}
 
-		template<typename = std::enable_if_t<!std::is_same_v<reverse_iterator, typename Vec::reverse_iterator>>>
-		const_reverse_iterator to_reverse_iterator(typename Vec::const_reverse_iterator iter) const noexcept
+		template<typename V = Vec, typename = std::enable_if_t<!std::is_same_v<reverse_iterator, typename V::reverse_iterator>>>
+		const_reverse_iterator to_reverse_iterator(typename V::const_reverse_iterator iter) const noexcept
 		{
 			difference_type diff = std::distance(std::get<Vec>(m_Data).rbegin(), iter);
 
