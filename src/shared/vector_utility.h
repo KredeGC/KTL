@@ -38,6 +38,14 @@ namespace ktl::test
 
         KTL_TEST_ASSERT(vec.size() == amount / 2);
 
+        // Assert operator[]
+        counter = amount;
+        for (auto iter = vec.rbegin(); iter != vec.rend(); ++iter)
+            KTL_TEST_ASSERT(*iter == values[--counter]);
+
+        for (size_t i = 0; i < amount / 2; ++i)
+            KTL_TEST_ASSERT(vec[i] == values[amount / 2 + i]);
+
         // Assert erase last half at once
         vec.erase(vec.begin(), vec.end() - 1);
 

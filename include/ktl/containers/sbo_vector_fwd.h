@@ -1,9 +1,7 @@
 #pragma once
 
-#include <memory>
-
 namespace ktl
 {
-	template<typename T, typename Vec>
+	template<typename Vec>
 	class sbo_vector;
 }

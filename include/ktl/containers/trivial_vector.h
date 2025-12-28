@@ -385,13 +385,13 @@ namespace ktl
 		 * @return An iterator to the element that was added.
 		*/
 		template<typename... Args>
-		iterator emplace_back(Args&&... args) noexcept
+		reference emplace_back(Args&&... args) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
 			*m_End = T(std::forward<Args>(args)...);
 
-			return m_End++;
+			return *(m_End++);
 		}
 
 		/**
@@ -402,17 +402,21 @@ namespace ktl
 		 * @return An iterator to the element that was added.
 		*/
 		template<typename... Args>
-		void emplace(const_iterator iter, Args&&... args) noexcept
+		iterator emplace(const_iterator const_iter, Args&&... args) noexcept
 		{
-            KTL_ASSERT(iter >= m_Begin && iter <= m_End);
+            KTL_ASSERT(const_iter >= m_Begin && const_iter <= m_End);
+
+			T* iter = const_cast<iterator>(const_iter);
             
 			if (m_End == m_EndMax)
 				expand(1);
             
-            std::memmove(const_cast<iterator>(iter + 1), iter, (m_End - iter) * sizeof(T));
+            std::memmove(iter + 1, iter, (m_End - iter) * sizeof(T));
             
-			*const_cast<iterator>(iter) = T(std::forward<Args>(args)...);
+			*iter = T(std::forward<Args>(args)...);
 			m_End++;
+
+			return iter;
 		}
         
         /**
