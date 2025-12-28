@@ -142,9 +142,9 @@ namespace ktl
 				return std::get<inline_vec>(lhs.m_Data) == std::get<inline_vec>(rhs.m_Data);
 			case 1:
 				return std::get<Vec>(lhs.m_Data) == std::get<Vec>(rhs.m_Data);
+			default:
+				KTL_UNREACHABLE();
 			}
-
-			KTL_UNREACHABLE();
 		}
 
 		friend bool operator!=(const sbo_vector& lhs, const sbo_vector& rhs) noexcept
@@ -396,9 +396,9 @@ namespace ktl
 				return std::get<inline_vec>(m_Data).emplace(iter, std::forward<Args>(args) ...);
 			case 1:
 				return to_inline_iterator(std::get<Vec>(m_Data).emplace(to_vector_iterator(iter), std::forward<Args>(args) ...));
+			default:
+				KTL_UNREACHABLE();
 			}
-
-			KTL_UNREACHABLE();
 		}
 
 		/**
@@ -414,9 +414,9 @@ namespace ktl
 				return std::get<inline_vec>(m_Data).erase(iter);
 			case 1:
 				return to_inline_iterator(std::get<Vec>(m_Data).erase(to_vector_iterator(iter)));
+			default:
+				KTL_UNREACHABLE();
 			}
-
-			KTL_UNREACHABLE();
 		}
 
 		/**
@@ -433,9 +433,9 @@ namespace ktl
 				return std::get<inline_vec>(m_Data).erase(first, last);
 			case 1:
 				return to_inline_iterator(std::get<Vec>(m_Data).erase(to_vector_iterator(first), to_vector_iterator(last)));
+			default:
+				KTL_UNREACHABLE();
 			}
-
-			KTL_UNREACHABLE();
 		}
 
 		/**
@@ -446,14 +446,14 @@ namespace ktl
 			switch (m_Data.index())
 			{
 			case 0:
-				std::get<inline_vec>(m_Data).pop_back();
+				std::get<0>(m_Data).pop_back();
 				break;
 			case 1:
-				std::get<Vec>(m_Data).pop_back();
+				std::get<1>(m_Data).pop_back();
 				break;
+			default:
+				KTL_UNREACHABLE();
 			}
-
-			KTL_UNREACHABLE();
 		}
 
 		/**
