@@ -301,7 +301,7 @@ namespace ktl
 		*/
 		const_reference at(size_t index) const noexcept
 		{
-			return std::visit([&index](auto& v) -> const const_reference { return v.at(index); }, m_Data);
+			return std::visit([&index](auto& v) -> const_reference { return v.at(index); }, m_Data);
 		}
 
 
