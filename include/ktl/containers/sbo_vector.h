@@ -57,12 +57,19 @@ namespace ktl
 		 * @brief Construct the vector with the given allocator
 		 * @param allocator The allocator to use
 		*/
+		explicit sbo_vector(const allocator_type& alloc) noexcept :
+			m_Data(std::in_place_type<Vec>, alloc) {}
+
+		/**
+		 * @brief Construct the vector with the vector
+		 * @param vec The vector to use
+		*/
 		explicit sbo_vector(const Vec& vec) noexcept :
 			m_Data(std::in_place_type<Vec>, vec) {}
 
 		/**
-		 * @brief Construct the vector with the given allocator
-		 * @param allocator The allocator to use
+		 * @brief Construct the vector with the given vector
+		 * @param vec The vector to use
 		*/
 		explicit sbo_vector(Vec&& vec) noexcept :
 			m_Data(std::in_place_type<Vec>, std::move(vec)) {}
