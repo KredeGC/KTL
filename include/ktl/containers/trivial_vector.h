@@ -12,7 +12,7 @@
 namespace ktl
 {
 	/**
-	 * @brief A dynamically allocated vector or trivial types
+	 * @brief A dynamically allocated vector of trivial types
 	 * @tparam T The type to use. Must be trivially copyable and default constructible
 	 * @tparam Alloc The type of allocoator to use
 	*/
@@ -23,14 +23,22 @@ namespace ktl
 		static_assert(std::is_default_constructible<T>::value, "Template class needs to be default constructible");
 		static_assert(std::is_trivially_copyable<T>::value, "Template class needs to be trivially copyable");
 
-		typedef std::allocator_traits<Alloc> Traits;
+		using Traits = std::allocator_traits<Alloc>;
 
 	public:
-		typedef T* iterator;
-		typedef const T* const_iterator;
-        
-        typedef std::reverse_iterator<T*> reverse_iterator;
-        typedef std::reverse_iterator<const T*> const_reverse_iterator;
+		using allocator_type = Alloc;
+		using value_type = T;
+		using size_type = size_t;
+		using difference_type = std::ptrdiff_t;
+
+		using reference = T&;
+		using const_reference = const T&;
+
+		using iterator = T*;
+		using const_iterator = const T*;
+
+		using reverse_iterator = std::reverse_iterator<T*>;
+		using const_reverse_iterator = std::reverse_iterator<const T*>;
 
 	public:
 		/**
@@ -204,6 +212,19 @@ namespace ktl
 			return *this;
 		}
 
+		friend bool operator==(const trivial_vector& lhs, const trivial_vector& rhs) noexcept
+		{
+			if (lhs.size() != rhs.size())
+				return false;
+
+			return std::memcmp(lhs.data(), rhs.data(), lhs.size()) == 0;
+		}
+
+		friend bool operator!=(const trivial_vector& lhs, const trivial_vector& rhs) noexcept
+		{
+			return !(lhs == rhs);
+		}
+
 		/**
 		 * @brief Returns a reference to the element at @p index.
 		 * @note An index higher than size() will produce undefined behaviour.
@@ -236,6 +257,14 @@ namespace ktl
 		reverse_iterator rend() noexcept { return std::reverse_iterator(m_Begin); }
 
 		const_reverse_iterator rend() const noexcept { return std::reverse_iterator(m_Begin); }
+
+		T& front() noexcept { return *begin(); }
+
+		const T& front() const noexcept { return *begin(); }
+
+		T& back() noexcept { return *rbegin(); }
+
+		const T& back() const noexcept { return *rbegin(); }
 
 
 		/**
@@ -356,13 +385,13 @@ namespace ktl
 		 * @return An iterator to the element that was added.
 		*/
 		template<typename... Args>
-		iterator emplace_back(Args&&... args) noexcept
+		reference emplace_back(Args&&... args) noexcept
 		{
 			if (m_End == m_EndMax)
 				expand(1);
 			*m_End = T(std::forward<Args>(args)...);
 
-			return m_End++;
+			return *(m_End++);
 		}
 
 		/**
@@ -373,17 +402,21 @@ namespace ktl
 		 * @return An iterator to the element that was added.
 		*/
 		template<typename... Args>
-		void emplace(const_iterator iter, Args&&... args) noexcept
+		iterator emplace(const_iterator const_iter, Args&&... args) noexcept
 		{
-            KTL_ASSERT(iter >= m_Begin && iter <= m_End);
+            KTL_ASSERT(const_iter >= m_Begin && const_iter <= m_End);
+
+			T* iter = const_cast<iterator>(const_iter);
             
 			if (m_End == m_EndMax)
 				expand(1);
             
-            std::memmove(const_cast<iterator>(iter + 1), iter, (m_End - iter) * sizeof(T));
+            std::memmove(iter + 1, iter, (m_End - iter) * sizeof(T));
             
 			*iter = T(std::forward<Args>(args)...);
 			m_End++;
+
+			return iter;
 		}
         
         /**
@@ -424,7 +457,7 @@ namespace ktl
 		 * @brief Removes the last element from the vector and returns it.
 		 * @return The last element in the vector.
 		*/
-		T pop_back() noexcept { return m_Begin[--m_End]; }
+		T pop_back() noexcept { return *(--m_End); }
 
 		/**
 		 * @brief Clears all elements in the vector.

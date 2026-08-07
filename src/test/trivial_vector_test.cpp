@@ -42,8 +42,7 @@ namespace ktl::test::trivial_vector
             [&](Container& lhs, Container& rhs)
         {
             // Comparison function
-            for (size_t i = 0; i < size; i++)
-                KTL_TEST_ASSERT(lhs[i] == rhs[i]);
+            KTL_TEST_ASSERT(lhs == rhs);
         }, [&]()
         {
             // Push some elements
