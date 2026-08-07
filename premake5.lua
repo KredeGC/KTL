@@ -25,7 +25,7 @@ newoption {
     trigger = "dialect",
     value = "Dialect (eg. C++17, C++20)",
     description = "The dialect to use when generating project files",
-    default = "C++17",
+    default = "C++23",
 }
 
 require "scripts/build"
@@ -81,7 +81,5 @@ project "Test"
         symbols "on"
         
     filter "configurations:Release"
-        flags { "LinkTimeOptimization" }
-
         runtime "Release"
         optimize "on"
